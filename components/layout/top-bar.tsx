@@ -1,6 +1,9 @@
 import { Role } from "@prisma/client";
+import Link from "next/link";
 
 import { SignOutButton } from "@/components/layout/sign-out-button";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export function TopBar({
   name,
@@ -18,6 +21,14 @@ export function TopBar({
         <h2 className="text-xl font-semibold">Build-out operations workspace</h2>
       </div>
       <div className="flex items-center gap-3">
+        {role === Role.OWNER_ADMIN ? (
+          <Link
+            href="/settings/account"
+            className={cn(buttonVariants({ variant: "outline" }))}
+          >
+            Account settings
+          </Link>
+        ) : null}
         <div className="text-right">
           <p className="text-sm font-medium">{name}</p>
           <p className="text-xs text-muted-foreground">

@@ -2,9 +2,13 @@
 
 import { ActivityType, Role, TaskStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { compare, hash } from "bcryptjs";
+import { ZodError } from "zod";
 
 import { prisma } from "@/lib/prisma";
 import {
+  accountEmailSchema,
+  accountPasswordSchema,
   budgetUpdateSchema,
   messageSchema,
   taskCommentSchema,
@@ -12,10 +16,35 @@ import {
   timelineUpdateSchema
 } from "@/lib/validators";
 import { logActivity } from "@/server/activity";
-import { requireSession } from "@/server/authz";
+import { requireOwner, requireSession } from "@/server/authz";
 
 function parseDate(value?: string | null) {
   return value ? new Date(value) : null;
+}
+
+type AccountActionState = {
+  status: "idle" | "success" | "error";
+  message?: string;
+  fieldErrors?: Record<string, string[] | undefined>;
+};
+
+export const initialAccountActionState: AccountActionState = {
+  status: "idle"
+};
+
+function validationErrorState(error: unknown): AccountActionState {
+  if (error instanceof ZodError) {
+    return {
+      status: "error",
+      message: "Please correct the highlighted fields.",
+      fieldErrors: error.flatten().fieldErrors
+    };
+  }
+
+  return {
+    status: "error",
+    message: "Unable to save changes right now."
+  };
 }
 
 export async function updateTaskAction(formData: FormData) {
@@ -201,4 +230,131 @@ export async function createMessageAction(formData: FormData) {
 
   revalidatePath("/messages");
   revalidatePath("/dashboard");
+}
+
+export async function updateOwnerEmailAction(
+  _previousState: AccountActionState,
+  formData: FormData
+): Promise<AccountActionState> {
+  const session = await requireOwner();
+
+  try {
+    const parsed = accountEmailSchema.parse(Object.fromEntries(formData));
+    const email = parsed.email.toLowerCase();
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { email: true }
+    });
+
+    if (!user) {
+      return {
+        status: "error",
+        message: "User account not found."
+      };
+    }
+
+    if (user.email === email) {
+      return {
+        status: "success",
+        message: "Email address is already up to date."
+      };
+    }
+
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true }
+    });
+
+    if (existingUser && existingUser.id !== session.user.id) {
+      return {
+        status: "error",
+        message: "That email address is already in use."
+      };
+    }
+
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: { email }
+    });
+
+    revalidatePath("/settings/account");
+
+    return {
+      status: "success",
+      message: "Email address updated."
+    };
+  } catch (error) {
+    return validationErrorState(error);
+  }
+}
+
+export async function updateOwnerPasswordAction(
+  _previousState: AccountActionState,
+  formData: FormData
+): Promise<AccountActionState> {
+  const session = await requireOwner();
+
+  try {
+    const parsed = accountPasswordSchema.parse(Object.fromEntries(formData));
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { passwordHash: true }
+    });
+
+    if (!user) {
+      return {
+        status: "error",
+        message: "User account not found."
+      };
+    }
+
+    const currentPasswordMatches = await compare(
+      parsed.currentPassword,
+      user.passwordHash
+    );
+
+    if (!currentPasswordMatches) {
+      return {
+        status: "error",
+        message: "Current password is incorrect.",
+        fieldErrors: {
+          currentPassword: ["Current password is incorrect."]
+        }
+      };
+    }
+
+    const newPasswordMatchesCurrent = await compare(
+      parsed.newPassword,
+      user.passwordHash
+    );
+
+    if (newPasswordMatchesCurrent) {
+      return {
+        status: "error",
+        message: "Choose a new password that is different from the current password.",
+        fieldErrors: {
+          newPassword: [
+            "Choose a new password that is different from the current password."
+          ]
+        }
+      };
+    }
+
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: {
+        passwordHash: await hash(parsed.newPassword, 10)
+      }
+    });
+
+    revalidatePath("/settings/account");
+
+    return {
+      status: "success",
+      message: "Password updated."
+    };
+  } catch (error) {
+    return validationErrorState(error);
+  }
 }
