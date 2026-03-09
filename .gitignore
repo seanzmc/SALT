@@ -1,0 +1,9 @@
+.next
+node_modules
+public/uploads/*
+!public/uploads/.gitkeep
+tsconfig.tsbuildinfo
+.env
+.env.local
+.env.*.local
+*.docx

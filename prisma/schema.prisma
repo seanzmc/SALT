@@ -1,0 +1,355 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  OWNER_ADMIN
+  COLLABORATOR
+}
+
+enum TaskStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  BLOCKED
+  COMPLETE
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum OpeningPriority {
+  MUST_HAVE_BEFORE_OPENING
+  CAN_PHASE_IN
+  OPTIONAL_UPGRADE
+}
+
+enum DocumentCategory {
+  PERMIT
+  CONTRACT
+  INSURANCE
+  VENDOR_QUOTE
+  EQUIPMENT_SPEC
+  FLOOR_PLAN
+  INSPECTION_RECORD
+  POLICY_MANUAL
+  COMPLIANCE_DOCUMENT
+  INVOICE
+  PHOTO
+  OTHER
+}
+
+enum ActivityType {
+  TASK_CREATED
+  TASK_UPDATED
+  TASK_STATUS_CHANGED
+  TASK_ASSIGNED
+  TASK_COMMENTED
+  BUDGET_UPDATED
+  DOCUMENT_UPLOADED
+  TIMELINE_UPDATED
+  MESSAGE_POSTED
+  AUTH_SIGN_IN
+}
+
+enum TimelinePhaseStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  BLOCKED
+  COMPLETE
+}
+
+enum PaymentStatus {
+  NOT_PAID
+  DEPOSIT_DUE
+  PARTIALLY_PAID
+  PAID
+}
+
+enum MessageThreadScope {
+  GENERAL
+  TASK
+}
+
+enum MessageThreadCategory {
+  GENERAL
+  OPERATIONS
+  PROCUREMENT
+  COMPLIANCE
+  MARKETING
+  LAUNCH
+}
+
+model User {
+  id               String         @id @default(cuid())
+  name             String
+  email            String         @unique
+  passwordHash     String
+  role             Role
+  assignedTasks    Task[]         @relation("TaskAssignee")
+  createdTasks     Task[]         @relation("TaskCreator")
+  taskComments     TaskComment[]
+  documents        Document[]
+  messages         Message[]
+  budgetItems      BudgetItem[]   @relation("BudgetResponsibleOwner")
+  activities       ActivityLog[]
+  createdThreads   MessageThread[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+model Section {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  description String?
+  sortOrder   Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tasks       Task[]
+}
+
+model Task {
+  id                   String           @id @default(cuid())
+  sectionId            String
+  phaseId              String?
+  createdById          String
+  title                String
+  description          String?
+  notes                String?
+  priority             Priority         @default(MEDIUM)
+  status               TaskStatus       @default(NOT_STARTED)
+  openingPriority      OpeningPriority
+  dueDate              DateTime?
+  completedAt          DateTime?
+  blockedReason        String?
+  roomName             String?
+  isRiskItem           Boolean          @default(false)
+  isVerificationNote   Boolean          @default(false)
+  isMasterOpeningItem  Boolean          @default(false)
+  isRoomProcurement    Boolean          @default(false)
+  isPdfPlaceholder     Boolean          @default(false)
+  section              Section          @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  phase                TimelinePhase?   @relation(fields: [phaseId], references: [id], onDelete: SetNull)
+  createdBy            User             @relation("TaskCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  assignedToId         String?
+  assignedTo           User?            @relation("TaskAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  subtasks             Subtask[]
+  taskDependencies     TaskDependency[] @relation("TaskDependencies")
+  dependsOn            TaskDependency[] @relation("TaskDependencyDependsOn")
+  comments             TaskComment[]
+  attachments          TaskAttachment[]
+  linkedDocuments      Document[]        @relation("LinkedTaskDocuments")
+  activities           ActivityLog[]
+  thread               MessageThread?
+  taskTags             TaskTag[]
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  @@index([sectionId, status])
+  @@index([phaseId])
+  @@index([assignedToId])
+}
+
+model Subtask {
+  id        String   @id @default(cuid())
+  taskId     String
+  title      String
+  notes      String?
+  isComplete Boolean  @default(false)
+  sortOrder  Int      @default(0)
+  task       Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model TaskDependency {
+  id              String   @id @default(cuid())
+  taskId          String
+  dependsOnTaskId String
+  task            Task     @relation("TaskDependencies", fields: [taskId], references: [id], onDelete: Cascade)
+  dependsOnTask   Task     @relation("TaskDependencyDependsOn", fields: [dependsOnTaskId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+
+  @@unique([taskId, dependsOnTaskId])
+}
+
+model TaskComment {
+  id        String   @id @default(cuid())
+  taskId     String
+  authorId   String
+  content    String
+  task       Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  author     User     @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  createdAt  DateTime @default(now())
+}
+
+model TaskAttachment {
+  id          String   @id @default(cuid())
+  taskId       String
+  documentId   String
+  task         Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  document     Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+
+  @@unique([taskId, documentId])
+}
+
+model TimelinePhase {
+  id          String              @id @default(cuid())
+  slug        String              @unique
+  title       String
+  description String?
+  sortOrder   Int
+  status      TimelinePhaseStatus @default(NOT_STARTED)
+  startDate   DateTime?
+  endDate     DateTime?
+  notes       String?
+  blockers    String?
+  milestones  Milestone[]
+  tasks       Task[]
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+}
+
+model Milestone {
+  id          String              @id @default(cuid())
+  phaseId      String
+  title        String
+  notes        String?
+  dueDate      DateTime?
+  completedAt  DateTime?
+  status       TimelinePhaseStatus @default(NOT_STARTED)
+  phase        TimelinePhase       @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+}
+
+model BudgetCategory {
+  id          String       @id @default(cuid())
+  slug        String       @unique
+  title       String
+  description String?
+  sortOrder   Int
+  items       BudgetItem[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model BudgetItem {
+  id                  String          @id @default(cuid())
+  categoryId          String
+  lineItem            String
+  priority            Priority
+  openingPriority     OpeningPriority
+  estimate            Decimal         @db.Decimal(10, 2)
+  actual              Decimal         @default(0) @db.Decimal(10, 2)
+  vendor              String?
+  depositDue          DateTime?
+  leadTimeDays        Int?
+  responsibleOwnerId  String?
+  notes               String?
+  paidStatus          PaymentStatus   @default(NOT_PAID)
+  isPdfPlaceholder    Boolean         @default(false)
+  category            BudgetCategory  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  responsibleOwner    User?           @relation("BudgetResponsibleOwner", fields: [responsibleOwnerId], references: [id], onDelete: SetNull)
+  documents           Document[]
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  @@index([categoryId])
+}
+
+model Document {
+  id               String           @id @default(cuid())
+  title            String
+  originalName     String
+  storagePath      String
+  mimeType         String
+  size             Int
+  category         DocumentCategory
+  notes            String?
+  uploadedById     String
+  linkedTaskId     String?
+  linkedBudgetItemId String?
+  uploadedBy       User             @relation(fields: [uploadedById], references: [id], onDelete: Restrict)
+  linkedTask       Task?            @relation("LinkedTaskDocuments", fields: [linkedTaskId], references: [id], onDelete: SetNull)
+  linkedBudgetItem BudgetItem?      @relation(fields: [linkedBudgetItemId], references: [id], onDelete: SetNull)
+  taskAttachments  TaskAttachment[]
+  messages         Message[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@index([category])
+}
+
+model MessageThread {
+  id           String                @id @default(cuid())
+  title        String
+  scope        MessageThreadScope
+  category     MessageThreadCategory @default(GENERAL)
+  createdById  String
+  taskId       String?               @unique
+  createdBy    User                  @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  task         Task?                 @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  messages     Message[]
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+
+  @@index([scope, category])
+}
+
+model Message {
+  id                  String        @id @default(cuid())
+  threadId            String
+  authorId            String
+  content             String
+  linkedTaskId        String?
+  attachmentDocumentId String?
+  thread              MessageThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  author              User          @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  attachmentDocument  Document?     @relation(fields: [attachmentDocumentId], references: [id], onDelete: SetNull)
+  createdAt           DateTime      @default(now())
+}
+
+model ActivityLog {
+  id          String       @id @default(cuid())
+  actorId     String?
+  taskId      String?
+  type        ActivityType
+  entityType  String
+  entityId    String
+  description String
+  metadata    Json?
+  actor       User?        @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  task        Task?        @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  createdAt   DateTime     @default(now())
+
+  @@index([entityType, entityId])
+  @@index([taskId])
+}
+
+model Tag {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  color     String?
+  taskTags  TaskTag[]
+  createdAt DateTime  @default(now())
+}
+
+model TaskTag {
+  taskId String
+  tagId  String
+  task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, tagId])
+}
