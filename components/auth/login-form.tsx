@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
@@ -55,14 +56,19 @@ export function LoginForm({ callbackUrl }: { callbackUrl: string }) {
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
             <Input id="password" name="password" type="password" required />
+            <div className="flex justify-end">
+              <Link
+                href="/forgot-password"
+                className="text-sm font-medium text-muted-foreground transition hover:text-foreground"
+              >
+                Forgot password?
+              </Link>
+            </div>
           </div>
           {error ? <p className="text-sm text-danger">{error}</p> : null}
           <Button className="w-full" disabled={loading} type="submit">
             {loading ? "Signing in..." : "Sign in"}
           </Button>
-          <p className="text-xs text-muted-foreground">
-            Change the seeded credentials in the database or seed env vars after first login.
-          </p>
         </form>
       </CardContent>
     </Card>

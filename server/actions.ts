@@ -5,12 +5,20 @@ import { revalidatePath } from "next/cache";
 import { compare, hash } from "bcryptjs";
 import { ZodError } from "zod";
 
+import { sendPasswordResetEmail } from "@/lib/mail";
+import {
+  createPasswordResetToken,
+  getPasswordResetTokenRecord,
+  getPasswordResetUrl
+} from "@/lib/password-reset";
 import { prisma } from "@/lib/prisma";
 import {
   accountEmailSchema,
   accountPasswordSchema,
   budgetUpdateSchema,
+  forgotPasswordSchema,
   messageSchema,
+  resetPasswordSchema,
   taskCommentSchema,
   taskUpdateSchema,
   timelineUpdateSchema
@@ -42,6 +50,9 @@ function validationErrorState(error: unknown): AccountActionState {
     message: "Unable to save changes right now."
   };
 }
+
+const genericPasswordResetMessage =
+  "If an account matches that email, a password reset link has been sent.";
 
 export async function updateTaskAction(formData: FormData) {
   const session = await requireSession();
@@ -349,6 +360,121 @@ export async function updateOwnerPasswordAction(
     return {
       status: "success",
       message: "Password updated."
+    };
+  } catch (error) {
+    return validationErrorState(error);
+  }
+}
+
+export async function requestPasswordResetAction(
+  _previousState: AccountActionState,
+  formData: FormData
+): Promise<AccountActionState> {
+  try {
+    const parsed = forgotPasswordSchema.parse(Object.fromEntries(formData));
+    const email = parsed.email.toLowerCase();
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true, email: true, name: true }
+    });
+
+    if (user) {
+      const { token, tokenHash, expiresAt } = createPasswordResetToken();
+
+      await prisma.passwordResetToken.deleteMany({
+        where: {
+          userId: user.id,
+          OR: [{ usedAt: null }, { expiresAt: { lt: new Date() } }]
+        }
+      });
+
+      await prisma.passwordResetToken.create({
+        data: {
+          userId: user.id,
+          tokenHash,
+          expiresAt
+        }
+      });
+
+      try {
+        await sendPasswordResetEmail({
+          email: user.email,
+          name: user.name,
+          resetUrl: getPasswordResetUrl(token)
+        });
+      } catch (error) {
+        console.error("[password-reset] Failed to send reset email", error);
+      }
+    }
+
+    return {
+      status: "success",
+      message: genericPasswordResetMessage
+    };
+  } catch (error) {
+    return validationErrorState(error);
+  }
+}
+
+export async function resetPasswordAction(
+  _previousState: AccountActionState,
+  formData: FormData
+): Promise<AccountActionState> {
+  try {
+    const parsed = resetPasswordSchema.parse(Object.fromEntries(formData));
+    const tokenRecord = await getPasswordResetTokenRecord(parsed.token);
+
+    if (!tokenRecord || tokenRecord.usedAt || tokenRecord.expiresAt <= new Date()) {
+      return {
+        status: "error",
+        message: "This reset link is invalid or has expired. Request a new one to continue."
+      };
+    }
+
+    const newPasswordMatchesCurrent = await compare(
+      parsed.newPassword,
+      tokenRecord.user.passwordHash
+    );
+
+    if (newPasswordMatchesCurrent) {
+      return {
+        status: "error",
+        message: "Choose a new password that is different from the current password.",
+        fieldErrors: {
+          newPassword: [
+            "Choose a new password that is different from the current password."
+          ]
+        }
+      };
+    }
+
+    const nextPasswordHash = await hash(parsed.newPassword, 10);
+
+    // Password updates and token consumption happen together so a link can only be used once.
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: tokenRecord.userId },
+        data: {
+          passwordHash: nextPasswordHash
+        }
+      }),
+      prisma.passwordResetToken.update({
+        where: { id: tokenRecord.id },
+        data: {
+          usedAt: new Date()
+        }
+      }),
+      prisma.passwordResetToken.deleteMany({
+        where: {
+          userId: tokenRecord.userId,
+          id: { not: tokenRecord.id }
+        }
+      })
+    ]);
+
+    return {
+      status: "success",
+      message: "Password updated. You can now sign in with your new password."
     };
   } catch (error) {
     return validationErrorState(error);
