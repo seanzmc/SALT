@@ -21,14 +21,29 @@ export async function saveUploadedFile(file: File) {
     throw new Error("File exceeds 10MB size limit.");
   }
 
-  await mkdir(uploadRoot, { recursive: true });
-
   const extension = path.extname(file.name) || "";
   const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}${extension}`;
   const absolutePath = path.join(uploadRoot, fileName);
   const arrayBuffer = await file.arrayBuffer();
+  const fileBuffer = Buffer.from(arrayBuffer);
 
-  await writeFile(absolutePath, Buffer.from(arrayBuffer));
+  try {
+    await mkdir(uploadRoot, { recursive: true });
+    await writeFile(absolutePath, fileBuffer);
+  } catch (error) {
+    const code =
+      typeof error === "object" && error !== null && "code" in error
+        ? (error as { code?: string }).code
+        : undefined;
+
+    if (code === "EROFS" || code === "EPERM") {
+      throw new Error(
+        "Document uploads require writable local disk storage. This deployment is read-only, so uploads must stay disabled until external object storage is added."
+      );
+    }
+
+    throw error;
+  }
 
   return {
     storagePath: `/uploads/${fileName}`,
