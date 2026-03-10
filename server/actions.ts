@@ -28,10 +28,6 @@ type AccountActionState = {
   fieldErrors?: Record<string, string[] | undefined>;
 };
 
-export const initialAccountActionState: AccountActionState = {
-  status: "idle"
-};
-
 function validationErrorState(error: unknown): AccountActionState {
   if (error instanceof ZodError) {
     return {

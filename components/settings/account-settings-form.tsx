@@ -3,7 +3,6 @@
 import { useFormState, useFormStatus } from "react-dom";
 
 import {
-  initialAccountActionState,
   updateOwnerEmailAction,
   updateOwnerPasswordAction
 } from "@/server/actions";
@@ -47,6 +46,10 @@ function FormMessage({
     </p>
   );
 }
+
+const initialAccountActionState = {
+  status: "idle"
+} as const;
 
 export function AccountSettingsForm({ currentEmail }: { currentEmail: string }) {
   const [emailState, emailAction] = useFormState(
