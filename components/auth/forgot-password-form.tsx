@@ -31,7 +31,7 @@ export function ForgotPasswordForm() {
       <CardHeader>
         <CardTitle>Reset your password</CardTitle>
         <CardDescription>
-          Enter your email address and we&apos;ll send you a link to reset your password.
+          Enter the email you use for SALT and we&apos;ll send you a reset link.
         </CardDescription>
       </CardHeader>
       <CardContent>

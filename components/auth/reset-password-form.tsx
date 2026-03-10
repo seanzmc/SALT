@@ -31,7 +31,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
       <CardHeader>
         <CardTitle>Create a new password</CardTitle>
         <CardDescription>
-          Choose a new password for your account. This reset link can only be used once.
+          Choose a new password for your SALT account. This reset link can only be used once.
         </CardDescription>
       </CardHeader>
       <CardContent>

@@ -18,7 +18,7 @@ export function TopBar({
         <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
           Lakeland, Florida
         </p>
-        <h2 className="text-xl font-semibold">Build-out operations workspace</h2>
+        <h2 className="text-xl font-semibold">SALT operations workspace</h2>
       </div>
       <div className="flex items-center gap-3">
         {role === Role.OWNER_ADMIN ? (

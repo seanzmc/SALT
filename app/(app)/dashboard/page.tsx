@@ -15,7 +15,7 @@ export default async function DashboardPage() {
     <div className="space-y-6">
       <PageHeader
         title="Dashboard"
-        description="Track build-out completion, budget health, upcoming deadlines, document activity, and launch readiness from one protected operations workspace."
+        description="Track SALT progress, budget health, upcoming deadlines, document activity, and launch readiness from one protected workspace."
       />
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">

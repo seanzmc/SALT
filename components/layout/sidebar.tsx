@@ -17,8 +17,8 @@ export function Sidebar() {
           <Building2 className="h-5 w-5" />
         </div>
         <div>
-          <p className="text-sm font-medium text-muted-foreground">Internal Ops</p>
-          <h1 className="text-lg font-semibold">Clinic Buildout Tracker</h1>
+          <p className="text-sm font-medium text-muted-foreground">Skin And Laser Treatment</p>
+          <h1 className="text-lg font-semibold">SALT</h1>
         </div>
       </div>
       <nav className="space-y-2">

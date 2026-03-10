@@ -42,9 +42,9 @@ export function LoginForm({ callbackUrl }: { callbackUrl: string }) {
   return (
     <Card className="w-full max-w-md shadow-xl">
       <CardHeader>
-        <CardTitle>Clinic Buildout Tracker</CardTitle>
+        <CardTitle>SALT</CardTitle>
         <CardDescription>
-          Secure owner and collaborator access for the Lakeland clinic build-out workspace.
+          Sign in to Skin And Laser Treatment.
         </CardDescription>
       </CardHeader>
       <CardContent>

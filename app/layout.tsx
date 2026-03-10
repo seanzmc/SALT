@@ -5,9 +5,12 @@ import { Providers } from "@/components/providers";
 import "@/app/globals.css";
 
 export const metadata: Metadata = {
-  title: "Clinic Buildout Tracker",
+  title: {
+    default: "SALT",
+    template: "%s | SALT"
+  },
   description:
-    "Internal operations platform for planning, budgeting, documenting, and coordinating a clinic buildout."
+    "Skin And Laser Treatment internal operations platform for planning, budgeting, documenting, and coordinating clinic work."
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
