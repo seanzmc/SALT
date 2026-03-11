@@ -99,33 +99,73 @@ export default async function TaskDetailPage({
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Comments</CardTitle>
+              <CardTitle>Task Workspace</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <TaskCommentForm taskId={task.id} />
-              <div className="space-y-3">
-                {task.comments.map((comment) => (
-                  <div key={comment.id} className="rounded-lg border border-border p-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="font-medium">{comment.author.name}</p>
-                      <span className="text-xs text-muted-foreground">
-                        {formatDate(comment.createdAt)}
-                      </span>
+              <details className="rounded-xl border border-border bg-secondary/10" open>
+                <summary className="cursor-pointer list-none px-4 py-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="font-semibold">Documents</p>
+                      <p className="text-sm text-muted-foreground">
+                        Keep task-linked files close to the operational work.
+                      </p>
                     </div>
-                    <p className="mt-2 text-sm text-muted-foreground">{comment.content}</p>
+                    <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                      Toggle
+                    </span>
                   </div>
-                ))}
-              </div>
+                </summary>
+                <div className="border-t border-border px-4 py-4">
+                  <TaskDocumentManager
+                    attachments={task.attachments as never}
+                    availableDocuments={availableDocuments}
+                    canManageDocuments={canManageTaskDocuments}
+                    isArchived={Boolean(task.archivedAt)}
+                    taskId={task.id}
+                  />
+                </div>
+              </details>
+
+              <details className="rounded-xl border border-border bg-secondary/10" open>
+                <summary className="cursor-pointer list-none px-4 py-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="font-semibold">Comments</p>
+                      <p className="text-sm text-muted-foreground">
+                        Capture the latest update, handoff note, or blocker discussion.
+                      </p>
+                    </div>
+                    <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                      Toggle
+                    </span>
+                  </div>
+                </summary>
+                <div className="border-t border-border px-4 py-4 space-y-4">
+                  <TaskCommentForm taskId={task.id} />
+                  <div className="space-y-3">
+                    {task.comments.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">
+                        No comments yet. Add the latest operational note or decision here.
+                      </p>
+                    ) : (
+                      task.comments.map((comment) => (
+                        <div key={comment.id} className="rounded-lg border border-border p-3">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="font-medium">{comment.author.name}</p>
+                            <span className="text-xs text-muted-foreground">
+                              {formatDate(comment.createdAt)}
+                            </span>
+                          </div>
+                          <p className="mt-2 text-sm text-muted-foreground">{comment.content}</p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </details>
             </CardContent>
           </Card>
-
-          <TaskDocumentManager
-            attachments={task.attachments as never}
-            availableDocuments={availableDocuments}
-            canManageDocuments={canManageTaskDocuments}
-            isArchived={Boolean(task.archivedAt)}
-            taskId={task.id}
-          />
         </div>
       </div>
     </div>

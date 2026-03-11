@@ -3,9 +3,13 @@
 import Link from "next/link";
 import { useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { useFormState, useFormStatus } from "react-dom";
 import { DocumentCategory } from "@prisma/client";
 
-import { linkTaskDocumentAction, unlinkTaskDocumentAction } from "@/server/actions";
+import {
+  linkTaskDocumentFeedbackAction,
+  unlinkTaskDocumentFeedbackAction
+} from "@/server/actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,6 +33,44 @@ const documentCategories = [
   { value: DocumentCategory.PHOTO, label: "Photo" },
   { value: DocumentCategory.OTHER, label: "Other" }
 ] as const;
+
+type ActionState = {
+  status: "idle" | "success" | "error";
+  message?: string;
+  fieldErrors?: Record<string, string[] | undefined>;
+};
+
+const initialState: ActionState = { status: "idle" };
+
+function SubmitButton({
+  idleLabel,
+  pendingLabel,
+  variant = "default"
+}: {
+  idleLabel: string;
+  pendingLabel: string;
+  variant?: "default" | "outline" | "danger";
+}) {
+  const { pending } = useFormStatus();
+
+  return (
+    <Button disabled={pending} type="submit" variant={variant}>
+      {pending ? pendingLabel : idleLabel}
+    </Button>
+  );
+}
+
+function FormMessage({ state }: { state: ActionState }) {
+  if (state.status === "idle" || !state.message) {
+    return null;
+  }
+
+  return (
+    <p className={`text-sm ${state.status === "success" ? "text-emerald-700" : "text-danger"}`}>
+      {state.message}
+    </p>
+  );
+}
 
 export function TaskDocumentManager({
   taskId,
@@ -64,6 +106,7 @@ export function TaskDocumentManager({
   const router = useRouter();
   const [uploadMessage, setUploadMessage] = useState("");
   const [isUploading, startUploadTransition] = useTransition();
+  const [linkState, linkAction] = useFormState(linkTaskDocumentFeedbackAction, initialState);
 
   async function onUpload(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -133,13 +176,7 @@ export function TaskDocumentManager({
                     </div>
                   </div>
                   {canManageDocuments && !isArchived ? (
-                    <form action={unlinkTaskDocumentAction}>
-                      <input type="hidden" name="taskId" value={taskId} />
-                      <input type="hidden" name="documentId" value={attachment.document.id} />
-                      <Button type="submit" variant="outline">
-                        Unlink
-                      </Button>
-                    </form>
+                    <UnlinkDocumentForm documentId={attachment.document.id} taskId={taskId} />
                   ) : null}
                 </div>
               </div>
@@ -153,7 +190,7 @@ export function TaskDocumentManager({
           </p>
         ) : canManageDocuments ? (
           <>
-            <form action={linkTaskDocumentAction} className="space-y-3 rounded-xl border border-border bg-secondary/20 p-4">
+            <form action={linkAction} className="space-y-3 rounded-xl border border-border bg-secondary/20 p-4">
               <input type="hidden" name="taskId" value={taskId} />
               <div className="space-y-2">
                 <Label htmlFor="documentId">Link existing document</Label>
@@ -167,9 +204,14 @@ export function TaskDocumentManager({
                   ))}
                 </Select>
               </div>
-              <Button disabled={availableDocuments.length === 0} type="submit" variant="outline">
-                Link document
-              </Button>
+              <div className="flex flex-wrap items-center gap-3">
+                <SubmitButton
+                  idleLabel="Link document"
+                  pendingLabel="Linking..."
+                  variant="outline"
+                />
+                <FormMessage state={linkState} />
+              </div>
               {availableDocuments.length === 0 ? (
                 <p className="text-xs text-muted-foreground">
                   All available documents are already linked to this task.
@@ -218,5 +260,24 @@ export function TaskDocumentManager({
         )}
       </CardContent>
     </Card>
+  );
+}
+
+function UnlinkDocumentForm({
+  taskId,
+  documentId
+}: {
+  taskId: string;
+  documentId: string;
+}) {
+  const [state, action] = useFormState(unlinkTaskDocumentFeedbackAction, initialState);
+
+  return (
+    <form action={action} className="space-y-2">
+      <input type="hidden" name="taskId" value={taskId} />
+      <input type="hidden" name="documentId" value={documentId} />
+      <SubmitButton idleLabel="Unlink" pendingLabel="Unlinking..." variant="outline" />
+      <FormMessage state={state} />
+    </form>
   );
 }

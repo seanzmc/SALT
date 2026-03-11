@@ -243,6 +243,18 @@ export async function updateTaskAction(formData: FormData) {
   revalidatePath("/settings/setup");
 }
 
+export async function updateTaskFeedbackAction(
+  _previousState: AccountActionState,
+  formData: FormData
+): Promise<AccountActionState> {
+  try {
+    await updateTaskAction(formData);
+    return successState("Task details saved.");
+  } catch (error) {
+    return validationErrorState(error);
+  }
+}
+
 export async function bulkUpdateTasksAction(
   _previousState: AccountActionState,
   formData: FormData
@@ -632,6 +644,18 @@ export async function linkTaskDocumentAction(formData: FormData) {
   revalidatePath(`/checklists/${parsed.taskId}`);
 }
 
+export async function linkTaskDocumentFeedbackAction(
+  _previousState: AccountActionState,
+  formData: FormData
+): Promise<AccountActionState> {
+  try {
+    await linkTaskDocumentAction(formData);
+    return successState("Document linked to the task.");
+  } catch (error) {
+    return validationErrorState(error);
+  }
+}
+
 export async function unlinkTaskDocumentAction(formData: FormData) {
   const session = await requireSession();
   const parsed = taskDocumentUnlinkSchema.parse(Object.fromEntries(formData));
@@ -691,6 +715,18 @@ export async function unlinkTaskDocumentAction(formData: FormData) {
   revalidatePath("/dashboard");
   revalidatePath("/checklists");
   revalidatePath(`/checklists/${parsed.taskId}`);
+}
+
+export async function unlinkTaskDocumentFeedbackAction(
+  _previousState: AccountActionState,
+  formData: FormData
+): Promise<AccountActionState> {
+  try {
+    await unlinkTaskDocumentAction(formData);
+    return successState("Document unlinked from the task.");
+  } catch (error) {
+    return validationErrorState(error);
+  }
 }
 
 export async function createTaskCommentAction(formData: FormData) {
@@ -772,6 +808,18 @@ export async function createTaskDependencyAction(formData: FormData) {
   revalidatePath("/dashboard");
 }
 
+export async function createTaskDependencyFeedbackAction(
+  _previousState: AccountActionState,
+  formData: FormData
+): Promise<AccountActionState> {
+  try {
+    await createTaskDependencyAction(formData);
+    return successState("Dependency added.");
+  } catch (error) {
+    return validationErrorState(error);
+  }
+}
+
 export async function deleteTaskDependencyAction(formData: FormData) {
   const session = await requireSession();
   const parsed = taskDependencyDeleteSchema.parse(Object.fromEntries(formData));
@@ -806,6 +854,18 @@ export async function deleteTaskDependencyAction(formData: FormData) {
   revalidatePath(`/checklists/${parsed.taskId}`);
   revalidatePath(`/checklists/${parsed.dependsOnTaskId}`);
   revalidatePath("/dashboard");
+}
+
+export async function deleteTaskDependencyFeedbackAction(
+  _previousState: AccountActionState,
+  formData: FormData
+): Promise<AccountActionState> {
+  try {
+    await deleteTaskDependencyAction(formData);
+    return successState("Dependency removed.");
+  } catch (error) {
+    return validationErrorState(error);
+  }
 }
 
 export async function createSubtaskAction(formData: FormData) {
@@ -861,6 +921,18 @@ export async function createSubtaskAction(formData: FormData) {
   revalidatePath("/settings/setup");
 }
 
+export async function createSubtaskFeedbackAction(
+  _previousState: AccountActionState,
+  formData: FormData
+): Promise<AccountActionState> {
+  try {
+    await createSubtaskAction(formData);
+    return successState("Checklist item added.");
+  } catch (error) {
+    return validationErrorState(error);
+  }
+}
+
 export async function updateSubtaskAction(formData: FormData) {
   const session = await requireSession();
   const parsed = subtaskUpdateSchema.parse(Object.fromEntries(formData));
@@ -912,6 +984,18 @@ export async function updateSubtaskAction(formData: FormData) {
   revalidatePath("/settings/setup");
 }
 
+export async function updateSubtaskFeedbackAction(
+  _previousState: AccountActionState,
+  formData: FormData
+): Promise<AccountActionState> {
+  try {
+    await updateSubtaskAction(formData);
+    return successState("Checklist item saved.");
+  } catch (error) {
+    return validationErrorState(error);
+  }
+}
+
 export async function deleteSubtaskAction(formData: FormData) {
   const session = await requireSession();
   const parsed = subtaskDeleteSchema.parse(Object.fromEntries(formData));
@@ -948,6 +1032,18 @@ export async function deleteSubtaskAction(formData: FormData) {
   revalidatePath("/settings/setup");
 }
 
+export async function deleteSubtaskFeedbackAction(
+  _previousState: AccountActionState,
+  formData: FormData
+): Promise<AccountActionState> {
+  try {
+    await deleteSubtaskAction(formData);
+    return successState("Checklist item removed.");
+  } catch (error) {
+    return validationErrorState(error);
+  }
+}
+
 export async function archiveSubtaskAction(formData: FormData) {
   const session = await requireOwner();
   const parsed = subtaskArchiveSchema.parse(Object.fromEntries(formData));
@@ -976,6 +1072,18 @@ export async function archiveSubtaskAction(formData: FormData) {
   revalidatePath("/settings/setup");
 }
 
+export async function archiveSubtaskFeedbackAction(
+  _previousState: AccountActionState,
+  formData: FormData
+): Promise<AccountActionState> {
+  try {
+    await archiveSubtaskAction(formData);
+    return successState("Checklist item archived.");
+  } catch (error) {
+    return validationErrorState(error);
+  }
+}
+
 export async function restoreSubtaskAction(formData: FormData) {
   const session = await requireOwner();
   const parsed = subtaskArchiveSchema.parse(Object.fromEntries(formData));
@@ -1002,6 +1110,18 @@ export async function restoreSubtaskAction(formData: FormData) {
   revalidatePath("/checklists");
   revalidatePath(`/checklists/${currentSubtask.taskId}`);
   revalidatePath("/settings/setup");
+}
+
+export async function restoreSubtaskFeedbackAction(
+  _previousState: AccountActionState,
+  formData: FormData
+): Promise<AccountActionState> {
+  try {
+    await restoreSubtaskAction(formData);
+    return successState("Checklist item restored.");
+  } catch (error) {
+    return validationErrorState(error);
+  }
 }
 
 export async function resetSetupStatusesAction(

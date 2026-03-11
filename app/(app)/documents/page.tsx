@@ -21,7 +21,7 @@ export default async function DocumentsPage({
     <div className="space-y-6">
       <PageHeader
         title="Document Center"
-        description="Upload and organize permits, quotes, floor plans, insurance, inspection records, policies, invoices, and buildout photos with local file storage and database metadata."
+        description="Upload and organize permits, quotes, floor plans, insurance, inspection records, policies, invoices, and buildout photos with Blob-backed storage and database metadata."
       />
 
       <DocumentUploadForm budgetItems={budgetItems} tasks={tasks} />
