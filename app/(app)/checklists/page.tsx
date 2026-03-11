@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { PageHeader } from "@/components/layout/page-header";
+import { TaskDetailWorkspace } from "@/components/tasks/task-detail-workspace";
 import { TaskCreateForm } from "@/components/tasks/task-create-form";
 import { TaskBoard } from "@/components/tasks/task-board";
 import { TaskFilters } from "@/components/tasks/task-filters";
@@ -13,6 +14,18 @@ import { buttonVariants } from "@/components/ui/button";
 import { getTaskList } from "@/server/tasks";
 import { requireSession } from "@/server/authz";
 import { cn } from "@/lib/utils";
+
+function toSearchParams(params: Record<string, string>) {
+  const search = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value) {
+      search.set(key, value);
+    }
+  });
+
+  return search;
+}
 
 export default async function ChecklistsPage({
   searchParams
@@ -34,6 +47,8 @@ export default async function ChecklistsPage({
     cleanup: typeof searchParams.cleanup === "string" ? searchParams.cleanup : "",
     bulk: typeof searchParams.bulk === "string" ? searchParams.bulk : ""
   };
+  const selectedTaskId =
+    current.view === "list" && typeof searchParams.taskId === "string" ? searchParams.taskId : "";
 
   const cleanupMode =
     current.cleanup === "1" &&
@@ -78,6 +93,18 @@ export default async function ChecklistsPage({
     currentUserId: session.user.id,
     sort: current.sort as never
   });
+  const baseChecklistHref = `/checklists?${toSearchParams(current).toString()}`;
+  const taskWorkspaceHref = (taskId: string) =>
+    `/checklists?${toSearchParams({ ...current, taskId }).toString()}`;
+  const selectedTaskIndex = selectedTaskId
+    ? tasks.findIndex((task) => task.id === selectedTaskId)
+    : -1;
+  const previousTaskHref =
+    selectedTaskIndex > 0 ? taskWorkspaceHref(tasks[selectedTaskIndex - 1].id) : undefined;
+  const nextTaskHref =
+    selectedTaskIndex >= 0 && selectedTaskIndex < tasks.length - 1
+      ? taskWorkspaceHref(tasks[selectedTaskIndex + 1].id)
+      : undefined;
 
   return (
     <div className="space-y-6">
@@ -147,27 +174,57 @@ export default async function ChecklistsPage({
       ) : current.view === "board" && current.archived === "active" ? (
         <TaskBoard tasks={tasks as never} />
       ) : (
-        <TaskListManager
-          archiveView={current.archived as "active" | "archived" | "all"}
-          cleanupMode={cleanupMode}
-          currentRole={session.user.role}
-          groupBy={current.group as "none" | "section"}
-          preferredBulkAction={
-            current.bulk === "assign" ||
-            current.bulk === "status" ||
-            current.bulk === "setDueDate" ||
-            current.bulk === "shiftDueDate" ||
-            current.bulk === "clearAssignee" ||
-            current.bulk === "priority" ||
-            current.bulk === "markComplete" ||
-            current.bulk === "archive" ||
-            current.bulk === "restore"
-              ? current.bulk
-              : undefined
-          }
-          tasks={tasks as never}
-          users={users}
-        />
+        <div
+          className={cn(
+            "grid gap-6",
+            selectedTaskId ? "xl:grid-cols-[minmax(0,1fr)_32rem]" : "grid-cols-1"
+          )}
+        >
+          <TaskListManager
+            archiveView={current.archived as "active" | "archived" | "all"}
+            cleanupMode={cleanupMode}
+            currentRole={session.user.role}
+            groupBy={current.group as "none" | "section"}
+            openTaskId={selectedTaskId || undefined}
+            preferredBulkAction={
+              current.bulk === "assign" ||
+              current.bulk === "status" ||
+              current.bulk === "setDueDate" ||
+              current.bulk === "shiftDueDate" ||
+              current.bulk === "clearAssignee" ||
+              current.bulk === "priority" ||
+              current.bulk === "markComplete" ||
+              current.bulk === "archive" ||
+              current.bulk === "restore"
+                ? current.bulk
+                : undefined
+            }
+            tasks={tasks as never}
+            users={users}
+          />
+
+          {selectedTaskId ? (
+            <aside className="xl:sticky xl:top-6 xl:max-h-[calc(100vh-6rem)] xl:overflow-y-auto">
+              <TaskDetailWorkspace
+                compact
+                currentRole={session.user.role}
+                currentUserId={session.user.id}
+                navigation={{
+                  closeHref: baseChecklistHref,
+                  closeLabel: "Close panel",
+                  contextLabel: "Checklist queue",
+                  fullPageHref: `/checklists/${selectedTaskId}?${new URLSearchParams({
+                    returnTo: baseChecklistHref
+                  }).toString()}`,
+                  nextTaskHref,
+                  previousTaskHref
+                }}
+                notFoundBehavior="card"
+                taskId={selectedTaskId}
+              />
+            </aside>
+          ) : null}
+        </div>
       )}
     </div>
   );

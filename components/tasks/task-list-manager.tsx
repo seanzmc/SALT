@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useFormState, useFormStatus } from "react-dom";
 import { Priority, Role, TaskStatus } from "@prisma/client";
 
@@ -48,7 +49,8 @@ export function TaskListManager({
   currentRole,
   groupBy,
   cleanupMode,
-  preferredBulkAction
+  preferredBulkAction,
+  openTaskId
 }: {
   archiveView: "active" | "archived" | "all";
   tasks: TaskTableRow[];
@@ -57,12 +59,16 @@ export function TaskListManager({
   groupBy: "none" | "section";
   cleanupMode?: "overdue" | "blocked" | "unassigned" | "stale" | "upcoming" | null;
   preferredBulkAction?: BulkAction;
+  openTaskId?: string;
 }) {
   const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
   const [action, setAction] = useState(
     archiveView === "archived" ? "restore" : preferredBulkAction ?? "assign"
   );
   const [state, formAction] = useFormState(bulkUpdateTasksAction, initialState);
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     setSelectedTaskIds([]);
@@ -295,6 +301,17 @@ export function TaskListManager({
               </CardHeader>
               <CardContent>
                 <TaskTable
+                  activeTaskId={openTaskId}
+                  getTaskHref={(taskId) => {
+                    const nextParams = new URLSearchParams(searchParams.toString());
+                    nextParams.set("taskId", taskId);
+                    return `${pathname}?${nextParams.toString()}`;
+                  }}
+                  onOpenTask={(taskId) => {
+                    const nextParams = new URLSearchParams(searchParams.toString());
+                    nextParams.set("taskId", taskId);
+                    router.push(`${pathname}?${nextParams.toString()}`, { scroll: false });
+                  }}
                   onToggleTask={toggleTask}
                   selectedTaskIds={selectedTaskIdSet}
                   selectable={currentRole === Role.OWNER_ADMIN}
@@ -306,6 +323,17 @@ export function TaskListManager({
         </div>
       ) : (
         <TaskTable
+          activeTaskId={openTaskId}
+          getTaskHref={(taskId) => {
+            const nextParams = new URLSearchParams(searchParams.toString());
+            nextParams.set("taskId", taskId);
+            return `${pathname}?${nextParams.toString()}`;
+          }}
+          onOpenTask={(taskId) => {
+            const nextParams = new URLSearchParams(searchParams.toString());
+            nextParams.set("taskId", taskId);
+            router.push(`${pathname}?${nextParams.toString()}`, { scroll: false });
+          }}
           onToggleAllVisible={toggleAllVisible}
           onToggleTask={toggleTask}
           selectedTaskIds={selectedTaskIdSet}

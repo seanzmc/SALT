@@ -17,6 +17,13 @@ function checklistHref(params: Record<string, string>) {
   }).toString()}`;
 }
 
+function taskWorkspaceHref(taskId: string, params: Record<string, string> = {}) {
+  return checklistHref({
+    ...params,
+    taskId
+  });
+}
+
 function cleanupHref(
   queue: "overdue" | "blocked" | "unassigned" | "stale" | "upcoming",
   bulk: "assign" | "status" | "setDueDate"
@@ -31,6 +38,18 @@ function cleanupHref(
 
 export default async function DashboardPage() {
   const data = await getDashboardData();
+  const messageHref = (message: (typeof data.recentMessages)[number]) => {
+    const taskId = message.linkedTaskId ?? message.thread.task?.id;
+
+    if (taskId) {
+      return taskWorkspaceHref(taskId);
+    }
+
+    return `/messages?${new URLSearchParams({
+      threadId: message.thread.id,
+      messageId: message.id
+    }).toString()}#message-${message.id}`;
+  };
 
   return (
     <div className="space-y-6">
@@ -111,7 +130,7 @@ export default async function DashboardPage() {
           items={data.overdueTasks.slice(0, 4).map((task) => ({
             id: task.id,
             title: task.title,
-            href: `/checklists/${task.id}`,
+            href: taskWorkspaceHref(task.id, { queue: "overdue" }),
             meta: `Due ${formatDate(task.dueDate)} • ${task.assignedTo?.name ?? "Unassigned"}`
           }))}
           breakdown={data.overdueByAssignee}
@@ -128,7 +147,7 @@ export default async function DashboardPage() {
           items={data.blockedTasks.slice(0, 4).map((task) => ({
             id: task.id,
             title: task.title,
-            href: `/checklists/${task.id}`,
+            href: taskWorkspaceHref(task.id, { queue: "blocked", sort: "status" }),
             meta: `${task.section.title} • ${task.blockedReason || "Blocked"}`
           }))}
         />
@@ -144,7 +163,7 @@ export default async function DashboardPage() {
           items={data.unassignedTasks.slice(0, 4).map((task) => ({
             id: task.id,
             title: task.title,
-            href: `/checklists/${task.id}`,
+            href: taskWorkspaceHref(task.id, { queue: "unassigned" }),
             meta: `${task.section.title} • Due ${formatDate(task.dueDate)}`
           }))}
         />
@@ -162,7 +181,7 @@ export default async function DashboardPage() {
           items={data.upcomingTasks.slice(0, 4).map((task) => ({
             id: task.id,
             title: task.title,
-            href: `/checklists/${task.id}`,
+            href: taskWorkspaceHref(task.id, { queue: "upcoming" }),
             meta: `Due ${formatDate(task.dueDate)} • ${task.assignedTo?.name ?? "Unassigned"}`
           }))}
         />
@@ -178,7 +197,7 @@ export default async function DashboardPage() {
           items={data.staleTasks.slice(0, 4).map((task) => ({
             id: task.id,
             title: task.title,
-            href: `/checklists/${task.id}`,
+            href: taskWorkspaceHref(task.id, { queue: "stale" }),
             meta: `Last changed ${formatDate(task.updatedAt)} • ${task.assignedTo?.name ?? "Unassigned"}`
           }))}
         />
@@ -191,7 +210,11 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             {data.upcomingTasks.slice(0, 5).map((task) => (
-              <Link key={task.id} href={`/checklists/${task.id}`} className="block rounded-lg border border-border p-3 hover:bg-muted/60">
+              <Link
+                key={task.id}
+                href={taskWorkspaceHref(task.id, { queue: "upcoming" })}
+                className="block rounded-lg border border-border p-3 hover:bg-muted/60"
+              >
                 <div className="flex items-center justify-between gap-3">
                   <p className="font-medium">{task.title}</p>
                   <Badge variant="outline">{task.section.title}</Badge>
@@ -210,15 +233,20 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             {data.recentDocuments.map((document) => (
-              <div key={document.id} className="rounded-lg border border-border p-3">
+              <Link
+                key={document.id}
+                className="block rounded-lg border border-border p-3 hover:bg-muted/60"
+                href={`/api/documents/${document.id}`}
+              >
                 <div className="flex items-center justify-between gap-3">
                   <p className="font-medium">{document.title}</p>
                   <Badge variant="secondary">{document.category.replaceAll("_", " ")}</Badge>
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">
                   Added by {document.uploadedBy.name} on {formatDate(document.createdAt)}
+                  {document.linkedTask ? ` • Linked to ${document.linkedTask.title}` : ""}
                 </p>
-              </div>
+              </Link>
             ))}
           </CardContent>
         </Card>
@@ -229,13 +257,17 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             {data.recentMessages.map((message) => (
-              <div key={message.id} className="rounded-lg border border-border p-3">
+              <Link
+                key={message.id}
+                href={messageHref(message)}
+                className="block rounded-lg border border-border p-3 hover:bg-muted/60"
+              >
                 <div className="flex items-center justify-between gap-3">
                   <p className="font-medium">{message.thread.title}</p>
                   <p className="text-xs text-muted-foreground">{message.author.name}</p>
                 </div>
                 <p className="mt-2 text-sm text-muted-foreground">{message.content}</p>
-              </div>
+              </Link>
             ))}
           </CardContent>
         </Card>
@@ -251,10 +283,14 @@ export default async function DashboardPage() {
               <p className="text-sm text-muted-foreground">No overdue tasks.</p>
             ) : (
               data.overdueTasks.slice(0, 5).map((task) => (
-                <div key={task.id} className="rounded-lg border border-danger/20 bg-danger/5 p-3">
+                <Link
+                  key={task.id}
+                  className="block rounded-lg border border-danger/20 bg-danger/5 p-3 hover:bg-danger/10"
+                  href={taskWorkspaceHref(task.id, { queue: "overdue" })}
+                >
                   <p className="font-medium">{task.title}</p>
                   <p className="text-xs text-muted-foreground">Due {formatDate(task.dueDate)}</p>
-                </div>
+                </Link>
               ))
             )}
           </CardContent>
@@ -266,10 +302,14 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             {data.blockedTasks.slice(0, 5).map((task) => (
-              <div key={task.id} className="rounded-lg border border-warning/30 bg-warning/10 p-3">
+              <Link
+                key={task.id}
+                className="block rounded-lg border border-warning/30 bg-warning/10 p-3 hover:bg-warning/15"
+                href={taskWorkspaceHref(task.id, { queue: "blocked", sort: "status" })}
+              >
                 <p className="font-medium">{task.title}</p>
                 <p className="text-xs text-muted-foreground">{task.blockedReason || "Blocked"}</p>
-              </div>
+              </Link>
             ))}
           </CardContent>
         </Card>

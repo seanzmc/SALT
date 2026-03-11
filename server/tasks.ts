@@ -266,3 +266,71 @@ export async function getTaskDetail(taskId: string) {
     }
   });
 }
+
+export async function getTaskWorkspaceData(taskId: string) {
+  const [task, users, sections, phases, dependencyCandidates, availableDocuments] = await Promise.all([
+    getTaskDetail(taskId),
+    prisma.user.findMany({
+      where: { isActive: true },
+      select: { id: true, name: true, role: true },
+      orderBy: { name: "asc" }
+    }),
+    prisma.section.findMany({
+      select: { id: true, title: true },
+      orderBy: { sortOrder: "asc" }
+    }),
+    prisma.timelinePhase.findMany({
+      select: { id: true, title: true },
+      orderBy: { sortOrder: "asc" }
+    }),
+    prisma.task.findMany({
+      where: {
+        id: { not: taskId },
+        archivedAt: null
+      },
+      select: {
+        id: true,
+        title: true,
+        status: true,
+        dueDate: true,
+        assignedTo: {
+          select: {
+            name: true
+          }
+        }
+      },
+      orderBy: [{ title: "asc" }]
+    }),
+    prisma.document.findMany({
+      where: {
+        taskAttachments: {
+          none: {
+            taskId
+          }
+        }
+      },
+      select: {
+        id: true,
+        title: true,
+        category: true,
+        createdAt: true,
+        linkedTask: {
+          select: {
+            title: true
+          }
+        }
+      },
+      orderBy: [{ createdAt: "desc" }],
+      take: 100
+    })
+  ]);
+
+  return {
+    task,
+    users,
+    sections,
+    phases,
+    dependencyCandidates,
+    availableDocuments
+  };
+}

@@ -35,14 +35,33 @@ export async function getDashboardData() {
       orderBy: { sortOrder: "asc" }
     }),
     prisma.document.findMany({
-      include: { uploadedBy: true },
+      include: {
+        uploadedBy: true,
+        linkedTask: {
+          select: {
+            id: true,
+            title: true
+          }
+        }
+      },
       orderBy: { createdAt: "desc" },
       take: 5
     }),
     prisma.message.findMany({
       include: {
         author: true,
-        thread: true
+        thread: {
+          select: {
+            id: true,
+            title: true,
+            task: {
+              select: {
+                id: true,
+                title: true
+              }
+            }
+          }
+        }
       },
       orderBy: { createdAt: "desc" },
       take: 5

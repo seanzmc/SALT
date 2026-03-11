@@ -1,12 +1,16 @@
+import Link from "next/link";
+
 import { createMessageAction } from "@/server/actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { formatDate } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 
 export function MessageBoard({
-  threads
+  threads,
+  focusedThreadId,
+  focusedMessageId
 }: {
   threads: Array<{
     id: string;
@@ -21,16 +25,38 @@ export function MessageBoard({
       author: { name: string };
     }>;
   }>;
+  focusedThreadId?: string;
+  focusedMessageId?: string;
 }) {
   return (
     <div className="space-y-6">
       {threads.map((thread) => (
-        <Card key={thread.id}>
+        <Card
+          id={`thread-${thread.id}`}
+          key={thread.id}
+          className={cn(
+            focusedThreadId === thread.id ? "border-primary/60 shadow-md shadow-primary/10" : undefined
+          )}
+        >
           <CardHeader>
-            <div className="flex flex-wrap items-center gap-2">
-              <CardTitle className="text-lg">{thread.title}</CardTitle>
-              <Badge variant="outline">{thread.scope}</Badge>
-              <Badge variant="secondary">{thread.category}</Badge>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <CardTitle className="text-lg">{thread.title}</CardTitle>
+                <Badge variant="outline">{thread.scope}</Badge>
+                <Badge variant="secondary">{thread.category}</Badge>
+              </div>
+              {thread.task ? (
+                <Link
+                  className="text-sm text-primary hover:underline"
+                  href={`/checklists?${new URLSearchParams({
+                    view: "list",
+                    archived: "active",
+                    taskId: thread.task.id
+                  }).toString()}`}
+                >
+                  Open task
+                </Link>
+              ) : null}
             </div>
             {thread.task ? (
               <p className="text-sm text-muted-foreground">Linked task: {thread.task.title}</p>
@@ -44,7 +70,14 @@ export function MessageBoard({
             </form>
             <div className="space-y-3">
               {thread.messages.map((message) => (
-                <div key={message.id} className="rounded-lg border border-border p-3">
+                <div
+                  id={`message-${message.id}`}
+                  key={message.id}
+                  className={cn(
+                    "rounded-lg border border-border p-3",
+                    focusedMessageId === message.id ? "border-primary/60 bg-primary/5" : undefined
+                  )}
+                >
                   <div className="flex items-center justify-between gap-3">
                     <p className="font-medium">{message.author.name}</p>
                     <span className="text-xs text-muted-foreground">

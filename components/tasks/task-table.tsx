@@ -4,7 +4,7 @@ import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatDate } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 
 export type TaskTableRow = {
   id: string;
@@ -23,13 +23,19 @@ export function TaskTable({
   selectable = false,
   selectedTaskIds = new Set<string>(),
   onToggleTask,
-  onToggleAllVisible
+  onToggleAllVisible,
+  onOpenTask,
+  getTaskHref,
+  activeTaskId
 }: {
   tasks: TaskTableRow[];
   selectable?: boolean;
   selectedTaskIds?: Set<string>;
   onToggleTask?: (taskId: string) => void;
   onToggleAllVisible?: () => void;
+  onOpenTask?: (taskId: string) => void;
+  getTaskHref?: (taskId: string) => string;
+  activeTaskId?: string;
 }) {
   const allVisibleSelected =
     tasks.length > 0 && tasks.every((task) => selectedTaskIds.has(task.id));
@@ -62,21 +68,33 @@ export function TaskTable({
           const hasIncompleteDependencies = task.taskDependencies.some(
             (dependency) => dependency.dependsOnTask.status !== "COMPLETE"
           );
+          const taskHref = getTaskHref?.(task.id) ?? `/checklists/${task.id}`;
 
           return (
-            <TableRow key={task.id}>
+            <TableRow
+              key={task.id}
+              className={cn(onOpenTask ? "cursor-pointer" : undefined)}
+              data-state={activeTaskId === task.id ? "selected" : undefined}
+              onClick={onOpenTask ? () => onOpenTask(task.id) : undefined}
+            >
               {selectable ? (
                 <TableCell>
                   <input
                     aria-label={`Select ${task.title}`}
                     checked={selectedTaskIds.has(task.id)}
                     onChange={() => onToggleTask?.(task.id)}
+                    onClick={(event) => event.stopPropagation()}
                     type="checkbox"
                   />
                 </TableCell>
               ) : null}
               <TableCell>
-                <Link className="font-medium hover:text-primary" href={`/checklists/${task.id}`}>
+                <Link
+                  className="font-medium hover:text-primary"
+                  href={taskHref}
+                  onClick={(event) => event.stopPropagation()}
+                  scroll={false}
+                >
                   {task.title}
                 </Link>
                 {task.archivedAt ? (
