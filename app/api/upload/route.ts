@@ -38,6 +38,38 @@ export async function POST(request: Request) {
   }
 
   try {
+    if (parsed.data.linkedTaskId) {
+      const task = await prisma.task.findUnique({
+        where: { id: parsed.data.linkedTaskId },
+        select: {
+          id: true,
+          archivedAt: true,
+          assignedToId: true
+        }
+      });
+
+      if (!task) {
+        return NextResponse.json({ error: "Task not found." }, { status: 404 });
+      }
+
+      if (task.archivedAt) {
+        return NextResponse.json(
+          { error: "Archived tasks cannot receive new document attachments." },
+          { status: 400 }
+        );
+      }
+
+      if (
+        session.user.role !== "OWNER_ADMIN" &&
+        task.assignedToId !== session.user.id
+      ) {
+        return NextResponse.json(
+          { error: "Collaborators can only attach documents to tasks assigned to them." },
+          { status: 403 }
+        );
+      }
+    }
+
     const storedFile = await saveUploadedFile(file);
 
     const document = await prisma.document.create({

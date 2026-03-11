@@ -203,7 +203,15 @@ export async function getTaskDetail(taskId: string) {
       },
       attachments: {
         include: {
-          document: true
+          document: {
+            include: {
+              uploadedBy: {
+                select: {
+                  name: true
+                }
+              }
+            }
+          }
         }
       },
       subtasks: {

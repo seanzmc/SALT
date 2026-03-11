@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/layout/page-header";
 import { TaskCommentForm } from "@/components/tasks/task-comment-form";
 import { TaskDetailForm } from "@/components/tasks/task-detail-form";
+import { TaskDocumentManager } from "@/components/tasks/task-document-manager";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireSession } from "@/server/authz";
 import { getTaskDetail } from "@/server/tasks";
@@ -15,7 +16,7 @@ export default async function TaskDetailPage({
   params: { taskId: string };
 }) {
   const session = await requireSession();
-  const [task, users, sections, phases, dependencyCandidates] = await Promise.all([
+  const [task, users, sections, phases, dependencyCandidates, availableDocuments] = await Promise.all([
     getTaskDetail(params.taskId),
     prisma.user.findMany({
       where: { isActive: true },
@@ -47,12 +48,37 @@ export default async function TaskDetailPage({
         }
       },
       orderBy: [{ title: "asc" }]
+    }),
+    prisma.document.findMany({
+      where: {
+        taskAttachments: {
+          none: {
+            taskId: params.taskId
+          }
+        }
+      },
+      select: {
+        id: true,
+        title: true,
+        category: true,
+        createdAt: true,
+        linkedTask: {
+          select: {
+            title: true
+          }
+        }
+      },
+      orderBy: [{ createdAt: "desc" }],
+      take: 100
     })
   ]);
 
   if (!task) {
     notFound();
   }
+
+  const canManageTaskDocuments =
+    session.user.role === "OWNER_ADMIN" || task.assignedToId === session.user.id;
 
   return (
     <div className="space-y-6">
@@ -93,25 +119,13 @@ export default async function TaskDetailPage({
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Attachments</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {task.attachments.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No linked attachments yet.</p>
-              ) : (
-                task.attachments.map((attachment) => (
-                  <div key={attachment.id} className="rounded-lg border border-border p-3">
-                    <p className="font-medium">{attachment.document.title}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {attachment.document.category.replaceAll("_", " ")}
-                    </p>
-                  </div>
-                ))
-              )}
-            </CardContent>
-          </Card>
+          <TaskDocumentManager
+            attachments={task.attachments as never}
+            availableDocuments={availableDocuments}
+            canManageDocuments={canManageTaskDocuments}
+            isArchived={Boolean(task.archivedAt)}
+            taskId={task.id}
+          />
         </div>
       </div>
     </div>

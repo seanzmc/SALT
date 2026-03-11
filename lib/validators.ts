@@ -130,6 +130,16 @@ export const subtaskArchiveSchema = z.object({
   subtaskId: z.string().cuid()
 });
 
+export const taskDocumentLinkSchema = z.object({
+  taskId: z.string().cuid(),
+  documentId: z.string().cuid()
+});
+
+export const taskDocumentUnlinkSchema = z.object({
+  taskId: z.string().cuid(),
+  documentId: z.string().cuid()
+});
+
 export const bulkTaskActionSchema = z
   .object({
     taskIds: z.array(z.string().cuid()).min(1, "Select at least one task."),

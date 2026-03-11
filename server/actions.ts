@@ -31,6 +31,8 @@ import {
   subtaskDeleteSchema,
   subtaskUpdateSchema,
   subtaskArchiveSchema,
+  taskDocumentLinkSchema,
+  taskDocumentUnlinkSchema,
   taskArchiveSchema,
   taskDependencyCreateSchema,
   taskDependencyDeleteSchema,
@@ -563,6 +565,131 @@ export async function restoreTaskAction(formData: FormData) {
   revalidatePath("/checklists");
   revalidatePath(`/checklists/${parsed.taskId}`);
   revalidatePath("/settings/setup");
+}
+
+export async function linkTaskDocumentAction(formData: FormData) {
+  const session = await requireSession();
+  const parsed = taskDocumentLinkSchema.parse(Object.fromEntries(formData));
+  const task = await requireTaskEditPermission(parsed.taskId, session.user);
+
+  if (task.archivedAt) {
+    throw new Error("Archived tasks cannot receive new document attachments.");
+  }
+
+  const document = await prisma.document.findUnique({
+    where: { id: parsed.documentId },
+    select: {
+      id: true,
+      title: true,
+      linkedTaskId: true
+    }
+  });
+
+  if (!document) {
+    throw new Error("Document not found.");
+  }
+
+  await prisma.$transaction(async (tx) => {
+    const existing = await tx.taskAttachment.findUnique({
+      where: {
+        taskId_documentId: {
+          taskId: parsed.taskId,
+          documentId: parsed.documentId
+        }
+      }
+    });
+
+    if (!existing) {
+      await tx.taskAttachment.create({
+        data: {
+          taskId: parsed.taskId,
+          documentId: parsed.documentId
+        }
+      });
+    }
+
+    if (!document.linkedTaskId) {
+      await tx.document.update({
+        where: { id: parsed.documentId },
+        data: { linkedTaskId: parsed.taskId }
+      });
+    }
+  });
+
+  await logActivity({
+    actorId: session.user.id,
+    taskId: parsed.taskId,
+    type: ActivityType.TASK_UPDATED,
+    entityType: "TaskAttachment",
+    entityId: parsed.documentId,
+    description: `Linked document "${document.title}" to the task.`
+  });
+
+  revalidatePath("/documents");
+  revalidatePath("/dashboard");
+  revalidatePath("/checklists");
+  revalidatePath(`/checklists/${parsed.taskId}`);
+}
+
+export async function unlinkTaskDocumentAction(formData: FormData) {
+  const session = await requireSession();
+  const parsed = taskDocumentUnlinkSchema.parse(Object.fromEntries(formData));
+  const task = await requireTaskEditPermission(parsed.taskId, session.user);
+
+  const document = await prisma.document.findUnique({
+    where: { id: parsed.documentId },
+    select: {
+      id: true,
+      title: true,
+      linkedTaskId: true
+    }
+  });
+
+  if (!document) {
+    throw new Error("Document not found.");
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.taskAttachment.deleteMany({
+      where: {
+        taskId: parsed.taskId,
+        documentId: parsed.documentId
+      }
+    });
+
+    if (document.linkedTaskId === parsed.taskId) {
+      const remainingAttachment = await tx.taskAttachment.findFirst({
+        where: {
+          documentId: parsed.documentId,
+          taskId: { not: parsed.taskId }
+        },
+        select: {
+          taskId: true
+        }
+      });
+
+      await tx.document.update({
+        where: { id: parsed.documentId },
+        data: {
+          linkedTaskId: remainingAttachment?.taskId ?? null
+        }
+      });
+    }
+  });
+
+  await logActivity({
+    actorId: session.user.id,
+    taskId: task.id,
+    type: ActivityType.TASK_UPDATED,
+    entityType: "TaskAttachment",
+    entityId: parsed.documentId,
+    description: `Unlinked document "${document.title}" from the task.`
+  });
+
+  revalidatePath("/documents");
+  revalidatePath("/dashboard");
+  revalidatePath("/checklists");
+  revalidatePath(`/checklists/${parsed.taskId}`);
 }
 
 export async function createTaskCommentAction(formData: FormData) {
