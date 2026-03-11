@@ -1,34 +1,24 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useFormState, useFormStatus } from "react-dom";
 import { Priority, Role, TaskStatus } from "@prisma/client";
 
 import { bulkUpdateTasksAction } from "@/server/actions";
 import { TaskTable, type TaskTableRow } from "@/components/tasks/task-table";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
+import { type ChecklistBulkAction, type ChecklistCleanupMode } from "@/lib/checklist-workspace";
 
 type ActionState = {
   status: "idle" | "success" | "error";
   message?: string;
   fieldErrors?: Record<string, string[] | undefined>;
 };
-
-type BulkAction =
-  | "assign"
-  | "clearAssignee"
-  | "status"
-  | "priority"
-  | "setDueDate"
-  | "shiftDueDate"
-  | "markComplete"
-  | "archive"
-  | "restore";
 
 const initialState: ActionState = { status: "idle" };
 
@@ -50,28 +40,29 @@ export function TaskListManager({
   groupBy,
   cleanupMode,
   preferredBulkAction,
-  openTaskId
+  openTaskId,
+  onOpenTask,
+  onPrefetchTask
 }: {
   archiveView: "active" | "archived" | "all";
   tasks: TaskTableRow[];
   users: Array<{ id: string; name: string; role: Role }>;
   currentRole: Role;
   groupBy: "none" | "section";
-  cleanupMode?: "overdue" | "blocked" | "unassigned" | "stale" | "upcoming" | null;
-  preferredBulkAction?: BulkAction;
+  cleanupMode?: ChecklistCleanupMode | null;
+  preferredBulkAction?: ChecklistBulkAction;
   openTaskId?: string;
+  onOpenTask?: (taskId: string) => void;
+  onPrefetchTask?: (taskId: string) => void;
 }) {
   const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
-  const [action, setAction] = useState(
+  const [action, setAction] = useState<ChecklistBulkAction>(
     archiveView === "archived" ? "restore" : preferredBulkAction ?? "assign"
   );
   const [state, formAction] = useFormState(bulkUpdateTasksAction, initialState);
-  const pathname = usePathname();
-  const router = useRouter();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
-    setSelectedTaskIds([]);
+    setSelectedTaskIds((current) => current.filter((taskId) => tasks.some((task) => task.id === taskId)));
   }, [tasks, groupBy]);
 
   useEffect(() => {
@@ -128,7 +119,7 @@ export function TaskListManager({
 
   function toggleAllVisible() {
     const visibleIds = tasks.map((task) => task.id);
-    const allSelected = visibleIds.every((id) => selectedTaskIdSet.has(id));
+    const allSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedTaskIdSet.has(id));
 
     setSelectedTaskIds(allSelected ? [] : visibleIds);
   }
@@ -159,13 +150,21 @@ export function TaskListManager({
   return (
     <div className="space-y-4">
       {currentRole === Role.OWNER_ADMIN ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">
-              Bulk Actions {selectedTaskIds.length ? `(${selectedTaskIds.length} selected)` : ""}
-            </CardTitle>
+        <Card className="rounded-[1.5rem] border-border/80 bg-card/95 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.45)]">
+          <CardHeader className="gap-3 border-b border-border/70">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <CardTitle className="text-base">
+                Bulk Actions {selectedTaskIds.length ? `(${selectedTaskIds.length} selected)` : ""}
+              </CardTitle>
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="secondary">{tasks.length} visible</Badge>
+                {selectedTaskIds.length ? (
+                  <Badge variant="outline">{selectedTaskIds.length} selected</Badge>
+                ) : null}
+              </div>
+            </div>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 pt-5">
             {cleanupHint ? (
               <p className="text-sm text-muted-foreground">{cleanupHint}</p>
             ) : null}
@@ -189,7 +188,7 @@ export function TaskListManager({
                     defaultValue={action}
                     id="bulk-action"
                     name="action"
-                    onChange={(event) => setAction(event.target.value as BulkAction)}
+                    onChange={(event) => setAction(event.target.value as ChecklistBulkAction)}
                     value={action}
                   >
                     {actionOptions.map((option) => (
@@ -228,7 +227,11 @@ export function TaskListManager({
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="bulk-blocked-reason">Blocked reason</Label>
-                      <Input id="bulk-blocked-reason" name="blockedReason" placeholder="Required if setting blocked" />
+                      <Input
+                        id="bulk-blocked-reason"
+                        name="blockedReason"
+                        placeholder="Required if setting blocked"
+                      />
                     </div>
                   </div>
                 ) : null}
@@ -271,14 +274,17 @@ export function TaskListManager({
                 </div>
 
                 {state.message ? (
-                  <p className={`text-sm ${state.status === "success" ? "text-emerald-700" : "text-danger"} lg:col-span-3`}>
+                  <p
+                    className={`text-sm ${state.status === "success" ? "text-emerald-700" : "text-danger"} lg:col-span-3`}
+                  >
                     {state.message}
                   </p>
                 ) : null}
 
                 {archiveView === "all" && selectedTaskIds.length > 0 ? (
                   <p className="text-sm text-muted-foreground lg:col-span-3">
-                    Selected mix: {selectedActiveCount} active, {selectedArchivedCount} archived. Archive only affects active tasks. Restore only affects archived tasks.
+                    Selected mix: {selectedActiveCount} active, {selectedArchivedCount} archived.
+                    Archive only affects active tasks. Restore only affects archived tasks.
                   </p>
                 ) : null}
               </form>
@@ -290,8 +296,11 @@ export function TaskListManager({
       {groupedTasks ? (
         <div className="space-y-4">
           {Object.entries(groupedTasks).map(([group, groupTasks]) => (
-            <Card key={group}>
-              <CardHeader>
+            <Card
+              key={group}
+              className="overflow-hidden rounded-[1.5rem] border-border/80 bg-card/95 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.4)]"
+            >
+              <CardHeader className="border-b border-border/70">
                 <CardTitle className="flex items-center justify-between gap-3 text-base">
                   <span>{group}</span>
                   <span className="text-sm font-normal text-muted-foreground">
@@ -299,47 +308,39 @@ export function TaskListManager({
                   </span>
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <TaskTable
-                  activeTaskId={openTaskId}
-                  getTaskHref={(taskId) => {
-                    const nextParams = new URLSearchParams(searchParams.toString());
-                    nextParams.set("taskId", taskId);
-                    return `${pathname}?${nextParams.toString()}`;
-                  }}
-                  onOpenTask={(taskId) => {
-                    const nextParams = new URLSearchParams(searchParams.toString());
-                    nextParams.set("taskId", taskId);
-                    router.push(`${pathname}?${nextParams.toString()}`, { scroll: false });
-                  }}
-                  onToggleTask={toggleTask}
-                  selectedTaskIds={selectedTaskIdSet}
-                  selectable={currentRole === Role.OWNER_ADMIN}
-                  tasks={groupTasks}
-                />
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <TaskTable
+                    activeTaskId={openTaskId}
+                    onOpenTask={onOpenTask}
+                    onPrefetchTask={onPrefetchTask}
+                    onToggleTask={toggleTask}
+                    selectedTaskIds={selectedTaskIdSet}
+                    selectable={currentRole === Role.OWNER_ADMIN}
+                    tasks={groupTasks}
+                  />
+                </div>
               </CardContent>
             </Card>
           ))}
         </div>
       ) : (
-        <TaskTable
-          activeTaskId={openTaskId}
-          getTaskHref={(taskId) => {
-            const nextParams = new URLSearchParams(searchParams.toString());
-            nextParams.set("taskId", taskId);
-            return `${pathname}?${nextParams.toString()}`;
-          }}
-          onOpenTask={(taskId) => {
-            const nextParams = new URLSearchParams(searchParams.toString());
-            nextParams.set("taskId", taskId);
-            router.push(`${pathname}?${nextParams.toString()}`, { scroll: false });
-          }}
-          onToggleAllVisible={toggleAllVisible}
-          onToggleTask={toggleTask}
-          selectedTaskIds={selectedTaskIdSet}
-          selectable={currentRole === Role.OWNER_ADMIN}
-          tasks={tasks}
-        />
+        <Card className="overflow-hidden rounded-[1.5rem] border-border/80 bg-card/95 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.4)]">
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <TaskTable
+                activeTaskId={openTaskId}
+                onOpenTask={onOpenTask}
+                onPrefetchTask={onPrefetchTask}
+                onToggleAllVisible={toggleAllVisible}
+                onToggleTask={toggleTask}
+                selectedTaskIds={selectedTaskIdSet}
+                selectable={currentRole === Role.OWNER_ADMIN}
+                tasks={tasks}
+              />
+            </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   );

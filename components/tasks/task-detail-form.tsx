@@ -34,8 +34,8 @@ type ActionState = {
 
 const initialState: ActionState = { status: "idle" };
 
-function toDateValue(value: Date | null) {
-  return value ? value.toISOString().slice(0, 10) : "";
+function toDateValue(value: Date | string | null) {
+  return value ? new Date(value).toISOString().slice(0, 10) : "";
 }
 
 function SubmitButton({
@@ -111,7 +111,7 @@ function DependencyCard({
   dependencyId: string;
   title: string;
   status: TaskStatus;
-  dueDate?: Date | null;
+  dueDate?: Date | string | null;
   assignee?: { name: string } | null;
 }) {
   const [state, action] = useFormState(deleteTaskDependencyFeedbackAction, initialState);
@@ -147,8 +147,8 @@ function SubtaskCard({
     id: string;
     title: string;
     notes: string | null;
-    dueDate: Date | null;
-    archivedAt: Date | null;
+    dueDate: Date | string | null;
+    archivedAt: Date | string | null;
     assignedToId: string | null;
     assignedTo: { id: string; name: string } | null;
     isComplete: boolean;
@@ -282,8 +282,8 @@ export function TaskDetailForm({
     status: TaskStatus;
     priority: Priority;
     openingPriority: OpeningPriority;
-    dueDate: Date | null;
-    archivedAt: Date | null;
+    dueDate: Date | string | null;
+    archivedAt: Date | string | null;
     blockedReason: string | null;
     section: { title: string };
     phase: { title: string } | null;
@@ -293,8 +293,8 @@ export function TaskDetailForm({
       id: string;
       title: string;
       notes: string | null;
-      dueDate: Date | null;
-      archivedAt: Date | null;
+      dueDate: Date | string | null;
+      archivedAt: Date | string | null;
       assignedToId: string | null;
       assignedTo: { id: string; name: string } | null;
       isComplete: boolean;
@@ -306,7 +306,7 @@ export function TaskDetailForm({
         id: string;
         title: string;
         status: TaskStatus;
-        dueDate?: Date | null;
+        dueDate?: Date | string | null;
         assignedTo?: { name: string } | null;
       };
     }>;
@@ -315,7 +315,7 @@ export function TaskDetailForm({
         id: string;
         title: string;
         status: TaskStatus;
-        dueDate?: Date | null;
+        dueDate?: Date | string | null;
         assignedTo?: { name: string } | null;
       };
     }>;
@@ -328,7 +328,7 @@ export function TaskDetailForm({
     id: string;
     title: string;
     status: TaskStatus;
-    dueDate: Date | null;
+    dueDate: Date | string | null;
     assignedTo: { name: string } | null;
   }>;
 }) {

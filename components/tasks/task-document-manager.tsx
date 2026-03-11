@@ -92,14 +92,14 @@ export function TaskDocumentManager({
       originalName: string;
       storagePath: string;
       uploadedBy: { name: string };
-      createdAt: Date;
+      createdAt: Date | string;
     };
   }>;
   availableDocuments: Array<{
     id: string;
     title: string;
     category: DocumentCategory;
-    createdAt: Date;
+    createdAt: Date | string;
     linkedTask: { title: string } | null;
   }>;
 }) {

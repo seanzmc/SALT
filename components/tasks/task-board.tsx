@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { TaskStatus } from "@prisma/client";
 
@@ -13,7 +15,7 @@ export function TaskBoard({
     title: string;
     status: TaskStatus;
     section: { title: string };
-    dueDate: Date | null;
+    dueDate: Date | string | null;
     taskDependencies: Array<{ dependsOnTask: { status: TaskStatus } }>;
   }>;
 }) {

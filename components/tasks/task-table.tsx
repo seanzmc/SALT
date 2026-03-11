@@ -4,19 +4,10 @@ import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { type ChecklistTaskRecord } from "@/lib/checklist-workspace";
 import { cn, formatDate } from "@/lib/utils";
 
-export type TaskTableRow = {
-  id: string;
-  title: string;
-  archivedAt?: Date | null;
-  section: { title: string };
-  assignedTo: { name: string } | null;
-  priority: string;
-  status: string;
-  dueDate: Date | null;
-  taskDependencies: Array<{ dependsOnTask: { status: string } }>;
-};
+export type TaskTableRow = ChecklistTaskRecord;
 
 export function TaskTable({
   tasks,
@@ -26,7 +17,8 @@ export function TaskTable({
   onToggleAllVisible,
   onOpenTask,
   getTaskHref,
-  activeTaskId
+  activeTaskId,
+  onPrefetchTask
 }: {
   tasks: TaskTableRow[];
   selectable?: boolean;
@@ -36,6 +28,7 @@ export function TaskTable({
   onOpenTask?: (taskId: string) => void;
   getTaskHref?: (taskId: string) => string;
   activeTaskId?: string;
+  onPrefetchTask?: (taskId: string) => void;
 }) {
   const allVisibleSelected =
     tasks.length > 0 && tasks.every((task) => selectedTaskIds.has(task.id));
@@ -73,9 +66,14 @@ export function TaskTable({
           return (
             <TableRow
               key={task.id}
-              className={cn(onOpenTask ? "cursor-pointer" : undefined)}
+              className={cn(
+                "transition-colors hover:bg-secondary/40",
+                onOpenTask ? "cursor-pointer" : undefined,
+                activeTaskId === task.id && "bg-secondary/50"
+              )}
               data-state={activeTaskId === task.id ? "selected" : undefined}
               onClick={onOpenTask ? () => onOpenTask(task.id) : undefined}
+              onMouseEnter={() => onPrefetchTask?.(task.id)}
             >
               {selectable ? (
                 <TableCell>
@@ -89,14 +87,22 @@ export function TaskTable({
                 </TableCell>
               ) : null}
               <TableCell>
-                <Link
-                  className="font-medium hover:text-primary"
-                  href={taskHref}
-                  onClick={(event) => event.stopPropagation()}
-                  scroll={false}
-                >
-                  {task.title}
-                </Link>
+                {onOpenTask ? (
+                  <button
+                    className="font-medium text-left hover:text-primary"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onOpenTask(task.id);
+                    }}
+                    type="button"
+                  >
+                    {task.title}
+                  </button>
+                ) : (
+                  <Link className="font-medium hover:text-primary" href={taskHref} scroll={false}>
+                    {task.title}
+                  </Link>
+                )}
                 {task.archivedAt ? (
                   <Badge className="ml-2" variant="outline">
                     Archived
