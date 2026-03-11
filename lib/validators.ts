@@ -54,6 +54,40 @@ export const taskCommentSchema = z.object({
   content: z.string().min(1).max(2000)
 });
 
+export const adminResetStatusesSchema = z.object({
+  target: z.enum(["tasks", "subtasks", "all"])
+});
+
+export const adminTaskSetupSchema = z.object({
+  taskId: z.string().cuid(),
+  dueDate: z.string().optional().or(z.literal("")),
+  assignedToId: z.string().cuid().optional().or(z.literal(""))
+});
+
+export const adminSubtaskSetupSchema = z.object({
+  subtaskId: z.string().cuid(),
+  dueDate: z.string().optional().or(z.literal("")),
+  assignedToId: z.string().cuid().optional().or(z.literal(""))
+});
+
+export const adminCreateUserSchema = z.object({
+  name: z.string().trim().min(2, "Name must be at least 2 characters.").max(120),
+  email: z.string().trim().email("Enter a valid email address."),
+  password: z.string().min(8, "Password must be at least 8 characters."),
+  role: z.nativeEnum(Role)
+});
+
+export const adminUpdateUserSchema = z.object({
+  userId: z.string().cuid(),
+  name: z.string().trim().min(2, "Name must be at least 2 characters.").max(120),
+  email: z.string().trim().email("Enter a valid email address."),
+  password: z.string().optional().or(z.literal("")).refine(
+    (value) => !value || value.length >= 8,
+    "Password must be at least 8 characters."
+  ),
+  role: z.nativeEnum(Role)
+});
+
 export const budgetUpdateSchema = z.object({
   itemId: z.string().cuid(),
   actual: z.coerce.number().min(0),

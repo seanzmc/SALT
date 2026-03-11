@@ -13,6 +13,11 @@ import {
 } from "@/lib/password-reset";
 import { prisma } from "@/lib/prisma";
 import {
+  adminCreateUserSchema,
+  adminResetStatusesSchema,
+  adminSubtaskSetupSchema,
+  adminTaskSetupSchema,
+  adminUpdateUserSchema,
   accountEmailSchema,
   accountPasswordSchema,
   budgetUpdateSchema,
@@ -53,6 +58,13 @@ function validationErrorState(error: unknown): AccountActionState {
 
 const genericPasswordResetMessage =
   "If an account matches that email, a password reset link has been sent.";
+
+function successState(message: string): AccountActionState {
+  return {
+    status: "success",
+    message
+  };
+}
 
 export async function updateTaskAction(formData: FormData) {
   const session = await requireSession();
@@ -151,6 +163,261 @@ export async function createTaskCommentAction(formData: FormData) {
 
   revalidatePath(`/checklists/${parsed.taskId}`);
   revalidatePath("/dashboard");
+}
+
+export async function resetSetupStatusesAction(
+  _previousState: AccountActionState,
+  formData: FormData
+): Promise<AccountActionState> {
+  await requireOwner();
+
+  try {
+    const parsed = adminResetStatusesSchema.parse(Object.fromEntries(formData));
+
+    if (parsed.target === "tasks" || parsed.target === "all") {
+      await prisma.task.updateMany({
+        data: {
+          status: TaskStatus.NOT_STARTED,
+          completedAt: null,
+          blockedReason: null
+        }
+      });
+    }
+
+    if (parsed.target === "subtasks" || parsed.target === "all") {
+      await prisma.subtask.updateMany({
+        data: {
+          isComplete: false
+        }
+      });
+    }
+
+    revalidatePath("/dashboard");
+    revalidatePath("/checklists");
+    revalidatePath("/settings/setup");
+
+    return successState(
+      parsed.target === "all"
+        ? "Task and checklist item statuses were reset."
+        : parsed.target === "tasks"
+          ? "Task statuses were reset."
+          : "Checklist item statuses were reset."
+    );
+  } catch (error) {
+    return validationErrorState(error);
+  }
+}
+
+export async function updateTaskSetupAction(
+  _previousState: AccountActionState,
+  formData: FormData
+): Promise<AccountActionState> {
+  const session = await requireOwner();
+
+  try {
+    const parsed = adminTaskSetupSchema.parse(Object.fromEntries(formData));
+    const currentTask = await prisma.task.findUnique({
+      where: { id: parsed.taskId },
+      select: { id: true, assignedToId: true, dueDate: true, title: true }
+    });
+
+    if (!currentTask) {
+      return {
+        status: "error",
+        message: "Task not found."
+      };
+    }
+
+    const nextAssignedToId = parsed.assignedToId || null;
+    const nextDueDate = parseDate(parsed.dueDate);
+
+    await prisma.task.update({
+      where: { id: parsed.taskId },
+      data: {
+        assignedToId: nextAssignedToId,
+        dueDate: nextDueDate
+      }
+    });
+
+    if (currentTask.assignedToId !== nextAssignedToId) {
+      await logActivity({
+        actorId: session.user.id,
+        taskId: parsed.taskId,
+        type: ActivityType.TASK_ASSIGNED,
+        entityType: "Task",
+        entityId: parsed.taskId,
+        description: "Updated task assignment from the setup workspace."
+      });
+    }
+
+    await logActivity({
+      actorId: session.user.id,
+      taskId: parsed.taskId,
+      type: ActivityType.TASK_UPDATED,
+      entityType: "Task",
+      entityId: parsed.taskId,
+      description: `Updated setup fields for task "${currentTask.title}".`
+    });
+
+    revalidatePath("/checklists");
+    revalidatePath(`/checklists/${parsed.taskId}`);
+    revalidatePath("/dashboard");
+    revalidatePath("/settings/setup");
+
+    return successState("Task setup details updated.");
+  } catch (error) {
+    return validationErrorState(error);
+  }
+}
+
+export async function updateSubtaskSetupAction(
+  _previousState: AccountActionState,
+  formData: FormData
+): Promise<AccountActionState> {
+  await requireOwner();
+
+  try {
+    const parsed = adminSubtaskSetupSchema.parse(Object.fromEntries(formData));
+    const currentSubtask = await prisma.subtask.findUnique({
+      where: { id: parsed.subtaskId },
+      select: { id: true, taskId: true }
+    });
+
+    if (!currentSubtask) {
+      return {
+        status: "error",
+        message: "Checklist item not found."
+      };
+    }
+
+    await prisma.subtask.update({
+      where: { id: parsed.subtaskId },
+      data: {
+        assignedToId: parsed.assignedToId || null,
+        dueDate: parseDate(parsed.dueDate)
+      }
+    });
+
+    revalidatePath("/checklists");
+    revalidatePath(`/checklists/${currentSubtask.taskId}`);
+    revalidatePath("/settings/setup");
+
+    return successState("Checklist item updated.");
+  } catch (error) {
+    return validationErrorState(error);
+  }
+}
+
+export async function createAdminUserAction(
+  _previousState: AccountActionState,
+  formData: FormData
+): Promise<AccountActionState> {
+  await requireOwner();
+
+  try {
+    const parsed = adminCreateUserSchema.parse(Object.fromEntries(formData));
+    const email = parsed.email.toLowerCase();
+
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true }
+    });
+
+    if (existingUser) {
+      return {
+        status: "error",
+        message: "That email address is already in use.",
+        fieldErrors: {
+          email: ["That email address is already in use."]
+        }
+      };
+    }
+
+    await prisma.user.create({
+      data: {
+        name: parsed.name,
+        email,
+        passwordHash: await hash(parsed.password, 10),
+        role: parsed.role
+      }
+    });
+
+    revalidatePath("/settings/setup");
+
+    return successState("User account created.");
+  } catch (error) {
+    return validationErrorState(error);
+  }
+}
+
+export async function updateAdminUserAction(
+  _previousState: AccountActionState,
+  formData: FormData
+): Promise<AccountActionState> {
+  const session = await requireOwner();
+
+  try {
+    const parsed = adminUpdateUserSchema.parse(Object.fromEntries(formData));
+    const email = parsed.email.toLowerCase();
+
+    const user = await prisma.user.findUnique({
+      where: { id: parsed.userId },
+      select: { id: true, role: true }
+    });
+
+    if (!user) {
+      return {
+        status: "error",
+        message: "User account not found."
+      };
+    }
+
+    if (user.id === session.user.id && parsed.role !== Role.OWNER_ADMIN) {
+      return {
+        status: "error",
+        message: "The current signed-in owner must remain an owner admin.",
+        fieldErrors: {
+          role: ["The current signed-in owner must remain an owner admin."]
+        }
+      };
+    }
+
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true }
+    });
+
+    if (existingUser && existingUser.id !== parsed.userId) {
+      return {
+        status: "error",
+        message: "That email address is already in use.",
+        fieldErrors: {
+          email: ["That email address is already in use."]
+        }
+      };
+    }
+
+    await prisma.user.update({
+      where: { id: parsed.userId },
+      data: {
+        name: parsed.name,
+        email,
+        role: parsed.role,
+        ...(parsed.password
+          ? {
+              passwordHash: await hash(parsed.password, 10)
+            }
+          : {})
+      }
+    });
+
+    revalidatePath("/settings/setup");
+    revalidatePath("/settings/account");
+
+    return successState("User account updated.");
+  } catch (error) {
+    return validationErrorState(error);
+  }
 }
 
 export async function updateBudgetItemAction(formData: FormData) {

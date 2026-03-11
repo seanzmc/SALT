@@ -96,6 +96,7 @@ model User {
   role             Role
   resetTokens      PasswordResetToken[]
   assignedTasks    Task[]         @relation("TaskAssignee")
+  assignedSubtasks Subtask[]      @relation("SubtaskAssignee")
   createdTasks     Task[]         @relation("TaskCreator")
   taskComments     TaskComment[]
   documents        Document[]
@@ -175,13 +176,18 @@ model Task {
 model Subtask {
   id        String   @id @default(cuid())
   taskId     String
+  assignedToId String?
   title      String
   notes      String?
+  dueDate    DateTime?
   isComplete Boolean  @default(false)
   sortOrder  Int      @default(0)
   task       Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  assignedTo User?    @relation("SubtaskAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+
+  @@index([assignedToId])
 }
 
 model TaskDependency {

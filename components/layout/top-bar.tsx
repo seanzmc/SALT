@@ -22,12 +22,20 @@ export function TopBar({
       </div>
       <div className="flex items-center gap-3">
         {role === Role.OWNER_ADMIN ? (
-          <Link
-            href="/settings/account"
-            className={cn(buttonVariants({ variant: "outline" }))}
-          >
-            Account settings
-          </Link>
+          <>
+            <Link
+              href="/settings/setup"
+              className={cn(buttonVariants({ variant: "outline" }))}
+            >
+              Operational setup
+            </Link>
+            <Link
+              href="/settings/account"
+              className={cn(buttonVariants({ variant: "outline" }))}
+            >
+              Account settings
+            </Link>
+          </>
         ) : null}
         <div className="text-right">
           <p className="text-sm font-medium">{name}</p>
