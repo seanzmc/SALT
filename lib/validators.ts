@@ -38,6 +38,8 @@ export const resetPasswordSchema = z
 
 export const taskUpdateSchema = z.object({
   taskId: z.string().cuid(),
+  sectionId: z.string().cuid(),
+  phaseId: z.string().cuid().optional().or(z.literal("")),
   title: z.string().min(3).max(180),
   description: z.string().max(4000).optional().or(z.literal("")),
   notes: z.string().max(4000).optional().or(z.literal("")),
@@ -49,9 +51,47 @@ export const taskUpdateSchema = z.object({
   blockedReason: z.string().max(300).optional().or(z.literal(""))
 });
 
+export const taskCreateSchema = z.object({
+  sectionId: z.string().cuid(),
+  phaseId: z.string().cuid().optional().or(z.literal("")),
+  title: z.string().trim().min(3).max(180),
+  description: z.string().max(4000).optional().or(z.literal("")),
+  notes: z.string().max(4000).optional().or(z.literal("")),
+  priority: z.nativeEnum(Priority),
+  openingPriority: z.nativeEnum(OpeningPriority),
+  dueDate: z.string().optional().or(z.literal("")),
+  assignedToId: z.string().cuid().optional().or(z.literal(""))
+});
+
+export const taskDeleteSchema = z.object({
+  taskId: z.string().cuid()
+});
+
 export const taskCommentSchema = z.object({
   taskId: z.string().cuid(),
   content: z.string().min(1).max(2000)
+});
+
+export const subtaskCreateSchema = z.object({
+  taskId: z.string().cuid(),
+  title: z.string().trim().min(2).max(180),
+  notes: z.string().max(4000).optional().or(z.literal("")),
+  dueDate: z.string().optional().or(z.literal("")),
+  assignedToId: z.string().cuid().optional().or(z.literal(""))
+});
+
+export const subtaskUpdateSchema = z.object({
+  subtaskId: z.string().cuid(),
+  title: z.string().trim().min(2).max(180),
+  notes: z.string().max(4000).optional().or(z.literal("")),
+  dueDate: z.string().optional().or(z.literal("")),
+  assignedToId: z.string().cuid().optional().or(z.literal("")),
+  isComplete: z.enum(["true", "false"]),
+  sortOrder: z.coerce.number().int().min(0).max(9999)
+});
+
+export const subtaskDeleteSchema = z.object({
+  subtaskId: z.string().cuid()
 });
 
 export const adminResetStatusesSchema = z.object({

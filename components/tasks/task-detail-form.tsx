@@ -1,6 +1,12 @@
 import { OpeningPriority, Priority, Role, TaskStatus } from "@prisma/client";
 
-import { updateTaskAction } from "@/server/actions";
+import {
+  createSubtaskAction,
+  deleteSubtaskAction,
+  deleteTaskAction,
+  updateSubtaskAction,
+  updateTaskAction
+} from "@/server/actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,13 +16,21 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { formatDate } from "@/lib/utils";
 
+function toDateValue(value: Date | null) {
+  return value ? value.toISOString().slice(0, 10) : "";
+}
+
 export function TaskDetailForm({
   task,
   users,
-  currentRole
+  currentRole,
+  sections,
+  phases
 }: {
   task: {
     id: string;
+    sectionId: string;
+    phaseId: string | null;
     title: string;
     description: string | null;
     notes: string | null;
@@ -29,12 +43,23 @@ export function TaskDetailForm({
     phase: { title: string } | null;
     assignedToId?: string | null;
     assignedTo: { name: string } | null;
-    subtasks: Array<{ id: string; title: string; isComplete: boolean }>;
+    subtasks: Array<{
+      id: string;
+      title: string;
+      notes: string | null;
+      dueDate: Date | null;
+      assignedToId: string | null;
+      assignedTo: { id: string; name: string } | null;
+      isComplete: boolean;
+      sortOrder: number;
+    }>;
     taskTags: Array<{ tag: { name: string } }>;
     dependsOn: Array<{ dependsOnTask: { id: string; title: string; status: TaskStatus } }>;
   };
   users: Array<{ id: string; name: string; role: Role }>;
   currentRole: Role;
+  sections: Array<{ id: string; title: string }>;
+  phases: Array<{ id: string; title: string }>;
 }) {
   return (
     <Card>
@@ -66,6 +91,43 @@ export function TaskDetailForm({
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="notes">Notes</Label>
               <Textarea id="notes" name="notes" defaultValue={task.notes ?? ""} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="sectionId">Section</Label>
+              <Select
+                defaultValue={task.sectionId}
+                disabled={currentRole !== Role.OWNER_ADMIN}
+                id="sectionId"
+                name="sectionId"
+              >
+                {sections.map((section) => (
+                  <option key={section.id} value={section.id}>
+                    {section.title}
+                  </option>
+                ))}
+              </Select>
+              {currentRole !== Role.OWNER_ADMIN ? (
+                <input type="hidden" name="sectionId" value={task.sectionId} />
+              ) : null}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phaseId">Phase</Label>
+              <Select
+                defaultValue={task.phaseId ?? ""}
+                disabled={currentRole !== Role.OWNER_ADMIN}
+                id="phaseId"
+                name="phaseId"
+              >
+                <option value="">No phase</option>
+                {phases.map((phase) => (
+                  <option key={phase.id} value={phase.id}>
+                    {phase.title}
+                  </option>
+                ))}
+              </Select>
+              {currentRole !== Role.OWNER_ADMIN ? (
+                <input type="hidden" name="phaseId" value={task.phaseId ?? ""} />
+              ) : null}
             </div>
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
@@ -100,7 +162,7 @@ export function TaskDetailForm({
             <div className="space-y-2">
               <Label htmlFor="dueDate">Due date</Label>
               <Input
-                defaultValue={task.dueDate ? task.dueDate.toISOString().slice(0, 10) : ""}
+                defaultValue={toDateValue(task.dueDate)}
                 id="dueDate"
                 name="dueDate"
                 type="date"
@@ -121,6 +183,9 @@ export function TaskDetailForm({
                   </option>
                 ))}
               </Select>
+              {currentRole !== Role.OWNER_ADMIN ? (
+                <input type="hidden" name="assignedToId" value={task.assignedToId ?? ""} />
+              ) : null}
             </div>
             <div className="space-y-2">
               <Label htmlFor="blockedReason">Blocked reason</Label>
@@ -136,6 +201,15 @@ export function TaskDetailForm({
             ) : null}
           </div>
         </form>
+
+        {currentRole === Role.OWNER_ADMIN ? (
+          <form action={deleteTaskAction}>
+            <input type="hidden" name="taskId" value={task.id} />
+            <Button type="submit" variant="danger">
+              Delete task
+            </Button>
+          </form>
+        ) : null}
 
         <div className="space-y-4">
           <div>
@@ -158,16 +232,134 @@ export function TaskDetailForm({
 
           <div>
             <h3 className="font-semibold">Subtasks</h3>
-            <div className="mt-2 space-y-2">
+            <form action={createSubtaskAction} className="mt-3 grid gap-3 rounded-xl border border-border bg-secondary/20 p-4">
+              <input type="hidden" name="taskId" value={task.id} />
+              <div className="grid gap-3 md:grid-cols-2">
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="new-subtask-title">New checklist item</Label>
+                  <Input id="new-subtask-title" name="title" required />
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="new-subtask-notes">Notes</Label>
+                  <Textarea id="new-subtask-notes" name="notes" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="new-subtask-dueDate">Due date</Label>
+                  <Input id="new-subtask-dueDate" name="dueDate" type="date" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="new-subtask-assignedToId">Assigned to</Label>
+                  <Select
+                    defaultValue=""
+                    disabled={currentRole !== Role.OWNER_ADMIN}
+                    id="new-subtask-assignedToId"
+                    name="assignedToId"
+                  >
+                    <option value="">Unassigned</option>
+                    {users.map((user) => (
+                      <option key={user.id} value={user.id}>
+                        {user.name} ({user.role === Role.OWNER_ADMIN ? "Owner" : "Collaborator"})
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button type="submit">Add checklist item</Button>
+              </div>
+            </form>
+
+            <div className="mt-3 space-y-3">
               {task.subtasks.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No subtasks.</p>
               ) : (
                 task.subtasks.map((subtask) => (
                   <div key={subtask.id} className="rounded-lg border border-border p-3">
-                    <p className="font-medium">{subtask.title}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {subtask.isComplete ? "Complete" : "Pending"}
-                    </p>
+                    <form action={updateSubtaskAction} className="grid gap-3">
+                      <input type="hidden" name="subtaskId" value={subtask.id} />
+                      <div className="grid gap-3 md:grid-cols-2">
+                        <div className="space-y-2 md:col-span-2">
+                          <Label htmlFor={`subtask-title-${subtask.id}`}>Title</Label>
+                          <Input
+                            defaultValue={subtask.title}
+                            id={`subtask-title-${subtask.id}`}
+                            name="title"
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
+                          <Label htmlFor={`subtask-notes-${subtask.id}`}>Notes</Label>
+                          <Textarea
+                            defaultValue={subtask.notes ?? ""}
+                            id={`subtask-notes-${subtask.id}`}
+                            name="notes"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`subtask-status-${subtask.id}`}>Status</Label>
+                          <Select
+                            defaultValue={subtask.isComplete ? "true" : "false"}
+                            id={`subtask-status-${subtask.id}`}
+                            name="isComplete"
+                          >
+                            <option value="false">Pending</option>
+                            <option value="true">Complete</option>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`subtask-order-${subtask.id}`}>Display order</Label>
+                          <Input
+                            defaultValue={subtask.sortOrder}
+                            id={`subtask-order-${subtask.id}`}
+                            min={0}
+                            name="sortOrder"
+                            type="number"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`subtask-dueDate-${subtask.id}`}>Due date</Label>
+                          <Input
+                            defaultValue={toDateValue(subtask.dueDate)}
+                            id={`subtask-dueDate-${subtask.id}`}
+                            name="dueDate"
+                            type="date"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`subtask-assignedToId-${subtask.id}`}>Assigned to</Label>
+                          <Select
+                            defaultValue={subtask.assignedToId ?? ""}
+                            disabled={currentRole !== Role.OWNER_ADMIN}
+                            id={`subtask-assignedToId-${subtask.id}`}
+                            name="assignedToId"
+                          >
+                            <option value="">Unassigned</option>
+                            {users.map((user) => (
+                              <option key={user.id} value={user.id}>
+                                {user.name} ({user.role === Role.OWNER_ADMIN ? "Owner" : "Collaborator"})
+                              </option>
+                            ))}
+                          </Select>
+                          {currentRole !== Role.OWNER_ADMIN ? (
+                            <input type="hidden" name="assignedToId" value={subtask.assignedToId ?? ""} />
+                          ) : null}
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Button type="submit" variant="outline">
+                          Save checklist item
+                        </Button>
+                        <span className="text-xs text-muted-foreground">
+                          {subtask.assignedTo?.name ?? "Unassigned"} • {subtask.isComplete ? "Complete" : "Pending"}
+                        </span>
+                      </div>
+                    </form>
+                    <form action={deleteSubtaskAction} className="mt-3">
+                      <input type="hidden" name="subtaskId" value={subtask.id} />
+                      <Button type="submit" variant="danger">
+                        Remove checklist item
+                      </Button>
+                    </form>
                   </div>
                 ))
               )}

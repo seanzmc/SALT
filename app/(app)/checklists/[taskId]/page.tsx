@@ -15,11 +15,19 @@ export default async function TaskDetailPage({
   params: { taskId: string };
 }) {
   const session = await requireSession();
-  const [task, users] = await Promise.all([
+  const [task, users, sections, phases] = await Promise.all([
     getTaskDetail(params.taskId),
     prisma.user.findMany({
       select: { id: true, name: true, role: true },
       orderBy: { name: "asc" }
+    }),
+    prisma.section.findMany({
+      select: { id: true, title: true },
+      orderBy: { sortOrder: "asc" }
+    }),
+    prisma.timelinePhase.findMany({
+      select: { id: true, title: true },
+      orderBy: { sortOrder: "asc" }
     })
   ]);
 
@@ -31,11 +39,17 @@ export default async function TaskDetailPage({
     <div className="space-y-6">
       <PageHeader
         title="Task Detail"
-        description="Edit task status, ownership, due dates, notes, dependencies, and comments with server-side validation."
+        description="Edit task status, ownership, section/phase placement, due dates, notes, and subtasks while reviewing dependencies and comments with server-side validation."
       />
 
       <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <TaskDetailForm currentRole={session.user.role} task={task as never} users={users} />
+        <TaskDetailForm
+          currentRole={session.user.role}
+          phases={phases}
+          sections={sections}
+          task={task as never}
+          users={users}
+        />
         <div className="space-y-6">
           <Card>
             <CardHeader>

@@ -2,6 +2,7 @@
 
 import { ActivityType, Role, TaskStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { compare, hash } from "bcryptjs";
 import { ZodError } from "zod";
 
@@ -24,7 +25,12 @@ import {
   forgotPasswordSchema,
   messageSchema,
   resetPasswordSchema,
+  subtaskCreateSchema,
+  subtaskDeleteSchema,
+  subtaskUpdateSchema,
   taskCommentSchema,
+  taskCreateSchema,
+  taskDeleteSchema,
   taskUpdateSchema,
   timelineUpdateSchema
 } from "@/lib/validators";
@@ -66,14 +72,47 @@ function successState(message: string): AccountActionState {
   };
 }
 
+async function getTaskAccessContext(taskId: string) {
+  return prisma.task.findUnique({
+    where: { id: taskId },
+    select: {
+      id: true,
+      title: true,
+      status: true,
+      sectionId: true,
+      phaseId: true,
+      assignedToId: true,
+      thread: {
+        select: {
+          id: true
+        }
+      }
+    }
+  });
+}
+
+async function getSubtaskAccessContext(subtaskId: string) {
+  return prisma.subtask.findUnique({
+    where: { id: subtaskId },
+    select: {
+      id: true,
+      title: true,
+      assignedToId: true,
+      taskId: true,
+      task: {
+        select: {
+          assignedToId: true
+        }
+      }
+    }
+  });
+}
+
 export async function updateTaskAction(formData: FormData) {
   const session = await requireSession();
   const parsed = taskUpdateSchema.parse(Object.fromEntries(formData));
 
-  const currentTask = await prisma.task.findUnique({
-    where: { id: parsed.taskId },
-    select: { id: true, title: true, status: true, assignedToId: true }
-  });
+  const currentTask = await getTaskAccessContext(parsed.taskId);
 
   if (!currentTask) {
     throw new Error("Task not found.");
@@ -93,9 +132,19 @@ export async function updateTaskAction(formData: FormData) {
     throw new Error("Only owner admins can change task assignment.");
   }
 
+  if (
+    session.user.role !== Role.OWNER_ADMIN &&
+    (parsed.sectionId !== currentTask.sectionId ||
+      (parsed.phaseId || null) !== currentTask.phaseId)
+  ) {
+    throw new Error("Only owner admins can change section or phase.");
+  }
+
   await prisma.task.update({
     where: { id: parsed.taskId },
     data: {
+      sectionId: parsed.sectionId,
+      phaseId: parsed.phaseId || null,
       title: parsed.title,
       description: parsed.description || null,
       notes: parsed.notes || null,
@@ -138,6 +187,89 @@ export async function updateTaskAction(formData: FormData) {
   revalidatePath("/dashboard");
   revalidatePath("/checklists");
   revalidatePath(`/checklists/${parsed.taskId}`);
+  revalidatePath("/settings/setup");
+}
+
+export async function createTaskAction(formData: FormData) {
+  const session = await requireOwner();
+  const parsed = taskCreateSchema.parse(Object.fromEntries(formData));
+
+  const task = await prisma.task.create({
+    data: {
+      sectionId: parsed.sectionId,
+      phaseId: parsed.phaseId || null,
+      createdById: session.user.id,
+      assignedToId: parsed.assignedToId || null,
+      title: parsed.title,
+      description: parsed.description || null,
+      notes: parsed.notes || null,
+      priority: parsed.priority,
+      openingPriority: parsed.openingPriority,
+      dueDate: parseDate(parsed.dueDate)
+    }
+  });
+
+  await logActivity({
+    actorId: session.user.id,
+    taskId: task.id,
+    type: ActivityType.TASK_CREATED,
+    entityType: "Task",
+    entityId: task.id,
+    description: `Created task "${task.title}".`
+  });
+
+  if (task.assignedToId) {
+    await logActivity({
+      actorId: session.user.id,
+      taskId: task.id,
+      type: ActivityType.TASK_ASSIGNED,
+      entityType: "Task",
+      entityId: task.id,
+      description: "Assigned task during creation."
+    });
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/checklists");
+  revalidatePath("/settings/setup");
+
+  redirect(`/checklists/${task.id}`);
+}
+
+export async function deleteTaskAction(formData: FormData) {
+  const session = await requireOwner();
+  const parsed = taskDeleteSchema.parse(Object.fromEntries(formData));
+  const task = await getTaskAccessContext(parsed.taskId);
+
+  if (!task) {
+    throw new Error("Task not found.");
+  }
+
+  await prisma.$transaction(async (tx) => {
+    if (task.thread?.id) {
+      await tx.messageThread.delete({
+        where: { id: task.thread.id }
+      });
+    }
+
+    await tx.task.delete({
+      where: { id: parsed.taskId }
+    });
+  });
+
+  await logActivity({
+    actorId: session.user.id,
+    type: ActivityType.TASK_UPDATED,
+    entityType: "Task",
+    entityId: parsed.taskId,
+    description: `Deleted task "${task.title}".`
+  });
+
+  revalidatePath("/dashboard");
+  revalidatePath("/checklists");
+  revalidatePath("/settings/setup");
+
+  redirect("/checklists");
 }
 
 export async function createTaskCommentAction(formData: FormData) {
@@ -163,6 +295,142 @@ export async function createTaskCommentAction(formData: FormData) {
 
   revalidatePath(`/checklists/${parsed.taskId}`);
   revalidatePath("/dashboard");
+}
+
+export async function createSubtaskAction(formData: FormData) {
+  const session = await requireSession();
+  const parsed = subtaskCreateSchema.parse(Object.fromEntries(formData));
+  const task = await getTaskAccessContext(parsed.taskId);
+
+  if (!task) {
+    throw new Error("Task not found.");
+  }
+
+  if (
+    session.user.role !== Role.OWNER_ADMIN &&
+    task.assignedToId !== session.user.id
+  ) {
+    throw new Error("Collaborators can only add checklist items to tasks assigned to them.");
+  }
+
+  const lastSubtask = await prisma.subtask.findFirst({
+    where: { taskId: parsed.taskId },
+    orderBy: { sortOrder: "desc" },
+    select: { sortOrder: true }
+  });
+
+  const subtask = await prisma.subtask.create({
+    data: {
+      taskId: parsed.taskId,
+      title: parsed.title,
+      notes: parsed.notes || null,
+      dueDate: parseDate(parsed.dueDate),
+      assignedToId:
+        session.user.role === Role.OWNER_ADMIN ? parsed.assignedToId || null : session.user.id,
+      sortOrder: (lastSubtask?.sortOrder ?? 0) + 1
+    }
+  });
+
+  await logActivity({
+    actorId: session.user.id,
+    taskId: parsed.taskId,
+    type: ActivityType.TASK_UPDATED,
+    entityType: "Subtask",
+    entityId: subtask.id,
+    description: `Added checklist item "${subtask.title}".`
+  });
+
+  revalidatePath("/checklists");
+  revalidatePath(`/checklists/${parsed.taskId}`);
+  revalidatePath("/dashboard");
+  revalidatePath("/settings/setup");
+}
+
+export async function updateSubtaskAction(formData: FormData) {
+  const session = await requireSession();
+  const parsed = subtaskUpdateSchema.parse(Object.fromEntries(formData));
+  const currentSubtask = await getSubtaskAccessContext(parsed.subtaskId);
+
+  if (!currentSubtask) {
+    throw new Error("Checklist item not found.");
+  }
+
+  const canCollaboratorEdit =
+    currentSubtask.task.assignedToId === session.user.id ||
+    currentSubtask.assignedToId === session.user.id;
+
+  if (session.user.role !== Role.OWNER_ADMIN && !canCollaboratorEdit) {
+    throw new Error("Collaborators can only edit checklist items assigned to them or their task.");
+  }
+
+  if (
+    session.user.role !== Role.OWNER_ADMIN &&
+    (parsed.assignedToId || null) !== currentSubtask.assignedToId
+  ) {
+    throw new Error("Only owner admins can change checklist item assignment.");
+  }
+
+  await prisma.subtask.update({
+    where: { id: parsed.subtaskId },
+    data: {
+      title: parsed.title,
+      notes: parsed.notes || null,
+      dueDate: parseDate(parsed.dueDate),
+      assignedToId: parsed.assignedToId || null,
+      isComplete: parsed.isComplete === "true",
+      sortOrder: parsed.sortOrder
+    }
+  });
+
+  await logActivity({
+    actorId: session.user.id,
+    taskId: currentSubtask.taskId,
+    type: ActivityType.TASK_UPDATED,
+    entityType: "Subtask",
+    entityId: parsed.subtaskId,
+    description: `Updated checklist item "${parsed.title}".`
+  });
+
+  revalidatePath("/checklists");
+  revalidatePath(`/checklists/${currentSubtask.taskId}`);
+  revalidatePath("/dashboard");
+  revalidatePath("/settings/setup");
+}
+
+export async function deleteSubtaskAction(formData: FormData) {
+  const session = await requireSession();
+  const parsed = subtaskDeleteSchema.parse(Object.fromEntries(formData));
+  const currentSubtask = await getSubtaskAccessContext(parsed.subtaskId);
+
+  if (!currentSubtask) {
+    throw new Error("Checklist item not found.");
+  }
+
+  const canCollaboratorEdit =
+    currentSubtask.task.assignedToId === session.user.id ||
+    currentSubtask.assignedToId === session.user.id;
+
+  if (session.user.role !== Role.OWNER_ADMIN && !canCollaboratorEdit) {
+    throw new Error("Collaborators can only remove checklist items assigned to them or their task.");
+  }
+
+  await prisma.subtask.delete({
+    where: { id: parsed.subtaskId }
+  });
+
+  await logActivity({
+    actorId: session.user.id,
+    taskId: currentSubtask.taskId,
+    type: ActivityType.TASK_UPDATED,
+    entityType: "Subtask",
+    entityId: parsed.subtaskId,
+    description: `Removed checklist item "${currentSubtask.title}".`
+  });
+
+  revalidatePath("/checklists");
+  revalidatePath(`/checklists/${currentSubtask.taskId}`);
+  revalidatePath("/dashboard");
+  revalidatePath("/settings/setup");
 }
 
 export async function resetSetupStatusesAction(

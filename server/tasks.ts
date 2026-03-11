@@ -7,6 +7,8 @@ export type TaskFilters = {
   status?: TaskStatus | "ALL";
   section?: string;
   priority?: string;
+  assignee?: string;
+  currentUserId?: string;
   sort?: "dueDate" | "priority" | "title" | "status";
 };
 
@@ -24,7 +26,14 @@ export async function getTaskList(filters: TaskFilters = {}) {
         : {},
       filters.status && filters.status !== "ALL" ? { status: filters.status } : {},
       filters.section ? { section: { slug: filters.section } } : {},
-      filters.priority ? { priority: filters.priority as never } : {}
+      filters.priority ? { priority: filters.priority as never } : {},
+      filters.assignee === "unassigned"
+        ? { assignedToId: null }
+      : filters.assignee === "me"
+          ? { assignedToId: filters.currentUserId }
+          : filters.assignee
+            ? { assignedToId: filters.assignee }
+            : {}
     ]
   };
 
@@ -37,7 +46,7 @@ export async function getTaskList(filters: TaskFilters = {}) {
           ? { status: "asc" }
           : { dueDate: "asc" };
 
-  const [tasks, sections, users] = await Promise.all([
+  const [tasks, sections, users, phases] = await Promise.all([
     prisma.task.findMany({
       where,
       include: {
@@ -70,10 +79,14 @@ export async function getTaskList(filters: TaskFilters = {}) {
     prisma.user.findMany({
       orderBy: { name: "asc" },
       select: { id: true, name: true, role: true }
+    }),
+    prisma.timelinePhase.findMany({
+      orderBy: { sortOrder: "asc" },
+      select: { id: true, title: true }
     })
   ]);
 
-  return { tasks, sections, users };
+  return { tasks, sections, users, phases };
 }
 
 export async function getTaskDetail(taskId: string) {
@@ -95,6 +108,14 @@ export async function getTaskDetail(taskId: string) {
         }
       },
       subtasks: {
+        include: {
+          assignedTo: {
+            select: {
+              id: true,
+              name: true
+            }
+          }
+        },
         orderBy: { sortOrder: "asc" }
       },
       dependsOn: {
