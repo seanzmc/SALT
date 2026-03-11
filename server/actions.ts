@@ -21,6 +21,7 @@ import {
   adminUpdateUserSchema,
   accountEmailSchema,
   accountPasswordSchema,
+  bulkTaskActionSchema,
   budgetUpdateSchema,
   forgotPasswordSchema,
   messageSchema,
@@ -194,6 +195,148 @@ export async function updateTaskAction(formData: FormData) {
   revalidatePath("/checklists");
   revalidatePath(`/checklists/${parsed.taskId}`);
   revalidatePath("/settings/setup");
+}
+
+export async function bulkUpdateTasksAction(
+  _previousState: AccountActionState,
+  formData: FormData
+): Promise<AccountActionState> {
+  const session = await requireOwner();
+
+  try {
+    const parsed = bulkTaskActionSchema.parse({
+      taskIds: formData.getAll("taskIds"),
+      action: formData.get("action"),
+      assignedToId: formData.get("assignedToId"),
+      status: formData.get("status") || undefined,
+      priority: formData.get("priority") || undefined,
+      dueDate: formData.get("dueDate"),
+      shiftDays: formData.get("shiftDays") || undefined,
+      blockedReason: formData.get("blockedReason")
+    });
+
+    const tasks = await prisma.task.findMany({
+      where: { id: { in: parsed.taskIds } },
+      select: {
+        id: true,
+        title: true,
+        dueDate: true
+      }
+    });
+
+    if (tasks.length !== parsed.taskIds.length) {
+      return {
+        status: "error",
+        message: "One or more selected tasks could not be found."
+      };
+    }
+
+    switch (parsed.action) {
+      case "assign":
+        await prisma.task.updateMany({
+          where: { id: { in: parsed.taskIds } },
+          data: { assignedToId: parsed.assignedToId || null }
+        });
+        break;
+      case "clearAssignee":
+        await prisma.task.updateMany({
+          where: { id: { in: parsed.taskIds } },
+          data: { assignedToId: null }
+        });
+        break;
+      case "status":
+        await prisma.task.updateMany({
+          where: { id: { in: parsed.taskIds } },
+          data: {
+            status: parsed.status,
+            blockedReason:
+              parsed.status === TaskStatus.BLOCKED ? parsed.blockedReason?.trim() || null : null,
+            completedAt: parsed.status === TaskStatus.COMPLETE ? new Date() : null
+          }
+        });
+        break;
+      case "priority":
+        await prisma.task.updateMany({
+          where: { id: { in: parsed.taskIds } },
+          data: { priority: parsed.priority }
+        });
+        break;
+      case "setDueDate":
+        await prisma.task.updateMany({
+          where: { id: { in: parsed.taskIds } },
+          data: { dueDate: parseDate(parsed.dueDate) }
+        });
+        break;
+      case "shiftDueDate":
+        await prisma.$transaction(
+          tasks.map((task) =>
+            prisma.task.update({
+              where: { id: task.id },
+              data: {
+                dueDate: task.dueDate
+                  ? new Date(task.dueDate.getTime() + Number(parsed.shiftDays) * 86400000)
+                  : null
+              }
+            })
+          )
+        );
+        break;
+      case "markComplete":
+        await prisma.task.updateMany({
+          where: { id: { in: parsed.taskIds } },
+          data: {
+            status: TaskStatus.COMPLETE,
+            completedAt: new Date(),
+            blockedReason: null
+          }
+        });
+        break;
+    }
+
+    const actionDescription =
+      parsed.action === "assign"
+        ? "Bulk reassigned tasks."
+        : parsed.action === "clearAssignee"
+          ? "Bulk cleared task owners."
+          : parsed.action === "status"
+            ? `Bulk updated task status to ${parsed.status}.`
+            : parsed.action === "priority"
+              ? `Bulk updated task priority to ${parsed.priority}.`
+              : parsed.action === "setDueDate"
+                ? "Bulk set task due dates."
+                : parsed.action === "shiftDueDate"
+                  ? `Bulk shifted task due dates by ${parsed.shiftDays} days.`
+                  : "Bulk marked tasks complete.";
+
+    await Promise.all(
+      parsed.taskIds.map((taskId) =>
+        logActivity({
+          actorId: session.user.id,
+          taskId,
+          type:
+            parsed.action === "status" || parsed.action === "markComplete"
+              ? ActivityType.TASK_STATUS_CHANGED
+              : parsed.action === "assign" || parsed.action === "clearAssignee"
+                ? ActivityType.TASK_ASSIGNED
+                : ActivityType.TASK_UPDATED,
+          entityType: "Task",
+          entityId: taskId,
+          description: actionDescription
+        })
+      )
+    );
+
+    revalidatePath("/dashboard");
+    revalidatePath("/checklists");
+    revalidatePath("/settings/setup");
+    tasks.forEach((task) => {
+      revalidatePath(`/checklists/${task.id}`);
+    });
+
+    return successState(`Updated ${parsed.taskIds.length} task${parsed.taskIds.length === 1 ? "" : "s"}.`);
+  } catch (error) {
+    return validationErrorState(error);
+  }
 }
 
 export async function createTaskAction(formData: FormData) {

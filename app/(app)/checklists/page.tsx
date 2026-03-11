@@ -1,12 +1,11 @@
 import Link from "next/link";
 
 import { PageHeader } from "@/components/layout/page-header";
-import { GroupedTaskList } from "@/components/tasks/grouped-task-list";
 import { TaskCreateForm } from "@/components/tasks/task-create-form";
 import { TaskBoard } from "@/components/tasks/task-board";
 import { TaskFilters } from "@/components/tasks/task-filters";
+import { TaskListManager } from "@/components/tasks/task-list-manager";
 import { TaskQueueShortcuts } from "@/components/tasks/task-queue-shortcuts";
-import { TaskTable } from "@/components/tasks/task-table";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { buttonVariants } from "@/components/ui/button";
@@ -89,10 +88,13 @@ export default async function ChecklistsPage({
         />
       ) : current.view === "board" ? (
         <TaskBoard tasks={tasks as never} />
-      ) : current.group === "section" ? (
-        <GroupedTaskList groupBy="section" tasks={tasks as never} />
       ) : (
-        <TaskTable tasks={tasks as never} />
+        <TaskListManager
+          currentRole={session.user.role}
+          groupBy={current.group as "none" | "section"}
+          tasks={tasks as never}
+          users={users}
+        />
       )}
     </div>
   );

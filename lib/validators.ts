@@ -122,6 +122,75 @@ export const taskDependencyDeleteSchema = z.object({
   dependsOnTaskId: z.string().cuid()
 });
 
+export const bulkTaskActionSchema = z
+  .object({
+    taskIds: z.array(z.string().cuid()).min(1, "Select at least one task."),
+    action: z.enum([
+      "assign",
+      "clearAssignee",
+      "status",
+      "priority",
+      "setDueDate",
+      "shiftDueDate",
+      "markComplete"
+    ]),
+    assignedToId: z.string().cuid().optional().or(z.literal("")),
+    status: z.nativeEnum(TaskStatus).optional(),
+    priority: z.nativeEnum(Priority).optional(),
+    dueDate: z.string().optional().or(z.literal("")),
+    shiftDays: z.coerce.number().int().min(-365).max(365).optional(),
+    blockedReason: z.string().max(300).optional().or(z.literal(""))
+  })
+  .superRefine((data, ctx) => {
+    if (data.action === "assign" && !data.assignedToId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["assignedToId"],
+        message: "Select an owner for reassignment."
+      });
+    }
+
+    if (data.action === "status" && !data.status) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["status"],
+        message: "Select a status."
+      });
+    }
+
+    if (data.action === "status" && data.status === TaskStatus.BLOCKED && !data.blockedReason?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["blockedReason"],
+        message: "Blocked reason is required when setting status to blocked."
+      });
+    }
+
+    if (data.action === "priority" && !data.priority) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["priority"],
+        message: "Select a priority."
+      });
+    }
+
+    if (data.action === "setDueDate" && !data.dueDate) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["dueDate"],
+        message: "Choose a due date."
+      });
+    }
+
+    if (data.action === "shiftDueDate" && data.shiftDays === undefined) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["shiftDays"],
+        message: "Enter a day shift."
+      });
+    }
+  });
+
 export const adminResetStatusesSchema = z.object({
   target: z.enum(["tasks", "subtasks", "all"])
 });

@@ -1,27 +1,52 @@
+"use client";
+
 import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatDate } from "@/lib/utils";
 
+export type TaskTableRow = {
+  id: string;
+  title: string;
+  section: { title: string };
+  assignedTo: { name: string } | null;
+  priority: string;
+  status: string;
+  dueDate: Date | null;
+  taskDependencies: Array<{ dependsOnTask: { status: string } }>;
+};
+
 export function TaskTable({
-  tasks
+  tasks,
+  selectable = false,
+  selectedTaskIds = new Set<string>(),
+  onToggleTask,
+  onToggleAllVisible
 }: {
-  tasks: Array<{
-    id: string;
-    title: string;
-    section: { title: string };
-    assignedTo: { name: string } | null;
-    priority: string;
-    status: string;
-    dueDate: Date | null;
-    taskDependencies: Array<{ dependsOnTask: { status: string } }>;
-  }>;
+  tasks: TaskTableRow[];
+  selectable?: boolean;
+  selectedTaskIds?: Set<string>;
+  onToggleTask?: (taskId: string) => void;
+  onToggleAllVisible?: () => void;
 }) {
+  const allVisibleSelected =
+    tasks.length > 0 && tasks.every((task) => selectedTaskIds.has(task.id));
+
   return (
     <Table>
       <TableHeader>
         <TableRow>
+          {selectable ? (
+            <TableHead className="w-12">
+              <input
+                aria-label="Select all visible tasks"
+                checked={allVisibleSelected}
+                onChange={() => onToggleAllVisible?.()}
+                type="checkbox"
+              />
+            </TableHead>
+          ) : null}
           <TableHead>Task</TableHead>
           <TableHead>Section</TableHead>
           <TableHead>Status</TableHead>
@@ -39,6 +64,16 @@ export function TaskTable({
 
           return (
             <TableRow key={task.id}>
+              {selectable ? (
+                <TableCell>
+                  <input
+                    aria-label={`Select ${task.title}`}
+                    checked={selectedTaskIds.has(task.id)}
+                    onChange={() => onToggleTask?.(task.id)}
+                    type="checkbox"
+                  />
+                </TableCell>
+              ) : null}
               <TableCell>
                 <Link className="font-medium hover:text-primary" href={`/checklists/${task.id}`}>
                   {task.title}
