@@ -31,7 +31,10 @@ export default async function TaskDetailPage({
       orderBy: { sortOrder: "asc" }
     }),
     prisma.task.findMany({
-      where: { id: { not: params.taskId } },
+      where: {
+        id: { not: params.taskId },
+        archivedAt: null
+      },
       select: {
         id: true,
         title: true,

@@ -22,12 +22,14 @@ export default async function AdminSetupPage() {
         isActive: true,
         assignedTasks: {
           where: {
+            archivedAt: null,
             status: { not: TaskStatus.COMPLETE }
           },
           select: { id: true }
         },
         assignedSubtasks: {
           where: {
+            archivedAt: null,
             isComplete: false
           },
           select: { id: true }
@@ -45,6 +47,7 @@ export default async function AdminSetupPage() {
       }
     }),
     prisma.task.findMany({
+      where: { archivedAt: null },
       orderBy: [{ dueDate: "asc" }, { title: "asc" }],
       select: {
         id: true,
@@ -65,6 +68,7 @@ export default async function AdminSetupPage() {
       }
     }),
     prisma.subtask.findMany({
+      where: { archivedAt: null },
       orderBy: [
         { task: { title: "asc" } },
         { sortOrder: "asc" }

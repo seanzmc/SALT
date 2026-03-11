@@ -20,6 +20,7 @@ export function TaskFilters({
     priority?: string;
     assignee?: string;
     queue?: string;
+    archived?: string;
     group?: string;
     sort?: string;
     view?: string;
@@ -68,6 +69,11 @@ export function TaskFilters({
         <option value="priority">Sort by priority</option>
         <option value="title">Sort by title</option>
         <option value="status">Sort by status</option>
+      </Select>
+      <Select defaultValue={current.archived ?? "active"} name="archived">
+        <option value="active">Active only</option>
+        <option value="archived">Archived only</option>
+        <option value="all">Active and archived</option>
       </Select>
       <Select defaultValue={current.group ?? "none"} name="group">
         <option value="none">No grouping</option>

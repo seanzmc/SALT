@@ -144,6 +144,7 @@ model Task {
   status               TaskStatus       @default(NOT_STARTED)
   openingPriority      OpeningPriority
   dueDate              DateTime?
+  archivedAt           DateTime?
   completedAt          DateTime?
   blockedReason        String?
   roomName             String?
@@ -181,6 +182,7 @@ model Subtask {
   title      String
   notes      String?
   dueDate    DateTime?
+  archivedAt DateTime?
   isComplete Boolean  @default(false)
   sortOrder  Int      @default(0)
   task       Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)

@@ -30,6 +30,8 @@ import {
   subtaskCreateSchema,
   subtaskDeleteSchema,
   subtaskUpdateSchema,
+  subtaskArchiveSchema,
+  taskArchiveSchema,
   taskDependencyCreateSchema,
   taskDependencyDeleteSchema,
   taskCommentSchema,
@@ -83,6 +85,7 @@ async function getTaskAccessContext(taskId: string) {
       id: true,
       title: true,
       status: true,
+      archivedAt: true,
       sectionId: true,
       phaseId: true,
       assignedToId: true,
@@ -422,6 +425,86 @@ export async function deleteTaskAction(formData: FormData) {
   redirect("/checklists");
 }
 
+export async function archiveTaskAction(formData: FormData) {
+  const session = await requireOwner();
+  const parsed = taskArchiveSchema.parse(Object.fromEntries(formData));
+  const task = await getTaskAccessContext(parsed.taskId);
+
+  if (!task) {
+    throw new Error("Task not found.");
+  }
+
+  const archivedAt = new Date();
+
+  await prisma.$transaction([
+    prisma.task.update({
+      where: { id: parsed.taskId },
+      data: { archivedAt }
+    }),
+    prisma.subtask.updateMany({
+      where: {
+        taskId: parsed.taskId,
+        archivedAt: null
+      },
+      data: { archivedAt }
+    })
+  ]);
+
+  await logActivity({
+    actorId: session.user.id,
+    taskId: parsed.taskId,
+    type: ActivityType.TASK_UPDATED,
+    entityType: "Task",
+    entityId: parsed.taskId,
+    description: `Archived task "${task.title}".`
+  });
+
+  revalidatePath("/dashboard");
+  revalidatePath("/checklists");
+  revalidatePath(`/checklists/${parsed.taskId}`);
+  revalidatePath("/settings/setup");
+
+  redirect("/checklists");
+}
+
+export async function restoreTaskAction(formData: FormData) {
+  const session = await requireOwner();
+  const parsed = taskArchiveSchema.parse(Object.fromEntries(formData));
+  const task = await prisma.task.findUnique({
+    where: { id: parsed.taskId },
+    select: { id: true, title: true, archivedAt: true }
+  });
+
+  if (!task) {
+    throw new Error("Task not found.");
+  }
+
+  await prisma.$transaction([
+    prisma.task.update({
+      where: { id: parsed.taskId },
+      data: { archivedAt: null }
+    }),
+    prisma.subtask.updateMany({
+      where: { taskId: parsed.taskId },
+      data: { archivedAt: null }
+    })
+  ]);
+
+  await logActivity({
+    actorId: session.user.id,
+    taskId: parsed.taskId,
+    type: ActivityType.TASK_UPDATED,
+    entityType: "Task",
+    entityId: parsed.taskId,
+    description: `Restored task "${task.title}".`
+  });
+
+  revalidatePath("/dashboard");
+  revalidatePath("/checklists");
+  revalidatePath(`/checklists/${parsed.taskId}`);
+  revalidatePath("/settings/setup");
+}
+
 export async function createTaskCommentAction(formData: FormData) {
   const session = await requireSession();
   const parsed = taskCommentSchema.parse(Object.fromEntries(formData));
@@ -451,6 +534,10 @@ export async function createTaskDependencyAction(formData: FormData) {
   const session = await requireSession();
   const parsed = taskDependencyCreateSchema.parse(Object.fromEntries(formData));
   const task = await requireTaskEditPermission(parsed.taskId, session.user);
+
+  if (task.archivedAt) {
+    throw new Error("Restore the task before adding new dependencies.");
+  }
 
   const dependencyTask = await prisma.task.findUnique({
     where: { id: parsed.dependsOnTaskId },
@@ -540,6 +627,10 @@ export async function createSubtaskAction(formData: FormData) {
 
   if (!task) {
     throw new Error("Task not found.");
+  }
+
+  if (task.archivedAt) {
+    throw new Error("Restore the task before adding checklist items.");
   }
 
   if (
@@ -666,6 +757,62 @@ export async function deleteSubtaskAction(formData: FormData) {
   revalidatePath("/checklists");
   revalidatePath(`/checklists/${currentSubtask.taskId}`);
   revalidatePath("/dashboard");
+  revalidatePath("/settings/setup");
+}
+
+export async function archiveSubtaskAction(formData: FormData) {
+  const session = await requireOwner();
+  const parsed = subtaskArchiveSchema.parse(Object.fromEntries(formData));
+  const currentSubtask = await getSubtaskAccessContext(parsed.subtaskId);
+
+  if (!currentSubtask) {
+    throw new Error("Checklist item not found.");
+  }
+
+  await prisma.subtask.update({
+    where: { id: parsed.subtaskId },
+    data: { archivedAt: new Date() }
+  });
+
+  await logActivity({
+    actorId: session.user.id,
+    taskId: currentSubtask.taskId,
+    type: ActivityType.TASK_UPDATED,
+    entityType: "Subtask",
+    entityId: parsed.subtaskId,
+    description: `Archived checklist item "${currentSubtask.title}".`
+  });
+
+  revalidatePath("/checklists");
+  revalidatePath(`/checklists/${currentSubtask.taskId}`);
+  revalidatePath("/settings/setup");
+}
+
+export async function restoreSubtaskAction(formData: FormData) {
+  const session = await requireOwner();
+  const parsed = subtaskArchiveSchema.parse(Object.fromEntries(formData));
+  const currentSubtask = await getSubtaskAccessContext(parsed.subtaskId);
+
+  if (!currentSubtask) {
+    throw new Error("Checklist item not found.");
+  }
+
+  await prisma.subtask.update({
+    where: { id: parsed.subtaskId },
+    data: { archivedAt: null }
+  });
+
+  await logActivity({
+    actorId: session.user.id,
+    taskId: currentSubtask.taskId,
+    type: ActivityType.TASK_UPDATED,
+    entityType: "Subtask",
+    entityId: parsed.subtaskId,
+    description: `Restored checklist item "${currentSubtask.title}".`
+  });
+
+  revalidatePath("/checklists");
+  revalidatePath(`/checklists/${currentSubtask.taskId}`);
   revalidatePath("/settings/setup");
 }
 
@@ -1008,12 +1155,14 @@ export async function deactivateAdminUserAction(
     const [openTaskCount, openSubtaskCount] = await Promise.all([
       prisma.task.count({
         where: {
+          archivedAt: null,
           assignedToId: parsed.userId,
           status: { not: TaskStatus.COMPLETE }
         }
       }),
       prisma.subtask.count({
         where: {
+          archivedAt: null,
           assignedToId: parsed.userId,
           isComplete: false
         }
@@ -1024,6 +1173,7 @@ export async function deactivateAdminUserAction(
       if (transferTasks) {
         await tx.task.updateMany({
           where: {
+            archivedAt: null,
             assignedToId: parsed.userId,
             status: { not: TaskStatus.COMPLETE }
           },
@@ -1036,6 +1186,7 @@ export async function deactivateAdminUserAction(
       if (transferSubtasks) {
         await tx.subtask.updateMany({
           where: {
+            archivedAt: null,
             assignedToId: parsed.userId,
             isComplete: false
           },

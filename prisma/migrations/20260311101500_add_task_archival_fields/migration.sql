@@ -1,0 +1,5 @@
+ALTER TABLE "Task"
+ADD COLUMN "archivedAt" TIMESTAMP(3);
+
+ALTER TABLE "Subtask"
+ADD COLUMN "archivedAt" TIMESTAMP(3);

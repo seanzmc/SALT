@@ -1,11 +1,15 @@
 import { OpeningPriority, Priority, Role, TaskStatus } from "@prisma/client";
 
 import {
+  archiveSubtaskAction,
+  archiveTaskAction,
   createSubtaskAction,
   createTaskDependencyAction,
   deleteSubtaskAction,
   deleteTaskDependencyAction,
   deleteTaskAction,
+  restoreSubtaskAction,
+  restoreTaskAction,
   updateSubtaskAction,
   updateTaskAction
 } from "@/server/actions";
@@ -41,6 +45,7 @@ export function TaskDetailForm({
     priority: Priority;
     openingPriority: OpeningPriority;
     dueDate: Date | null;
+    archivedAt: Date | null;
     blockedReason: string | null;
     section: { title: string };
     phase: { title: string } | null;
@@ -51,6 +56,7 @@ export function TaskDetailForm({
       title: string;
       notes: string | null;
       dueDate: Date | null;
+      archivedAt: Date | null;
       assignedToId: string | null;
       assignedTo: { id: string; name: string } | null;
       isComplete: boolean;
@@ -94,6 +100,8 @@ export function TaskDetailForm({
   const availableDependencyCandidates = dependencyCandidates.filter(
     (candidate) => !currentDependencyIds.has(candidate.id)
   );
+  const activeSubtasks = task.subtasks.filter((subtask) => !subtask.archivedAt);
+  const archivedSubtasks = task.subtasks.filter((subtask) => subtask.archivedAt);
 
   return (
     <Card>
@@ -105,9 +113,12 @@ export function TaskDetailForm({
               {task.section.title} {task.phase ? `• ${task.phase.title}` : ""}
             </p>
           </div>
-          <Badge variant={task.status === "COMPLETE" ? "success" : task.status === "BLOCKED" ? "warning" : "secondary"}>
-            {task.status.replaceAll("_", " ")}
-          </Badge>
+          <div className="flex gap-2">
+            {task.archivedAt ? <Badge variant="outline">Archived</Badge> : null}
+            <Badge variant={task.status === "COMPLETE" ? "success" : task.status === "BLOCKED" ? "warning" : "secondary"}>
+              {task.status.replaceAll("_", " ")}
+            </Badge>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -239,40 +250,56 @@ export function TaskDetailForm({
           </div>
         </form>
 
+        {task.archivedAt ? (
+          <div className="rounded-xl border border-border bg-secondary/20 p-4 text-sm text-muted-foreground">
+            This task is archived and hidden from normal active queues. Restore it to resume active work.
+          </div>
+        ) : null}
+
         {currentRole === Role.OWNER_ADMIN ? (
-          <form action={deleteTaskAction}>
-            <input type="hidden" name="taskId" value={task.id} />
-            <Button type="submit" variant="danger">
-              Delete task
-            </Button>
-          </form>
+          <div className="flex flex-wrap gap-2">
+            <form action={task.archivedAt ? restoreTaskAction : archiveTaskAction}>
+              <input type="hidden" name="taskId" value={task.id} />
+              <Button type="submit" variant={task.archivedAt ? "outline" : "danger"}>
+                {task.archivedAt ? "Restore task" : "Archive task"}
+              </Button>
+            </form>
+            <form action={deleteTaskAction}>
+              <input type="hidden" name="taskId" value={task.id} />
+              <Button type="submit" variant="danger">
+                Delete task
+              </Button>
+            </form>
+          </div>
         ) : null}
 
         <div className="space-y-4">
           <div>
             <h3 className="font-semibold">Dependencies</h3>
-            <form action={createTaskDependencyAction} className="mt-3 grid gap-3 rounded-xl border border-border bg-secondary/20 p-4">
-              <input type="hidden" name="taskId" value={task.id} />
-              <div className="space-y-2">
-                <Label htmlFor="dependsOnTaskId">This task depends on</Label>
-                <Select id="dependsOnTaskId" name="dependsOnTaskId">
-                  {availableDependencyCandidates.length === 0 ? (
-                    <option value="">No available tasks</option>
-                  ) : (
-                    availableDependencyCandidates.map((candidate) => (
-                      <option key={candidate.id} value={candidate.id}>
-                        {candidate.title} | {candidate.status.replaceAll("_", " ")} | Due {formatDate(candidate.dueDate)} | {candidate.assignedTo?.name ?? "Unassigned"}
-                      </option>
-                    ))
-                  )}
-                </Select>
-              </div>
-              <div className="flex gap-2">
-                <Button disabled={availableDependencyCandidates.length === 0} type="submit" variant="outline">
-                  Add dependency
-                </Button>
-              </div>
-            </form>
+            {!task.archivedAt ? (
+              <form action={createTaskDependencyAction} className="mt-3 grid gap-3 rounded-xl border border-border bg-secondary/20 p-4">
+                <input type="hidden" name="taskId" value={task.id} />
+                <div className="space-y-2">
+                  <Label htmlFor="dependsOnTaskId">This task depends on</Label>
+                  <Select id="dependsOnTaskId" name="dependsOnTaskId">
+                    {availableDependencyCandidates.length === 0 ? (
+                      <option value="">No available tasks</option>
+                    ) : (
+                      availableDependencyCandidates.map((candidate) => (
+                        <option key={candidate.id} value={candidate.id}>
+                          {candidate.title} | {candidate.status.replaceAll("_", " ")} | Due {formatDate(candidate.dueDate)} | {candidate.assignedTo?.name ?? "Unassigned"}
+                        </option>
+                      ))
+                    )}
+                  </Select>
+                </div>
+                <div className="flex gap-2">
+                  <Button disabled={availableDependencyCandidates.length === 0} type="submit" variant="outline">
+                    Add dependency
+                  </Button>
+                </div>
+              </form>
+            ) : null}
 
             <div className="mt-3 space-y-2">
               {task.taskDependencies.length === 0 ? (
@@ -321,48 +348,50 @@ export function TaskDetailForm({
 
           <div>
             <h3 className="font-semibold">Subtasks</h3>
-            <form action={createSubtaskAction} className="mt-3 grid gap-3 rounded-xl border border-border bg-secondary/20 p-4">
-              <input type="hidden" name="taskId" value={task.id} />
-              <div className="grid gap-3 md:grid-cols-2">
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="new-subtask-title">New checklist item</Label>
-                  <Input id="new-subtask-title" name="title" required />
+            {!task.archivedAt ? (
+              <form action={createSubtaskAction} className="mt-3 grid gap-3 rounded-xl border border-border bg-secondary/20 p-4">
+                <input type="hidden" name="taskId" value={task.id} />
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="new-subtask-title">New checklist item</Label>
+                    <Input id="new-subtask-title" name="title" required />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="new-subtask-notes">Notes</Label>
+                    <Textarea id="new-subtask-notes" name="notes" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="new-subtask-dueDate">Due date</Label>
+                    <Input id="new-subtask-dueDate" name="dueDate" type="date" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="new-subtask-assignedToId">Assigned to</Label>
+                    <Select
+                      defaultValue=""
+                      disabled={currentRole !== Role.OWNER_ADMIN}
+                      id="new-subtask-assignedToId"
+                      name="assignedToId"
+                    >
+                      <option value="">Unassigned</option>
+                      {users.map((user) => (
+                        <option key={user.id} value={user.id}>
+                          {user.name} ({user.role === Role.OWNER_ADMIN ? "Owner" : "Collaborator"})
+                        </option>
+                      ))}
+                    </Select>
+                  </div>
                 </div>
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="new-subtask-notes">Notes</Label>
-                  <Textarea id="new-subtask-notes" name="notes" />
+                <div className="flex gap-2">
+                  <Button type="submit">Add checklist item</Button>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="new-subtask-dueDate">Due date</Label>
-                  <Input id="new-subtask-dueDate" name="dueDate" type="date" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="new-subtask-assignedToId">Assigned to</Label>
-                  <Select
-                    defaultValue=""
-                    disabled={currentRole !== Role.OWNER_ADMIN}
-                    id="new-subtask-assignedToId"
-                    name="assignedToId"
-                  >
-                    <option value="">Unassigned</option>
-                    {users.map((user) => (
-                      <option key={user.id} value={user.id}>
-                        {user.name} ({user.role === Role.OWNER_ADMIN ? "Owner" : "Collaborator"})
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button type="submit">Add checklist item</Button>
-              </div>
-            </form>
+              </form>
+            ) : null}
 
             <div className="mt-3 space-y-3">
-              {task.subtasks.length === 0 ? (
+              {activeSubtasks.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No subtasks.</p>
               ) : (
-                task.subtasks.map((subtask) => (
+                activeSubtasks.map((subtask) => (
                   <div key={subtask.id} className="rounded-lg border border-border p-3">
                     <form action={updateSubtaskAction} className="grid gap-3">
                       <input type="hidden" name="subtaskId" value={subtask.id} />
@@ -443,17 +472,51 @@ export function TaskDetailForm({
                         </span>
                       </div>
                     </form>
-                    <form action={deleteSubtaskAction} className="mt-3">
-                      <input type="hidden" name="subtaskId" value={subtask.id} />
-                      <Button type="submit" variant="danger">
-                        Remove checklist item
-                      </Button>
-                    </form>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {currentRole === Role.OWNER_ADMIN ? (
+                        <form action={archiveSubtaskAction}>
+                          <input type="hidden" name="subtaskId" value={subtask.id} />
+                          <Button type="submit" variant="outline">
+                            Archive checklist item
+                          </Button>
+                        </form>
+                      ) : null}
+                      <form action={deleteSubtaskAction}>
+                        <input type="hidden" name="subtaskId" value={subtask.id} />
+                        <Button type="submit" variant="danger">
+                          Remove checklist item
+                        </Button>
+                      </form>
+                    </div>
                   </div>
                 ))
               )}
             </div>
           </div>
+
+          {archivedSubtasks.length > 0 ? (
+            <div>
+              <h3 className="font-semibold">Archived Subtasks</h3>
+              <div className="mt-2 space-y-2">
+                {archivedSubtasks.map((subtask) => (
+                  <div key={subtask.id} className="rounded-lg border border-border bg-secondary/20 p-3">
+                    <p className="font-medium">{subtask.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Archived • {subtask.assignedTo?.name ?? "Unassigned"} • Due {formatDate(subtask.dueDate)}
+                    </p>
+                    {currentRole === Role.OWNER_ADMIN && !task.archivedAt ? (
+                      <form action={restoreSubtaskAction} className="mt-3">
+                        <input type="hidden" name="subtaskId" value={subtask.id} />
+                        <Button type="submit" variant="outline">
+                          Restore checklist item
+                        </Button>
+                      </form>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
 
           <div>
             <h3 className="font-semibold">Tags</h3>

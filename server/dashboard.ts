@@ -15,6 +15,7 @@ export async function getDashboardData() {
     activities
   ] = await Promise.all([
     prisma.task.findMany({
+      where: { archivedAt: null },
       include: {
         section: true,
         assignedTo: true
@@ -23,7 +24,9 @@ export async function getDashboardData() {
     }),
     prisma.section.findMany({
       include: {
-        tasks: true
+        tasks: {
+          where: { archivedAt: null }
+        }
       },
       orderBy: { sortOrder: "asc" }
     }),
@@ -43,7 +46,9 @@ export async function getDashboardData() {
     prisma.timelinePhase.findMany({
       include: {
         milestones: true,
-        tasks: true
+        tasks: {
+          where: { archivedAt: null }
+        }
       },
       orderBy: { sortOrder: "asc" }
     }),

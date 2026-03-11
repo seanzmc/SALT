@@ -26,6 +26,7 @@ export default async function ChecklistsPage({
     priority: typeof searchParams.priority === "string" ? searchParams.priority : "",
     assignee: typeof searchParams.assignee === "string" ? searchParams.assignee : "",
     queue: typeof searchParams.queue === "string" ? searchParams.queue : "all",
+    archived: typeof searchParams.archived === "string" ? searchParams.archived : "active",
     group: typeof searchParams.group === "string" ? searchParams.group : "none",
     sort: typeof searchParams.sort === "string" ? searchParams.sort : "dueDate",
     view: typeof searchParams.view === "string" ? searchParams.view : "list"
@@ -38,6 +39,7 @@ export default async function ChecklistsPage({
     priority: current.priority,
     assignee: current.assignee,
     queue: current.queue as never,
+    archived: current.archived as never,
     currentUserId: session.user.id,
     sort: current.sort as never
   });
@@ -79,6 +81,7 @@ export default async function ChecklistsPage({
           Sections: {[...new Set(tasks.map((task) => task.section.title))].length}
         </Badge>
         <Badge variant="outline">Queue: {current.queue.replaceAll("-", " ")}</Badge>
+        <Badge variant="outline">Archive: {current.archived}</Badge>
       </div>
 
       {tasks.length === 0 ? (
@@ -86,7 +89,7 @@ export default async function ChecklistsPage({
           title="No tasks match the current filters"
           description="Reset the filters or search terms to reveal the seeded build-out checklist items."
         />
-      ) : current.view === "board" ? (
+      ) : current.view === "board" && current.archived === "active" ? (
         <TaskBoard tasks={tasks as never} />
       ) : (
         <TaskListManager

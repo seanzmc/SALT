@@ -122,6 +122,14 @@ export const taskDependencyDeleteSchema = z.object({
   dependsOnTaskId: z.string().cuid()
 });
 
+export const taskArchiveSchema = z.object({
+  taskId: z.string().cuid()
+});
+
+export const subtaskArchiveSchema = z.object({
+  subtaskId: z.string().cuid()
+});
+
 export const bulkTaskActionSchema = z
   .object({
     taskIds: z.array(z.string().cuid()).min(1, "Select at least one task."),

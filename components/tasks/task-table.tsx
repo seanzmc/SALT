@@ -9,6 +9,7 @@ import { formatDate } from "@/lib/utils";
 export type TaskTableRow = {
   id: string;
   title: string;
+  archivedAt?: Date | null;
   section: { title: string };
   assignedTo: { name: string } | null;
   priority: string;
@@ -78,6 +79,11 @@ export function TaskTable({
                 <Link className="font-medium hover:text-primary" href={`/checklists/${task.id}`}>
                   {task.title}
                 </Link>
+                {task.archivedAt ? (
+                  <Badge className="ml-2" variant="outline">
+                    Archived
+                  </Badge>
+                ) : null}
               </TableCell>
               <TableCell>{task.section.title}</TableCell>
               <TableCell>

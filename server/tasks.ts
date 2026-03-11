@@ -9,6 +9,7 @@ export type TaskFilters = {
   priority?: string;
   assignee?: string;
   queue?: "all" | "my-work" | "overdue" | "upcoming" | "blocked" | "unassigned";
+  archived?: "active" | "archived" | "all";
   currentUserId?: string;
   sort?: "dueDate" | "priority" | "title" | "status";
 };
@@ -32,6 +33,11 @@ export async function getTaskList(filters: TaskFilters = {}) {
       filters.status && filters.status !== "ALL" ? { status: filters.status } : {},
       filters.section ? { section: { slug: filters.section } } : {},
       filters.priority ? { priority: filters.priority as never } : {},
+      filters.archived === "archived"
+        ? { archivedAt: { not: null } }
+        : filters.archived === "all"
+          ? {}
+          : { archivedAt: null },
       filters.assignee === "unassigned"
         ? { assignedToId: null }
         : filters.assignee === "me"
@@ -72,21 +78,24 @@ export async function getTaskList(filters: TaskFilters = {}) {
           : { dueDate: "asc" };
 
   const queueCountsPromise = Promise.all([
-    prisma.task.count(),
+    prisma.task.count({ where: { archivedAt: null } }),
     prisma.task.count({
       where: {
+        archivedAt: null,
         assignedToId: filters.currentUserId ?? undefined,
         status: { not: TaskStatus.COMPLETE }
       }
     }),
     prisma.task.count({
       where: {
+        archivedAt: null,
         dueDate: { lt: now },
         status: { not: TaskStatus.COMPLETE }
       }
     }),
     prisma.task.count({
       where: {
+        archivedAt: null,
         dueDate: {
           gte: now,
           lte: upcomingLimit
@@ -95,10 +104,11 @@ export async function getTaskList(filters: TaskFilters = {}) {
       }
     }),
     prisma.task.count({
-      where: { status: TaskStatus.BLOCKED }
+      where: { archivedAt: null, status: TaskStatus.BLOCKED }
     }),
     prisma.task.count({
       where: {
+        archivedAt: null,
         assignedToId: null,
         status: { not: TaskStatus.COMPLETE }
       }
@@ -182,6 +192,7 @@ export async function getTaskDetail(taskId: string) {
         }
       },
       subtasks: {
+        where: {},
         include: {
           assignedTo: {
             select: {
