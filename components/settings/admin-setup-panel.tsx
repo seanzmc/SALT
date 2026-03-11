@@ -6,6 +6,7 @@ import { Role } from "@prisma/client";
 import {
   createAdminUserAction,
   deactivateAdminUserAction,
+  reactivateAdminUserAction,
   resetSetupStatusesAction,
   updateAdminUserAction,
   updateSubtaskSetupAction,
@@ -293,6 +294,48 @@ function DeactivateUserForm({
   );
 }
 
+function ReactivateUserForm({
+  user
+}: {
+  user: {
+    id: string;
+    name: string;
+    role: Role;
+    isActive: boolean;
+    openTaskCount: number;
+    openSubtaskCount: number;
+  };
+}) {
+  const [state, action] = useFormState(reactivateAdminUserAction, initialState);
+
+  if (user.isActive) {
+    return null;
+  }
+
+  return (
+    <form action={action} className="rounded-xl border border-border p-4">
+      <input type="hidden" name="userId" value={user.id} />
+      <div className="grid gap-4 lg:grid-cols-[1.6fr_auto]">
+        <div className="space-y-2">
+          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Reactivate user</p>
+          <div className="font-medium">{user.name}</div>
+          <p className="text-xs text-muted-foreground">
+            {user.role === Role.OWNER_ADMIN ? "Owner Admin" : "Collaborator"} • Restores sign-in access and active assignment eligibility.
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Historical assignments stay intact. Current open work: {user.openTaskCount} tasks • {user.openSubtaskCount} checklist items
+          </p>
+        </div>
+        <div className="space-y-2">
+          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Action</p>
+          <SubmitButton idleLabel="Reactivate" pendingLabel="Reactivating..." variant="outline" />
+          <FormMessage state={state} />
+        </div>
+      </div>
+    </form>
+  );
+}
+
 function TaskSetupRow({
   task,
   users
@@ -505,7 +548,7 @@ export function AdminSetupPanel({
         <CardHeader>
           <CardTitle>User lifecycle</CardTitle>
           <CardDescription>
-            Deactivate users without deleting them. Historical assignments remain visible, and inactive users are removed from normal assignee pickers.
+            Deactivate users without deleting them, or reactivate former users when they need access again. Historical assignments remain visible throughout.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -521,6 +564,11 @@ export function AdminSetupPanel({
               ))
             ) : (
               <p className="text-sm text-muted-foreground">No additional active users are available for deactivation.</p>
+            )}
+            {users.some((user) => !user.isActive) ? (
+              users.map((user) => <ReactivateUserForm key={`reactivate-${user.id}`} user={user} />)
+            ) : (
+              <p className="text-sm text-muted-foreground">No inactive users are waiting for reactivation.</p>
             )}
           </div>
         </CardContent>

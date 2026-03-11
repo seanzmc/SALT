@@ -16,6 +16,7 @@ import { prisma } from "@/lib/prisma";
 import {
   adminCreateUserSchema,
   adminDeactivateUserSchema,
+  adminReactivateUserSchema,
   adminResetStatusesSchema,
   adminSubtaskSetupSchema,
   adminTaskSetupSchema,
@@ -1404,6 +1405,64 @@ export async function deactivateAdminUserAction(
 
     return successState(
       `Deactivated ${user.name}.${transferTasks ? ` Reassigned ${openTaskCount} open task${openTaskCount === 1 ? "" : "s"}.` : ""}${transferSubtasks ? ` Reassigned ${openSubtaskCount} open checklist item${openSubtaskCount === 1 ? "" : "s"}.` : ""}`
+    );
+  } catch (error) {
+    return validationErrorState(error);
+  }
+}
+
+export async function reactivateAdminUserAction(
+  _previousState: AccountActionState,
+  formData: FormData
+): Promise<AccountActionState> {
+  const session = await requireOwner();
+
+  try {
+    const parsed = adminReactivateUserSchema.parse(Object.fromEntries(formData));
+
+    const user = await prisma.user.findUnique({
+      where: { id: parsed.userId },
+      select: {
+        id: true,
+        name: true,
+        isActive: true
+      }
+    });
+
+    if (!user) {
+      return {
+        status: "error",
+        message: "User account not found."
+      };
+    }
+
+    if (user.isActive) {
+      return {
+        status: "success",
+        message: `${user.name} is already active.`
+      };
+    }
+
+    await prisma.user.update({
+      where: { id: parsed.userId },
+      data: { isActive: true }
+    });
+
+    await logActivity({
+      actorId: session.user.id,
+      type: ActivityType.TASK_UPDATED,
+      entityType: "User",
+      entityId: parsed.userId,
+      description: `Reactivated user "${user.name}".`
+    });
+
+    revalidatePath("/checklists");
+    revalidatePath("/dashboard");
+    revalidatePath("/settings/setup");
+    revalidatePath("/settings/account");
+
+    return successState(
+      `Reactivated ${user.name}. They can sign in again and appear in active assignment lists.`
     );
   } catch (error) {
     return validationErrorState(error);

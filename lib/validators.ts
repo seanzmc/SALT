@@ -273,6 +273,10 @@ export const adminDeactivateUserSchema = z
     }
   });
 
+export const adminReactivateUserSchema = z.object({
+  userId: z.string().cuid()
+});
+
 export const budgetUpdateSchema = z.object({
   itemId: z.string().cuid(),
   actual: z.coerce.number().min(0),
