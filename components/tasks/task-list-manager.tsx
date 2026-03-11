@@ -31,23 +31,29 @@ function BulkSubmitButton() {
 }
 
 export function TaskListManager({
+  archiveView,
   tasks,
   users,
   currentRole,
   groupBy
 }: {
+  archiveView: "active" | "archived" | "all";
   tasks: TaskTableRow[];
   users: Array<{ id: string; name: string; role: Role }>;
   currentRole: Role;
   groupBy: "none" | "section";
 }) {
   const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
-  const [action, setAction] = useState("assign");
+  const [action, setAction] = useState(archiveView === "archived" ? "restore" : "assign");
   const [state, formAction] = useFormState(bulkUpdateTasksAction, initialState);
 
   useEffect(() => {
     setSelectedTaskIds([]);
   }, [tasks, groupBy]);
+
+  useEffect(() => {
+    setAction(archiveView === "archived" ? "restore" : "assign");
+  }, [archiveView]);
 
   useEffect(() => {
     if (state.status === "success") {
@@ -56,6 +62,38 @@ export function TaskListManager({
   }, [state.status]);
 
   const selectedTaskIdSet = useMemo(() => new Set(selectedTaskIds), [selectedTaskIds]);
+  const selectedTasks = useMemo(
+    () => tasks.filter((task) => selectedTaskIdSet.has(task.id)),
+    [selectedTaskIdSet, tasks]
+  );
+  const selectedArchivedCount = selectedTasks.filter((task) => task.archivedAt).length;
+  const selectedActiveCount = selectedTasks.length - selectedArchivedCount;
+
+  const actionOptions =
+    archiveView === "archived"
+      ? [{ value: "restore", label: "Restore selected tasks" }]
+      : archiveView === "all"
+        ? [
+            { value: "assign", label: "Assign / reassign owner" },
+            { value: "clearAssignee", label: "Clear assignee" },
+            { value: "status", label: "Change status" },
+            { value: "priority", label: "Change priority" },
+            { value: "setDueDate", label: "Set due date" },
+            { value: "shiftDueDate", label: "Shift due date by days" },
+            { value: "markComplete", label: "Mark complete" },
+            { value: "archive", label: "Archive active tasks" },
+            { value: "restore", label: "Restore archived tasks" }
+          ]
+        : [
+            { value: "assign", label: "Assign / reassign owner" },
+            { value: "clearAssignee", label: "Clear assignee" },
+            { value: "status", label: "Change status" },
+            { value: "priority", label: "Change priority" },
+            { value: "setDueDate", label: "Set due date" },
+            { value: "shiftDueDate", label: "Shift due date by days" },
+            { value: "markComplete", label: "Mark complete" },
+            { value: "archive", label: "Archive selected tasks" }
+          ];
 
   function toggleTask(taskId: string) {
     setSelectedTaskIds((current) =>
@@ -113,14 +151,13 @@ export function TaskListManager({
                     id="bulk-action"
                     name="action"
                     onChange={(event) => setAction(event.target.value)}
+                    value={action}
                   >
-                    <option value="assign">Assign / reassign owner</option>
-                    <option value="clearAssignee">Clear assignee</option>
-                    <option value="status">Change status</option>
-                    <option value="priority">Change priority</option>
-                    <option value="setDueDate">Set due date</option>
-                    <option value="shiftDueDate">Shift due date by days</option>
-                    <option value="markComplete">Mark complete</option>
+                    {actionOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
                   </Select>
                 </div>
 
@@ -197,6 +234,12 @@ export function TaskListManager({
                 {state.message ? (
                   <p className={`text-sm ${state.status === "success" ? "text-emerald-700" : "text-danger"} lg:col-span-3`}>
                     {state.message}
+                  </p>
+                ) : null}
+
+                {archiveView === "all" && selectedTaskIds.length > 0 ? (
+                  <p className="text-sm text-muted-foreground lg:col-span-3">
+                    Selected mix: {selectedActiveCount} active, {selectedArchivedCount} archived. Archive only affects active tasks. Restore only affects archived tasks.
                   </p>
                 ) : null}
               </form>

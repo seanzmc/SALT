@@ -140,7 +140,9 @@ export const bulkTaskActionSchema = z
       "priority",
       "setDueDate",
       "shiftDueDate",
-      "markComplete"
+      "markComplete",
+      "archive",
+      "restore"
     ]),
     assignedToId: z.string().cuid().optional().or(z.literal("")),
     status: z.nativeEnum(TaskStatus).optional(),

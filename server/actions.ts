@@ -129,6 +129,45 @@ async function getSubtaskAccessContext(subtaskId: string) {
   });
 }
 
+async function archiveTasksWithSubtasks(taskIds: string[]) {
+  const archivedAt = new Date();
+
+  await prisma.$transaction([
+    prisma.task.updateMany({
+      where: {
+        id: { in: taskIds },
+        archivedAt: null
+      },
+      data: { archivedAt }
+    }),
+    prisma.subtask.updateMany({
+      where: {
+        taskId: { in: taskIds },
+        archivedAt: null
+      },
+      data: { archivedAt }
+    })
+  ]);
+}
+
+async function restoreTasksWithSubtasks(taskIds: string[]) {
+  await prisma.$transaction([
+    prisma.task.updateMany({
+      where: {
+        id: { in: taskIds },
+        archivedAt: { not: null }
+      },
+      data: { archivedAt: null }
+    }),
+    prisma.subtask.updateMany({
+      where: {
+        taskId: { in: taskIds }
+      },
+      data: { archivedAt: null }
+    })
+  ]);
+}
+
 export async function updateTaskAction(formData: FormData) {
   const session = await requireSession();
   const parsed = taskUpdateSchema.parse(Object.fromEntries(formData));
@@ -224,7 +263,8 @@ export async function bulkUpdateTasksAction(
       select: {
         id: true,
         title: true,
-        dueDate: true
+        dueDate: true,
+        archivedAt: true
       }
     });
 
@@ -232,6 +272,25 @@ export async function bulkUpdateTasksAction(
       return {
         status: "error",
         message: "One or more selected tasks could not be found."
+      };
+    }
+
+    const actionableTasks =
+      parsed.action === "archive"
+        ? tasks.filter((task) => !task.archivedAt)
+        : parsed.action === "restore"
+          ? tasks.filter((task) => task.archivedAt)
+          : tasks;
+
+    if (actionableTasks.length === 0) {
+      return {
+        status: "error",
+        message:
+          parsed.action === "archive"
+            ? "All selected tasks are already archived."
+            : parsed.action === "restore"
+              ? "All selected tasks are already active."
+              : "No selected tasks could be updated."
       };
     }
 
@@ -295,6 +354,12 @@ export async function bulkUpdateTasksAction(
           }
         });
         break;
+      case "archive":
+        await archiveTasksWithSubtasks(actionableTasks.map((task) => task.id));
+        break;
+      case "restore":
+        await restoreTasksWithSubtasks(actionableTasks.map((task) => task.id));
+        break;
     }
 
     const actionDescription =
@@ -310,13 +375,17 @@ export async function bulkUpdateTasksAction(
                 ? "Bulk set task due dates."
                 : parsed.action === "shiftDueDate"
                   ? `Bulk shifted task due dates by ${parsed.shiftDays} days.`
-                  : "Bulk marked tasks complete.";
+                  : parsed.action === "archive"
+                    ? "Bulk archived tasks."
+                    : parsed.action === "restore"
+                      ? "Bulk restored tasks."
+                      : "Bulk marked tasks complete.";
 
     await Promise.all(
-      parsed.taskIds.map((taskId) =>
+      actionableTasks.map((task) =>
         logActivity({
           actorId: session.user.id,
-          taskId,
+          taskId: task.id,
           type:
             parsed.action === "status" || parsed.action === "markComplete"
               ? ActivityType.TASK_STATUS_CHANGED
@@ -324,7 +393,7 @@ export async function bulkUpdateTasksAction(
                 ? ActivityType.TASK_ASSIGNED
                 : ActivityType.TASK_UPDATED,
           entityType: "Task",
-          entityId: taskId,
+          entityId: task.id,
           description: actionDescription
         })
       )
@@ -333,11 +402,25 @@ export async function bulkUpdateTasksAction(
     revalidatePath("/dashboard");
     revalidatePath("/checklists");
     revalidatePath("/settings/setup");
-    tasks.forEach((task) => {
+    actionableTasks.forEach((task) => {
       revalidatePath(`/checklists/${task.id}`);
     });
 
-    return successState(`Updated ${parsed.taskIds.length} task${parsed.taskIds.length === 1 ? "" : "s"}.`);
+    const skippedCount = parsed.taskIds.length - actionableTasks.length;
+    const updatedLabel =
+      parsed.action === "archive"
+        ? "Archived"
+        : parsed.action === "restore"
+          ? "Restored"
+          : "Updated";
+
+    return successState(
+      `${updatedLabel} ${actionableTasks.length} task${actionableTasks.length === 1 ? "" : "s"}${
+        skippedCount > 0
+          ? `. ${skippedCount} already ${parsed.action === "archive" ? "archived" : "active"} ${skippedCount === 1 ? "task was" : "tasks were"} skipped.`
+          : "."
+      }`
+    );
   } catch (error) {
     return validationErrorState(error);
   }
@@ -434,21 +517,7 @@ export async function archiveTaskAction(formData: FormData) {
     throw new Error("Task not found.");
   }
 
-  const archivedAt = new Date();
-
-  await prisma.$transaction([
-    prisma.task.update({
-      where: { id: parsed.taskId },
-      data: { archivedAt }
-    }),
-    prisma.subtask.updateMany({
-      where: {
-        taskId: parsed.taskId,
-        archivedAt: null
-      },
-      data: { archivedAt }
-    })
-  ]);
+  await archiveTasksWithSubtasks([parsed.taskId]);
 
   await logActivity({
     actorId: session.user.id,
@@ -479,16 +548,7 @@ export async function restoreTaskAction(formData: FormData) {
     throw new Error("Task not found.");
   }
 
-  await prisma.$transaction([
-    prisma.task.update({
-      where: { id: parsed.taskId },
-      data: { archivedAt: null }
-    }),
-    prisma.subtask.updateMany({
-      where: { taskId: parsed.taskId },
-      data: { archivedAt: null }
-    })
-  ]);
+  await restoreTasksWithSubtasks([parsed.taskId]);
 
   await logActivity({
     actorId: session.user.id,

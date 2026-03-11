@@ -93,6 +93,7 @@ export default async function ChecklistsPage({
         <TaskBoard tasks={tasks as never} />
       ) : (
         <TaskListManager
+          archiveView={current.archived as "active" | "archived" | "all"}
           currentRole={session.user.role}
           groupBy={current.group as "none" | "section"}
           tasks={tasks as never}
