@@ -355,9 +355,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "room-program-confirmed",
     sectionSlug: "space-planning-layout",
-    title: "Confirm recommended room program for the 1,600 sq ft clinic",
+    title: "Confirm launch room program",
     description:
-      "Plan for reception/waiting, one consultation room, three to four treatment rooms, a provider workroom, laundry/utility, break nook, ADA restroom, and back-of-house storage while preserving corridor and mechanical space.",
+      "Approve the opening room mix for reception, consult, treatment, workroom, laundry, restroom, and storage before design moves into permit coordination.",
     priority: Priority.CRITICAL,
     status: TaskStatus.COMPLETE,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
@@ -374,23 +374,28 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "lean-opening-layout",
     sectionSlug: "space-planning-layout",
-    title: "Map lean-opening layout and shell-ready future room capacity",
+    title: "Draft lean-opening layout with future room capacity",
     description:
-      "Support a lean opening with front desk, waiting, consult room, two treatment rooms, shared provider/workroom, laundry/storage, restroom, and shell-ready capacity for one to two future treatment rooms.",
+      "Show the exact launch footprint for front desk, consult, two treatment rooms, shared workroom, laundry/storage, restroom, and one to two future rooms.",
     priority: Priority.HIGH,
     status: TaskStatus.IN_PROGRESS,
     openingPriority: OpeningPriority.CAN_PHASE_IN,
     dueOffsetDays: 8,
     phaseSlug: "pre-lease-immediately-after-securing-space",
     assigneeRole: Role.OWNER_ADMIN,
-    tags: ["phase-planning", "layout"]
+    tags: ["phase-planning", "layout"],
+    subtasks: [
+      "Mark the two rooms that will open for revenue use on day one",
+      "Reserve shell-ready space for one to two future treatment rooms",
+      "Confirm corridor, storage, and mechanical space still work in the lean plan"
+    ]
   },
   {
     key: "hipaa-speech-privacy",
     sectionSlug: "space-planning-layout",
-    title: "Review HIPAA-adjacent speech and screen privacy in reception and consult areas",
+    title: "Review speech and screen privacy at check-in and consult",
     description:
-      "Avoid overheard conversations and visible protected information by adjusting consult room privacy, monitor placement, and front-desk acoustics.",
+      "Confirm front-desk acoustics, consult-room privacy, and monitor placement so private information is not overheard or visible from public seating.",
     priority: Priority.HIGH,
     status: TaskStatus.IN_PROGRESS,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
@@ -402,9 +407,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "sink-strategy",
     sectionSlug: "space-planning-layout",
-    title: "Decide treatment-room sink strategy before permit drawings are finalized",
+    title: "Confirm treatment-room sink plan",
     description:
-      "Determine whether each treatment room needs a sink or whether a shared sink strategy is operationally and legally acceptable.",
+      "Decide which rooms require sinks, whether a shared sink is acceptable, and what plumbing points must be shown before permit drawings are released.",
     priority: Priority.CRITICAL,
     status: TaskStatus.BLOCKED,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
@@ -412,14 +417,19 @@ export const taskSeeds: TaskSeed[] = [
     phaseSlug: "design-and-due-diligence",
     assigneeRole: Role.OWNER_ADMIN,
     tags: ["plumbing", "treatment-room"],
-    blockedReason: "Awaiting service-scope and supervision-model confirmation to finalize room sink requirements."
+    blockedReason: "Awaiting service-scope and supervision-model confirmation to finalize room sink requirements.",
+    subtasks: [
+      "Review room-by-room sink needs against the launch service mix",
+      "Confirm shared-sink vs in-room sink decision with advisors and operators",
+      "Mark required plumbing points on the final layout"
+    ]
   },
   {
     key: "photo-location",
     sectionSlug: "space-planning-layout",
-    title: "Assign a private photography location with backdrop and controlled lighting",
+    title: "Set photo station location and lighting standard",
     description:
-      "Reserve a consistent private location for before-and-after photography with neutral backdrop, controlled light, and consent workflow support.",
+      "Reserve one private location for before-and-after photos with a fixed backdrop, consistent lighting, and storage for consent and camera gear.",
     priority: Priority.MEDIUM,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 28,
@@ -430,9 +440,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "framing-backing-coordination",
     sectionSlug: "construction-buildout",
-    title: "Confirm framing plan and wall backing before build starts",
+    title: "Approve framing layout and wall backing schedule",
     description:
-      "Verify wall locations against furniture and equipment plans and add backing for TVs, shelves, mirrors, dispensers, and future accessories.",
+      "Review wall locations against the room plan and issue backing locations for mirrors, TVs, shelves, dispensers, and future accessories before framing starts.",
     priority: Priority.CRITICAL,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 41,
@@ -444,9 +454,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "acoustic-insulation-spec",
     sectionSlug: "construction-buildout",
-    title: "Specify acoustic insulation and solid-core doors for consult and treatment privacy",
+    title: "Specify acoustic privacy package for consult and treatment rooms",
     description:
-      "Improve acoustic privacy at treatment and consultation rooms, especially near waiting areas or demising walls.",
+      "Confirm insulation, door type, sweeps, and any other sound-control details for rooms near waiting areas or demising walls.",
     priority: Priority.HIGH,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 45,
@@ -457,9 +467,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "electrical-device-specs",
     sectionSlug: "construction-buildout",
-    title: "Lock electrical rough-in to device amperage, voltage, and dedicated circuit needs",
+    title: "Lock device electrical requirements before rough-in",
     description:
-      "Collect the actual electrical specs for each major device before electrical rough-in so the clinic does not rely on extensions or late rework.",
+      "Collect the final amperage, voltage, dedicated circuit, and outlet placement requirements for each device before electrical rough-in is released.",
     priority: Priority.CRITICAL,
     status: TaskStatus.BLOCKED,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
@@ -473,9 +483,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "low-voltage-prewire",
     sectionSlug: "construction-buildout",
-    title: "Pre-wire cameras, speakers, access control, and extra data drops while walls are open",
+    title: "Pre-wire security, phones, and extra data drops",
     description:
-      "Hardwire front desk, security, phones, printers, access control, and stationary work areas with spare data runs during rough-in.",
+      "Run hardwired lines for front desk equipment, cameras, alarm, access control, printers, and spare data drops while walls are still open.",
     priority: Priority.HIGH,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 76,
@@ -486,9 +496,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "lighting-control-zones",
     sectionSlug: "construction-buildout",
-    title: "Coordinate zone lighting and controls for reception, consult, treatment, and back-of-house",
+    title: "Approve lighting zones and controls by room type",
     description:
-      "Reception should feel flattering and branded, consult rooms color-accurate, treatment rooms controllable, and back-of-house bright and functional.",
+      "Set the lighting plan for reception, consult, treatment, and back-of-house so each zone has the right brightness, color quality, and control type.",
     priority: Priority.HIGH,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 96,
@@ -499,9 +509,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "ada-storefront-fire-review",
     sectionSlug: "construction-buildout",
-    title: "Finish ADA, storefront signage, and fire-safety coordination with licensed professionals",
+    title: "Close ADA, storefront, and fire-safety coordination",
     description:
-      "Verify routes, door clearances, thresholds, restroom accessibility, signage rules, extinguisher locations, exit signage, and any sprinkler or alarm changes.",
+      "Confirm routes, clearances, restroom accessibility, sign rules, extinguisher locations, exit signage, and any sprinkler or alarm revisions with the licensed team.",
     priority: Priority.CRITICAL,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 112,
@@ -512,22 +522,27 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "reception-millwork",
     sectionSlug: "furniture-fixtures-equipment",
-    title: "Procure front desk millwork, transaction counter, and concealed cable management",
+    title: "Order front desk millwork and cable-managed check-in counter",
     description:
-      "Reception requires a functional check-in counter with locking drawers, equipment storage, and clean cable routing for POS, monitors, printer, and phones.",
+      "Release the front desk package with locking storage, transaction counter height, and concealed routing for POS, monitors, printer, and phones.",
     priority: Priority.HIGH,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 87,
     phaseSlug: "finishes-and-fixture-install",
     assigneeRole: Role.OWNER_ADMIN,
-    tags: ["reception", "ff&e"]
+    tags: ["reception", "ff&e"],
+    subtasks: [
+      "Approve front desk dimensions and transaction counter height",
+      "Confirm locking drawer and printer storage locations",
+      "Verify cable pass-throughs for POS, monitors, and phones"
+    ]
   },
   {
     key: "waiting-retail-fixtures",
     sectionSlug: "furniture-fixtures-equipment",
-    title: "Order waiting seating, retail fixtures, and refreshment station pieces",
+    title: "Order waiting-room seating and retail fixtures",
     description:
-      "Select commercial-grade seating, side tables, retail shelving, lighting, and refreshment elements that preserve privacy and accessibility.",
+      "Select the seating, side tables, shelving, display lighting, and refreshment pieces that fit the waiting area without crowding circulation.",
     priority: Priority.MEDIUM,
     openingPriority: OpeningPriority.CAN_PHASE_IN,
     dueOffsetDays: 103,
@@ -538,22 +553,27 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "treatment-room-support-furniture",
     sectionSlug: "furniture-fixtures-equipment",
-    title: "Standardize treatment-room support furniture and sanitation stations",
+    title: "Standardize treatment-room furniture and sanitation setup",
     description:
-      "Each treatment room needs an adjustable bed or chair, stool, rolling cart, storage, hamper, tissue holder, concealed waste, and clean/dirty zoning.",
+      "Build one repeatable room package for beds, stools, carts, storage, hampers, waste, and clean/dirty zoning across every active treatment room.",
     priority: Priority.HIGH,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 118,
     phaseSlug: "equipment-it-software-setup",
     assigneeRole: Role.COLLABORATOR,
-    tags: ["treatment-room", "ff&e"]
+    tags: ["treatment-room", "ff&e"],
+    subtasks: [
+      "Select one bed or chair model for all launch rooms",
+      "Standardize stool, cart, hamper, and waste placement",
+      "Confirm clean and dirty supply zones for each room"
+    ]
   },
   {
     key: "utility-break-janitorial",
     sectionSlug: "furniture-fixtures-equipment",
-    title: "Equip laundry, break nook, office, and janitorial support areas",
+    title: "Equip laundry, break, office, and janitorial support areas",
     description:
-      "Install washer/dryer, bins, shelving, fridge, microwave, office admin station, shred bin, and wall-mounted cleaning organization.",
+      "Complete the support-area package for washer/dryer, shelving, fridge, microwave, office station, shred bin, and cleaning-tool storage.",
     priority: Priority.MEDIUM,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 123,
@@ -564,23 +584,29 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "device-selection",
     sectionSlug: "laser-aesthetic-equipment",
-    title: "Select primary hair-removal platform for launch volume, skin-type mix, and staffing model",
+    title: "Select primary laser platform",
     description:
-      "Choose the launch device based on expected treatment volume, target skin types, speed goals, service mix, supervision model, and budget.",
+      "Choose the launch platform based on treatment volume, skin-type mix, treatment speed, service scope, service response time, and budget.",
     priority: Priority.CRITICAL,
     status: TaskStatus.IN_PROGRESS,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 36,
     phaseSlug: "design-and-due-diligence",
     assigneeRole: Role.OWNER_ADMIN,
-    tags: ["device", "vendor"]
+    tags: ["device", "vendor"],
+    subtasks: [
+      "Compare final vendor quotes and financing terms",
+      "Review service response-time and loaner coverage",
+      "Confirm skin-type coverage and treatment speed against the launch menu",
+      "Select the vendor and capture the final install scope"
+    ]
   },
   {
     key: "secondary-service-scope",
     sectionSlug: "laser-aesthetic-equipment",
-    title: "Decide whether launch includes only hair removal or adjacent aesthetic services",
+    title: "Confirm launch service menu beyond hair removal",
     description:
-      "Clarify whether the opening phase includes adjacent services such as photofacial, pigment, vascular, skin rejuvenation, or tightening where lawful and clinically appropriate.",
+      "Decide whether opening includes only hair removal or a limited set of adjacent services such as pigment, vascular, or skin-rejuvenation treatments.",
     priority: Priority.HIGH,
     openingPriority: OpeningPriority.CAN_PHASE_IN,
     dueOffsetDays: 30,
@@ -591,9 +617,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "device-accessories-safety",
     sectionSlug: "laser-aesthetic-equipment",
-    title: "Procure handpieces, cooling, eye protection, and documentation accessories",
+    title: "Order laser accessories and safety kit",
     description:
-      "Include extra tips, gauges, cooling aids, patient/provider eyewear, photo gear, and manufacturer-recommended replacement parts.",
+      "Purchase handpieces, gauges, cooling support, patient and provider eyewear, photo accessories, and recommended replacement parts for launch.",
     priority: Priority.HIGH,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 122,
@@ -604,23 +630,29 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "device-service-and-training",
     sectionSlug: "laser-aesthetic-equipment",
-    title: "Finalize device warranty, downtime plan, maintenance logs, and training sign-offs",
+    title: "Finalize device service coverage and training sign-offs",
     description:
-      "Compare service coverage, document preventive maintenance, define downtime workflows, and record manufacturer training before live treatment.",
+      "Close the service plan, downtime response, preventive maintenance log, and manufacturer training records before live treatments begin.",
     priority: Priority.CRITICAL,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 135,
     phaseSlug: "equipment-it-software-setup",
     assigneeRole: Role.OWNER_ADMIN,
     tags: ["device", "training", "uptime"],
-    dependsOn: ["device-selection"]
+    dependsOn: ["device-selection"],
+    subtasks: [
+      "Confirm warranty and service contract terms",
+      "Document the downtime escalation and client reschedule plan",
+      "Set up preventive maintenance and repair logs",
+      "Collect manufacturer training sign-offs for each provider"
+    ]
   },
   {
     key: "treatment-consumables",
     sectionSlug: "supplies-consumables",
-    title: "Order core treatment consumables and comfort supplies",
+    title: "Order treatment consumables and client comfort supplies",
     description:
-      "Stock gloves, gauze, razors, marking pencils, gel if applicable, post-care products, cooling items, disposable covers, tissues, cotton rounds, robes, and blankets.",
+      "Buy the gloves, razors, gauze, post-care items, cooling supplies, disposable covers, robes, blankets, and other room-level treatment supplies needed for opening.",
     priority: Priority.HIGH,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 128,
@@ -631,9 +663,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "infection-control-stock",
     sectionSlug: "supplies-consumables",
-    title: "Stock disinfectants, hand hygiene, waste supplies, and laundry supplies",
+    title: "Stock disinfectants, hand hygiene, waste, and laundry supplies",
     description:
-      "Purchase disinfectants compatible with equipment, sanitizer, soap, towels, liners, sharps supplies if needed, detergent, signage, and spare linen sets.",
+      "Purchase equipment-safe disinfectants, sanitizer, soap, towels, liners, detergent, signage, spare linens, and sharps or biohazard supplies if applicable.",
     priority: Priority.CRITICAL,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 130,
@@ -644,9 +676,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "opening-order-strategy",
     sectionSlug: "supplies-consumables",
-    title: "Split initial purchasing into launch stock, 30-day replenishment, and reserve stock",
+    title: "Split opening inventory into launch, 30-day, and reserve buys",
     description:
-      "Avoid trapping cash in excess inventory by separating launch stock from replenishment and reserve purchases.",
+      "Set par levels so opening inventory covers launch demand without overbuying items that can be reordered after the first month.",
     priority: Priority.MEDIUM,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 134,
@@ -657,36 +689,48 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "practice-management-stack",
     sectionSlug: "technology-software",
-    title: "Configure practice management, charting, reminders, memberships, and reporting",
+    title: "Configure practice management system",
     description:
-      "Scheduling, charting, intake, treatment notes, photography links, packages, reminders, deposits, and reporting should live in a system the team will use consistently.",
+      "Build the scheduling, charting, intake, treatment-note, reminder, package, deposit, and reporting workflows in one system the team will actually use.",
     priority: Priority.CRITICAL,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 120,
     phaseSlug: "equipment-it-software-setup",
     assigneeRole: Role.OWNER_ADMIN,
-    tags: ["software", "operations"]
+    tags: ["software", "operations"],
+    subtasks: [
+      "Configure service categories, providers, and room resources",
+      "Build charting templates and treatment-note fields",
+      "Enable reminders, deposits, and package or membership rules",
+      "Confirm reporting views for revenue, no-shows, and rebooks"
+    ]
   },
   {
     key: "payments-booking-forms",
     sectionSlug: "technology-software",
-    title: "Enable POS, online booking, and digitized forms with the right guardrails",
+    title: "Configure payments, online booking, and digital forms",
     description:
-      "Support payments, card-on-file, financing flows, booking rules, no-show settings, and digital intake, consent, privacy, and aftercare forms.",
+      "Set booking rules, card-on-file settings, no-show policies, financing options, and the full digital intake, consent, privacy, and aftercare form set.",
     priority: Priority.CRITICAL,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 124,
     phaseSlug: "equipment-it-software-setup",
     assigneeRole: Role.COLLABORATOR,
     tags: ["booking", "payments", "forms"],
-    dependsOn: ["practice-management-stack"]
+    dependsOn: ["practice-management-stack"],
+    subtasks: [
+      "Connect merchant processing and test a live payment flow",
+      "Set online booking rules, buffers, and no-show controls",
+      "Publish intake, consent, privacy, and aftercare forms",
+      "Test the full path from booking through completed intake"
+    ]
   },
   {
     key: "phones-wifi-cybersecurity",
     sectionSlug: "technology-software",
-    title: "Stand up business phones, segmented Wi-Fi, MFA, firewall, backups, and office tech",
+    title: "Install phones, Wi-Fi, cameras, and security controls",
     description:
-      "Activate business lines, staff and guest Wi-Fi, role-based access, printer/scanner, shredder, router management, and cloud backup permissions.",
+      "Activate business lines, staff and guest Wi-Fi, role-based access, cameras, printer/scanner, router controls, MFA, and backup permissions.",
     priority: Priority.HIGH,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 126,
@@ -697,22 +741,28 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "website-domain-booking-link",
     sectionSlug: "technology-software",
-    title: "Finalize domain, branded email, website essentials, and booking-link strategy",
+    title: "Launch website, branded email, and booking path",
     description:
-      "Set up a branded website, domain, email addresses, service pages, forms, FAQ, pricing logic, and the online booking link path.",
+      "Publish the core site, connect the domain, create branded inboxes, and make sure the consultation and booking path works cleanly on mobile and desktop.",
     priority: Priority.MEDIUM,
     openingPriority: OpeningPriority.CAN_PHASE_IN,
     dueOffsetDays: 140,
     phaseSlug: "grand-opening-first-30-days",
     assigneeRole: Role.COLLABORATOR,
-    tags: ["marketing", "website"]
+    tags: ["marketing", "website"],
+    subtasks: [
+      "Connect the production domain and DNS records",
+      "Create branded inboxes for bookings and general inquiries",
+      "Publish homepage, service pages, FAQ, and contact page",
+      "Test every booking and contact form submission path"
+    ]
   },
   {
     key: "entity-tax-banking",
     sectionSlug: "licensing-compliance-business-setup",
-    title: "Complete business entity, EIN, banking, merchant processing, and bookkeeping setup",
+    title: "Complete entity, banking, and bookkeeping setup",
     description:
-      "Confirm entity formation, tax setup, merchant accounts, and bookkeeping workflows before the clinic begins transacting.",
+      "Finish entity formation, tax setup, merchant accounts, and bookkeeping workflows before the clinic starts collecting revenue or paying vendors.",
     priority: Priority.CRITICAL,
     status: TaskStatus.COMPLETE,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
@@ -724,9 +774,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "zoning-use-confirmation",
     sectionSlug: "licensing-compliance-business-setup",
-    title: "Verify zoning, permitted use, and any landlord or plaza restrictions at the Lakeland address",
+    title: "Confirm zoning, permitted use, and landlord restrictions",
     description:
-      "Confirm the intended use is allowed before investing in plans, improvements, or equipment.",
+      "Verify the clinic use is allowed at the address and note any landlord or plaza restrictions before design and spend increase.",
     priority: Priority.CRITICAL,
     status: TaskStatus.COMPLETE,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
@@ -738,9 +788,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "permits-and-occupancy-path",
     sectionSlug: "licensing-compliance-business-setup",
-    title: "Confirm permit, inspection, and occupancy approval pathway before buildout spending accelerates",
+    title: "Confirm permit, inspection, and occupancy pathway",
     description:
-      "Tenant improvements usually require permit review, inspections, and final approvals before lawful occupancy and opening.",
+      "Map the permit submissions, inspection sequence, and final occupancy approval required before construction spending and opening commitments accelerate.",
     priority: Priority.CRITICAL,
     status: TaskStatus.IN_PROGRESS,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
@@ -752,9 +802,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "licensure-supervision-laser-rules",
     sectionSlug: "licensing-compliance-business-setup",
-    title: "Verify provider licensure, physician supervision, and Florida laser/light-based requirements",
+    title: "Verify licensure, supervision, and Florida laser rules",
     description:
-      "Confirm the licensure, supervision structure, protocols, and any electrology or facility requirements that apply to each provider and service.",
+      "Confirm the licensure, supervision model, protocols, and any facility or electrology requirements that apply to each provider and service offered at launch.",
     priority: Priority.CRITICAL,
     status: TaskStatus.BLOCKED,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
@@ -767,22 +817,28 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "osha-hipaa-biomedical-policies",
     sectionSlug: "licensing-compliance-business-setup",
-    title: "Prepare OSHA, privacy, waste, incident, maintenance, and policy-manual documentation",
+    title: "Finalize policy manual, logs, and waste procedures",
     description:
-      "Build the operational document set covering hazard communication, confidentiality, incident handling, logs, cleaning, maintenance, and waste workflows.",
+      "Build the working document set for hazard communication, privacy, incidents, cleaning, maintenance, and waste handling before staff training starts.",
     priority: Priority.HIGH,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 132,
     phaseSlug: "compliance-and-staffing",
     assigneeRole: Role.COLLABORATOR,
-    tags: ["policies", "osha", "hipaa"]
+    tags: ["policies", "osha", "hipaa"],
+    subtasks: [
+      "Draft OSHA and hazard-communication procedures",
+      "Finalize privacy, incident, and maintenance logs",
+      "Document biomedical waste workflow if applicable",
+      "Assemble the opening policy-manual binder or digital library"
+    ]
   },
   {
     key: "insurance-bind",
     sectionSlug: "licensing-compliance-business-setup",
-    title: "Bind general, professional, property, workers comp, cyber, and equipment coverage for opening",
+    title: "Bind operating insurance for opening",
     description:
-      "Work with the broker to secure the clinic’s operating coverage before launch and device installation.",
+      "Bind the general, professional, property, workers comp, cyber, and equipment coverage needed before install, occupancy, and opening.",
     priority: Priority.CRITICAL,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 136,
@@ -793,9 +849,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "opening-role-plan",
     sectionSlug: "staffing-operations-setup",
-    title: "Confirm opening staffing plan for owner, providers, front desk, and part-time support",
+    title: "Confirm opening staffing plan",
     description:
-      "Set the opening staffing mix without overloading payroll before demand is proven.",
+      "Set the day-one staffing mix for owner coverage, providers, front desk, and part-time support without overcommitting payroll.",
     priority: Priority.HIGH,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 90,
@@ -806,36 +862,48 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "sop-library",
     sectionSlug: "staffing-operations-setup",
-    title: "Create written SOPs for consults, treatment, no-shows, inventory, maintenance, opening, and closing",
+    title: "Draft launch SOP library",
     description:
-      "Document the repeatable operating system so staff do not invent their own version under launch pressure.",
+      "Write the repeatable workflows for consults, treatments, no-shows, inventory, maintenance, opening, and closing before the team trains in-room.",
     priority: Priority.CRITICAL,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 138,
     phaseSlug: "compliance-and-staffing",
     assigneeRole: Role.COLLABORATOR,
-    tags: ["sop", "training"]
+    tags: ["sop", "training"],
+    subtasks: [
+      "Draft consult and treatment-room workflow SOPs",
+      "Document no-show, cancellation, and rebooking steps",
+      "Write inventory, maintenance, opening, and closing routines",
+      "Store the approved SOP set where staff can access it daily"
+    ]
   },
   {
     key: "core-training-and-signoffs",
     sectionSlug: "staffing-operations-setup",
-    title: "Run core training and competency sign-offs in the actual rooms with the actual tools",
+    title: "Complete room-based training and competency sign-offs",
     description:
-      "Train on software, intake, room reset, contraindications, photography, safety, emergency response, and customer service before live treatment.",
+      "Train the team on software, intake, room reset, contraindications, photography, safety, emergency response, and client communication in the actual rooms.",
     priority: Priority.CRITICAL,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 145,
     phaseSlug: "compliance-and-staffing",
     assigneeRole: Role.OWNER_ADMIN,
     tags: ["training", "competency"],
-    dependsOn: ["practice-management-stack", "device-service-and-training", "sop-library"]
+    dependsOn: ["practice-management-stack", "device-service-and-training", "sop-library"],
+    subtasks: [
+      "Run booking, intake, charting, and checkout drills",
+      "Complete laser safety and contraindication sign-offs",
+      "Practice photo workflow and room reset standards",
+      "Record competency sign-offs for each launch role"
+    ]
   },
   {
     key: "daily-opening-closing-cleaning",
     sectionSlug: "staffing-operations-setup",
-    title: "Post opening, closing, cleaning, and inventory-count procedures with ownership assigned",
+    title: "Assign opening, closing, cleaning, and inventory routines",
     description:
-      "Cover alarm, lighting, room setup, cashout, chart completion, laundry, waste, charging, par levels, reorder points, and monthly counts.",
+      "Assign ownership for alarm, lighting, room setup, cashout, chart completion, laundry, waste, charging, par levels, reorder points, and monthly counts.",
     priority: Priority.HIGH,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 147,
@@ -846,76 +914,105 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "brand-assets-in-space",
     sectionSlug: "marketing-client-experience-setup",
-    title: "Deploy logo files, print signage, treatment menus, digital displays, and in-space brand standards",
+    title: "Install storefront, room, and menu signage",
     description:
-      "Carry the clinic brand consistently through every physical touchpoint, not just the storefront.",
+      "Print and install the physical brand package for storefront signs, hours decals, room signs, treatment menus, and any in-clinic displays.",
     priority: Priority.MEDIUM,
     openingPriority: OpeningPriority.CAN_PHASE_IN,
     dueOffsetDays: 120,
     phaseSlug: "finishes-and-fixture-install",
     assigneeRole: Role.COLLABORATOR,
-    tags: ["brand", "signage"]
+    tags: ["brand", "signage"],
+    subtasks: [
+      "Approve storefront sign and hours decal proofs",
+      "Install room and wayfinding signage",
+      "Print treatment menus and front-desk collateral",
+      "Set any branded in-clinic screen or display content"
+    ]
   },
   {
     key: "client-experience-details",
     sectionSlug: "marketing-client-experience-setup",
-    title: "Set comfort details, review workflow, retail talking points, and grand-opening plan",
+    title: "Finalize review, referral, and first-visit touchpoints",
     description:
-      "Finalize beverage, charging, robes/drapes, music, restroom amenities, review requests, retail education, referral cards, and launch-day operations.",
+      "Set the comfort details and post-visit touchpoints that staff will use during soft opening, including review requests, referral handoffs, and retail education.",
     priority: Priority.HIGH,
     openingPriority: OpeningPriority.CAN_PHASE_IN,
     dueOffsetDays: 152,
     phaseSlug: "soft-opening",
     assigneeRole: Role.COLLABORATOR,
-    tags: ["client-experience", "launch"]
+    tags: ["client-experience", "launch"],
+    subtasks: [
+      "Set beverage, robe, music, and restroom amenity standards",
+      "Prepare review-request script and automated follow-up",
+      "Print referral cards or set up referral code workflow",
+      "Write retail talking points and aftercare handoff steps"
+    ]
   },
   {
     key: "budget-tracker-ready",
     sectionSlug: "budget-framework",
-    title: "Use must-have, can-phase-in, and optional-upgrade labels across every budget line",
+    title: "Build opening budget tracker by priority tier",
     description:
-      "Track vendor quotes, deposits due, lead times, and responsibility while carrying a meaningful TI and launch contingency.",
+      "Tag each budget line as must-have, can-phase-in, or optional-upgrade and track quotes, deposits, lead times, and contingency in one place.",
     priority: Priority.HIGH,
     status: TaskStatus.IN_PROGRESS,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 18,
     phaseSlug: "pre-lease-immediately-after-securing-space",
     assigneeRole: Role.OWNER_ADMIN,
-    tags: ["budget", "contingency"]
+    tags: ["budget", "contingency"],
+    subtasks: [
+      "Label every line item by opening priority",
+      "Capture current quote, deposit due date, and lead time",
+      "Assign an owner for each committed spend item",
+      "Set and review the TI and launch contingency target"
+    ]
   },
   {
     key: "timeline-baseline",
     sectionSlug: "opening-timeline",
-    title: "Baseline the 10-phase opening timeline and link dependencies before announcing dates",
+    title: "Baseline opening timeline and dependencies",
     description:
-      "Do not lock a hard opening date until approval path, punch-list status, equipment delivery, and staffing readiness are grounded in reality.",
+      "Set realistic phase dates, link dependencies, and avoid announcing a hard opening date before permitting, equipment, and staffing readiness are grounded.",
     priority: Priority.HIGH,
     status: TaskStatus.IN_PROGRESS,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 14,
     phaseSlug: "pre-lease-immediately-after-securing-space",
     assigneeRole: Role.OWNER_ADMIN,
-    tags: ["timeline", "launch"]
+    tags: ["timeline", "launch"],
+    subtasks: [
+      "Review the target dates for all ten opening phases",
+      "Link major dependencies across permits, buildout, install, and staffing",
+      "Flag long-lead items that can move the opening date",
+      "Hold public launch-date announcements until critical blockers clear"
+    ]
   },
   {
     key: "phase-1-must-have",
     sectionSlug: "phase-1-vs-phase-2-buildout",
-    title: "Define Phase 1 must-have opening scope",
+    title: "Approve Phase 1 opening scope",
     description:
-      "Phase 1 should include reception, waiting, consult room, two treatment rooms, ADA restroom, compact workroom/laundry, core software, primary device, essential furniture, inventory, and compliance setup.",
+      "Lock the minimum opening scope for rooms, equipment, software, furniture, inventory, and compliance so spending stays aligned to launch needs.",
     priority: Priority.HIGH,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 20,
     phaseSlug: "design-and-due-diligence",
     assigneeRole: Role.OWNER_ADMIN,
-    tags: ["phase-1", "cash-protection"]
+    tags: ["phase-1", "cash-protection"],
+    subtasks: [
+      "List the rooms and systems required for day-one operations",
+      "Separate must-have equipment from can-phase-in items",
+      "Use the approved scope to guide procurement and contractor decisions"
+    ]
   },
   {
     key: "phase-1-future-proofing",
     sectionSlug: "phase-1-vs-phase-2-buildout",
-    title: "Build in Phase 2 future-proofing during Phase 1 construction",
+    title: "Add Phase 2 rough-ins during Phase 1 buildout",
     description:
-      "Rough-in extra power/data, pre-plan future cabinetry, reserve a shell-ready room or flex room, and keep finishes scalable for later expansion.",
+      "Use the open-wall phase to add the extra power, data, cabinetry backing, and room-readiness items that reduce future expansion cost.",
     priority: Priority.HIGH,
     openingPriority: OpeningPriority.CAN_PHASE_IN,
     dueOffsetDays: 72,
@@ -927,9 +1024,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "phase-2-options",
     sectionSlug: "phase-1-vs-phase-2-buildout",
-    title: "Document Phase 2 activation list for extra rooms, devices, decor, and staffing",
+    title: "Record Phase 2 activation list",
     description:
-      "Define what gets activated later: third/fourth treatment room, secondary device, upgraded retail, premium millwork, photo wall, and larger team.",
+      "Maintain a clean list of what activates after opening, including extra rooms, devices, upgraded decor, and additional staffing.",
     priority: Priority.MEDIUM,
     openingPriority: OpeningPriority.OPTIONAL_UPGRADE,
     dueOffsetDays: 160,
@@ -940,9 +1037,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "procure-reception",
     sectionSlug: "room-by-room-procurement-checklist",
-    title: "Procure reception and waiting-room opening package",
+    title: "Procure reception opening package",
     description:
-      "Front desk, guest seats, side tables, retail shelving, POS/computer/phone/printer, brand signage, mirror, charging, and refreshment items.",
+      "Order the front desk, guest seating, side tables, shelving, branded signs, charging touches, and refreshment pieces for reception and waiting.",
     priority: Priority.HIGH,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 110,
@@ -950,14 +1047,19 @@ export const taskSeeds: TaskSeed[] = [
     assigneeRole: Role.COLLABORATOR,
     roomName: "Reception / Waiting",
     tags: ["procurement", "reception"],
-    isRoomProcurement: true
+    isRoomProcurement: true,
+    subtasks: [
+      "Order guest seating and side tables",
+      "Order retail shelving and front-desk accessories",
+      "Confirm charging, refreshment, and signage items"
+    ]
   },
   {
     key: "procure-consultation-room",
     sectionSlug: "room-by-room-procurement-checklist",
-    title: "Procure consultation-room furniture and consent/photo support items",
+    title: "Procure consultation-room package",
     description:
-      "Desk or consult table, guest chairs, provider chair, monitor/tablet stand, mirror, task lighting, secure storage, and photo/consent items.",
+      "Order the consult table or desk, chairs, mirror, task lighting, secure storage, and photo or consent support items for the consult room.",
     priority: Priority.HIGH,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 112,
@@ -965,14 +1067,19 @@ export const taskSeeds: TaskSeed[] = [
     assigneeRole: Role.COLLABORATOR,
     roomName: "Consultation Room",
     tags: ["procurement", "consult"],
-    isRoomProcurement: true
+    isRoomProcurement: true,
+    subtasks: [
+      "Order consult table or desk and guest seating",
+      "Set up monitor or tablet support for treatment plans",
+      "Order mirror, lighting, and consent or photo accessories"
+    ]
   },
   {
     key: "procure-treatment-room",
     sectionSlug: "room-by-room-procurement-checklist",
-    title: "Procure treatment-room package for each active launch room",
+    title: "Procure treatment-room package for each launch room",
     description:
-      "Treatment bed/chair, stool, rolling cart, mirror, hamper, trash, sharps where applicable, disinfectant setup, eye protection, linens, and small supplies stock.",
+      "Order the bed or chair, stool, cart, mirror, hamper, waste setup, eye protection, linens, and opening supply stock for each active treatment room.",
     priority: Priority.CRITICAL,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 118,
@@ -980,14 +1087,19 @@ export const taskSeeds: TaskSeed[] = [
     assigneeRole: Role.COLLABORATOR,
     roomName: "Treatment Room",
     tags: ["procurement", "treatment-room"],
-    isRoomProcurement: true
+    isRoomProcurement: true,
+    subtasks: [
+      "Order bed or chair, stool, and rolling cart for each room",
+      "Set up hamper, waste, disinfectant, and eye-protection stations",
+      "Stage linens and opening supply stock in every launch room"
+    ]
   },
   {
     key: "procure-provider-workroom",
     sectionSlug: "room-by-room-procurement-checklist",
-    title: "Procure provider workroom storage, charging, and label-print station",
+    title: "Procure provider workroom package",
     description:
-      "Shelving, locked cabinet, charging station, printer, label printer, stock bins, and binder/manual station.",
+      "Order shelving, locking storage, charging station, printer, label printer, stock bins, and SOP or binder storage for the provider workroom.",
     priority: Priority.MEDIUM,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 119,
@@ -1000,9 +1112,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "procure-laundry-utility",
     sectionSlug: "room-by-room-procurement-checklist",
-    title: "Procure laundry and utility-room operating package",
+    title: "Procure laundry and utility package",
     description:
-      "Washer/dryer, hampers, shelves, detergent storage, folding surface, and utility sink accessories if included.",
+      "Order the washer or dryer, hampers, shelving, detergent storage, folding surface, and any sink accessories needed in laundry and utility.",
     priority: Priority.MEDIUM,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 120,
@@ -1015,9 +1127,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "procure-break-nook",
     sectionSlug: "room-by-room-procurement-checklist",
-    title: "Procure break nook appliances, storage, and staff cubbies",
+    title: "Procure break nook package",
     description:
-      "Mini fridge, microwave, shelving, seating counter, trash/recycling, and staff cubbies or lockers.",
+      "Order the mini fridge, microwave, shelving, seating surface, waste setup, and staff cubbies or lockers for the break nook.",
     priority: Priority.LOW,
     openingPriority: OpeningPriority.CAN_PHASE_IN,
     dueOffsetDays: 126,
@@ -1030,9 +1142,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "procure-restroom",
     sectionSlug: "room-by-room-procurement-checklist",
-    title: "Procure restroom accessories and cleaning-checklist station",
+    title: "Procure restroom package",
     description:
-      "Soap dispenser, hand-dry solution, toilet paper storage, trash can, mirror, amenity basket, and posted cleaning checklist holder.",
+      "Order the soap and hand-dry setup, paper storage, trash can, mirror, amenity basket, and cleaning-checklist holder for the restroom.",
     priority: Priority.MEDIUM,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 127,
@@ -1059,9 +1171,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "master-room-plan",
     sectionSlug: "master-opening-checklist",
-    title: "Final room plan approved by owner, designer, and contractor",
+    title: "Approve final room plan",
     description:
-      "The approved room plan should reflect layout, device needs, storage, and privacy priorities before hard construction decisions are locked.",
+      "Approve the room plan with layout, device needs, storage, and privacy decisions locked before construction details move forward.",
     priority: Priority.CRITICAL,
     status: TaskStatus.IN_PROGRESS,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
@@ -1073,9 +1185,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "master-device-requirements",
     sectionSlug: "master-opening-checklist",
-    title: "Device electrical, plumbing, HVAC, and room requirements incorporated into drawings",
+    title: "Incorporate device requirements into drawings",
     description:
-      "Coordinate device infrastructure before final permit submission and rough-in.",
+      "Confirm the drawings reflect final device power, plumbing, HVAC, and room-clearance requirements before permit submission and rough-in.",
     priority: Priority.CRITICAL,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 38,
@@ -1114,9 +1226,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "master-insurance-bound",
     sectionSlug: "master-opening-checklist",
-    title: "Insurance broker engaged and opening coverage bound",
+    title: "Bind opening insurance coverage",
     description:
-      "Coverage should be active in time for installation, occupancy, and opening exposures.",
+      "Make sure operating coverage is active in time for equipment install, occupancy, and opening exposures.",
     priority: Priority.CRITICAL,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 136,
@@ -1142,9 +1254,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "master-licensure-verified",
     sectionSlug: "master-opening-checklist",
-    title: "Professional licensure, supervision, and protocols verified for every service and provider",
+    title: "Verify licensure and supervision for every launch service",
     description:
-      "Every offered service needs an explicit licensure and oversight path confirmed before launch.",
+      "Confirm that every launch service has a documented licensure, supervision, and protocol path before opening.",
     priority: Priority.CRITICAL,
     status: TaskStatus.BLOCKED,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
@@ -1157,9 +1269,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "master-policies-complete",
     sectionSlug: "master-opening-checklist",
-    title: "Policies, manuals, logs, forms, and consent packets completed",
+    title: "Complete policies, logs, forms, and consent packets",
     description:
-      "The operational document set should be complete before soft opening begins.",
+      "Finish the working policy set, logs, forms, and consent packets before the first soft-opening appointments.",
     priority: Priority.CRITICAL,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 140,
@@ -1171,9 +1283,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "master-software-configured",
     sectionSlug: "master-opening-checklist",
-    title: "Scheduling, charting, payments, forms, reminders, and package logic configured",
+    title: "Complete software configuration and testing",
     description:
-      "Core software should be fully configured and tested before launch traffic hits.",
+      "Finish the scheduling, charting, payments, forms, reminders, and package setup and test the workflow before launch traffic starts.",
     priority: Priority.CRITICAL,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 132,
@@ -1185,9 +1297,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "master-it-security-installed",
     sectionSlug: "master-opening-checklist",
-    title: "Internet, phones, Wi-Fi, cameras, alarm, and access control installed",
+    title: "Install IT, phone, and security systems",
     description:
-      "The clinic should be fully connected and secured before opening.",
+      "Make sure connectivity, phones, cameras, alarm, and access control are live before staff training and opening.",
     priority: Priority.CRITICAL,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 134,
@@ -1199,9 +1311,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "master-furniture-installed",
     sectionSlug: "master-opening-checklist",
-    title: "Front desk and treatment room furniture installed",
+    title: "Install front desk and treatment-room furniture",
     description:
-      "Critical revenue and check-in furniture should be installed ahead of training and inspections.",
+      "Install the front desk and treatment-room furniture package in time for training, room setup, and final punch work.",
     priority: Priority.HIGH,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 136,
@@ -1213,9 +1325,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "master-devices-live",
     sectionSlug: "master-opening-checklist",
-    title: "Laser/device platforms delivered, installed, tested, and staff-trained",
+    title: "Install, test, and train on launch device",
     description:
-      "The launch device needs installation, testing, documentation, and trained staff before live treatment.",
+      "Complete delivery, install, testing, documentation, and staff training for the launch device before live treatments begin.",
     priority: Priority.CRITICAL,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 138,
@@ -1227,9 +1339,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "master-opening-inventory-stocked",
     sectionSlug: "master-opening-checklist",
-    title: "Opening inventory and consumables received, labeled, and stocked",
+    title: "Receive, label, and stock opening inventory",
     description:
-      "Opening stock should be in-room and labeled before soft opening exposes gaps.",
+      "Get launch inventory into rooms, labeled, and ready so soft opening exposes process issues instead of missing supplies.",
     priority: Priority.HIGH,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 142,
@@ -1241,9 +1353,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "master-laundry-waste-live",
     sectionSlug: "master-opening-checklist",
-    title: "Laundry, janitorial, and waste processes operational",
+    title: "Activate laundry, janitorial, and waste workflows",
     description:
-      "Support services must be operating, not just purchased, before clients arrive.",
+      "Make sure laundry, janitorial, and waste processes are running in practice, not just purchased on paper, before clients arrive.",
     priority: Priority.HIGH,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 142,
@@ -1254,9 +1366,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "master-restroom-accessible",
     sectionSlug: "master-opening-checklist",
-    title: "Restroom stocked and accessible",
+    title: "Stock and verify client restroom",
     description:
-      "The restroom should be client-ready and compliant before launch.",
+      "Verify the restroom is accessible, stocked, and presentation-ready before launch.",
     priority: Priority.HIGH,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 143,
@@ -1267,9 +1379,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "master-retail-merchandising",
     sectionSlug: "master-opening-checklist",
-    title: "Retail pricing and merchandising complete",
+    title: "Finish retail pricing and merchandising",
     description:
-      "Retail should be intentionally presented and priced before the clinic opens to full traffic.",
+      "Set shelf pricing, signage, testers, and display standards before the clinic opens to full public traffic.",
     priority: Priority.MEDIUM,
     openingPriority: OpeningPriority.CAN_PHASE_IN,
     dueOffsetDays: 150,
@@ -1280,9 +1392,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "master-photo-setup-tested",
     sectionSlug: "master-opening-checklist",
-    title: "Before-and-after photo workflow tested",
+    title: "Test before-and-after photo workflow",
     description:
-      "Validate camera, lighting, backdrop, angles, consent support, and storage workflow before live patients.",
+      "Validate the camera, lighting, backdrop, angles, consent support, and storage workflow before live patients arrive.",
     priority: Priority.HIGH,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 146,
@@ -1294,9 +1406,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "master-checklists-posted",
     sectionSlug: "master-opening-checklist",
-    title: "Cleaning, opening, and closing checklists posted and assigned",
+    title: "Post and assign operating checklists",
     description:
-      "Visible accountability reduces launch drift and missed resets.",
+      "Post the opening, closing, cleaning, and reset checklists where staff will use them and assign ownership for each one.",
     priority: Priority.HIGH,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 146,
@@ -1321,9 +1433,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "master-soft-opening-complete",
     sectionSlug: "master-opening-checklist",
-    title: "Soft opening completed and workflow issues corrected",
+    title: "Close soft-opening issues before public launch",
     description:
-      "Use the soft opening to surface missing supplies, scripting gaps, reset problems, and software holes before full launch.",
+      "Use soft opening to surface supply gaps, scripting issues, reset problems, and software misses, then close them before public launch.",
     priority: Priority.HIGH,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 164,
@@ -1334,9 +1446,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "master-grand-opening-assets",
     sectionSlug: "master-opening-checklist",
-    title: "Grand opening assets are ready: signage, offers, QR codes, reviews, and content capture",
+    title: "Publish grand-opening offers and launch assets",
     description:
-      "Marketing and on-site operating details should be finalized before the public launch.",
+      "Finalize the public launch package, including offers, QR codes, signage, review prompts, and content-capture plan.",
     priority: Priority.MEDIUM,
     openingPriority: OpeningPriority.CAN_PHASE_IN,
     dueOffsetDays: 166,
@@ -1347,9 +1459,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "master-working-capital",
     sectionSlug: "master-opening-checklist",
-    title: "Thirty-day working capital reserve is available",
+    title: "Confirm 30-day working capital reserve",
     description:
-      "Opening day is the start of carrying payroll, rent, utilities, and marketing while demand ramps.",
+      "Verify the clinic has enough cash reserve to carry payroll, rent, utilities, and marketing through the first month of ramp.",
     priority: Priority.CRITICAL,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 165,
@@ -1360,9 +1472,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "risk-device-specs-late",
     sectionSlug: "missing-items-risk-list",
-    title: "Mitigate risk: device electrical specs obtained too late",
+    title: "Obtain final device electrical specs before permit release",
     description:
-      "Late electrical specs can force expensive rework or unsafe improvised device setups.",
+      "Collect final device power requirements early enough to avoid permit revisions, change orders, or unsafe temporary setups.",
     priority: Priority.CRITICAL,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 30,
@@ -1374,9 +1486,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "risk-storage-shortfall",
     sectionSlug: "missing-items-risk-list",
-    title: "Mitigate risk: insufficient storage in the design",
+    title: "Confirm storage plan before millwork is released",
     description:
-      "Clinics often regret skipping storage during design and then struggle with overflow once operations begin.",
+      "Count clean supply, retail backstock, janitorial, and accessory storage before the design is released so overflow does not land in public areas.",
     priority: Priority.HIGH,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 18,
@@ -1388,9 +1500,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "risk-acoustic-privacy",
     sectionSlug: "missing-items-risk-list",
-    title: "Mitigate risk: poor acoustic privacy",
+    title: "Verify acoustic privacy details before wall close-up",
     description:
-      "Clients notice overheard conversations more than finish details, so privacy risk needs an explicit mitigation plan.",
+      "Confirm insulation, door, and sweep details before wall close-up so consult and treatment conversations are not heard from public areas.",
     priority: Priority.HIGH,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 34,
@@ -1402,9 +1514,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "risk-photo-workflow",
     sectionSlug: "missing-items-risk-list",
-    title: "Mitigate risk: no standardized photo workflow",
+    title: "Standardize before-and-after photo workflow",
     description:
-      "Inconsistent photography weakens marketing, treatment comparisons, and client expectation management.",
+      "Set one repeatable process for camera, lighting, backdrop, angles, naming, and consent so results are comparable and reusable.",
     priority: Priority.MEDIUM,
     openingPriority: OpeningPriority.CAN_PHASE_IN,
     dueOffsetDays: 120,
@@ -1416,9 +1528,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "risk-laundry-volume",
     sectionSlug: "missing-items-risk-list",
-    title: "Mitigate risk: underestimating laundry and linen volume",
+    title: "Check laundry capacity against opening schedule",
     description:
-      "Aesthetic clinics create more textile turnover than early planning assumptions usually capture.",
+      "Estimate linen turns per day and confirm the washer, dryer, and storage plan can support the opening schedule without bottlenecks.",
     priority: Priority.MEDIUM,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 110,
@@ -1430,9 +1542,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "risk-front-desk-cabling",
     sectionSlug: "missing-items-risk-list",
-    title: "Mitigate risk: weak front-desk cable management",
+    title: "Verify front-desk cable routing before install",
     description:
-      "A polished front desk quickly turns into visible cable clutter without dedicated routing and storage.",
+      "Confirm cable paths, outlet placement, and equipment storage before front-desk install so the check-in area stays clean after opening.",
     priority: Priority.MEDIUM,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 112,
@@ -1444,9 +1556,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "risk-no-contingency",
     sectionSlug: "missing-items-risk-list",
-    title: "Mitigate risk: no contingency budget",
+    title: "Set launch contingency budget",
     description:
-      "Construction and launch phases routinely expose cost surprises, so a contingency plan cannot be optional.",
+      "Carry a documented contingency for construction and launch surprises before signing major vendor commitments.",
     priority: Priority.CRITICAL,
     status: TaskStatus.IN_PROGRESS,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
@@ -1459,9 +1571,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "risk-device-downtime",
     sectionSlug: "missing-items-risk-list",
-    title: "Mitigate risk: no backup plan for device downtime",
+    title: "Create device downtime response plan",
     description:
-      "Lost treatment days can cascade into cancellations, refunds, and review damage without a response plan.",
+      "Document the service contacts, client communication steps, and reschedule workflow to use if the launch device goes down.",
     priority: Priority.HIGH,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 132,
@@ -1473,9 +1585,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "risk-incomplete-sops",
     sectionSlug: "missing-items-risk-list",
-    title: "Mitigate risk: incomplete SOPs and treatment protocols",
+    title: "Finish SOPs before staff drills begin",
     description:
-      "Staff will improvise if the clinic’s operating system is not written down.",
+      "Complete the written operating system before staff drills so the team is training to the actual standard instead of improvising.",
     priority: Priority.CRITICAL,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 138,
@@ -1487,9 +1599,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "risk-software-not-ready",
     sectionSlug: "missing-items-risk-list",
-    title: "Mitigate risk: opening before software and forms are truly ready",
+    title: "Test software and forms before soft opening",
     description:
-      "Check-in chaos travels through treatment and checkout when systems are not fully tested.",
+      "Run end-to-end tests for booking, intake, charting, checkout, and follow-up before soft opening so broken workflows do not hit live clients.",
     priority: Priority.CRITICAL,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 140,
@@ -1501,9 +1613,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "risk-signage-delay",
     sectionSlug: "missing-items-risk-list",
-    title: "Mitigate risk: late signage and landlord-rule coordination",
+    title: "Release signage approvals before production window slips",
     description:
-      "Storefront visibility and permit timing can delay launch or force redesign if they are ignored until late.",
+      "Get landlord, design, and permit approvals for signage early enough to avoid a late storefront install or redesign.",
     priority: Priority.MEDIUM,
     openingPriority: OpeningPriority.CAN_PHASE_IN,
     dueOffsetDays: 74,
@@ -1515,9 +1627,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "risk-working-capital-shortfall",
     sectionSlug: "missing-items-risk-list",
-    title: "Mitigate risk: too little working capital after opening",
+    title: "Review working capital against first-30-day burn",
     description:
-      "Opening is the beginning of carrying payroll, rent, and marketing while demand ramps.",
+      "Check cash on hand against expected first-30-day payroll, rent, utilities, and marketing spend before public launch.",
     priority: Priority.CRITICAL,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 165,
@@ -1529,9 +1641,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "verify-lakeland-use-tax",
     sectionSlug: "florida-lakeland-verification-notes",
-    title: "Lakeland verification: allowed use, planning/zoning compatibility, and local business tax",
+    title: "Confirm Lakeland use approval and local business tax requirements",
     description:
-      "Confirm allowed use, zoning compatibility, and local business tax expectations with the City of Lakeland before relying on site-plan assumptions.",
+      "Verify allowed use, zoning compatibility, and local business tax expectations with the City of Lakeland before relying on site-plan assumptions.",
     priority: Priority.CRITICAL,
     status: TaskStatus.COMPLETE,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
@@ -1544,9 +1656,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "verify-building-authority",
     sectionSlug: "florida-lakeland-verification-notes",
-    title: "Lakeland verification: permit pathway, inspections, and occupancy/final approval requirements",
+    title: "Confirm Lakeland permit, inspection, and occupancy sequence",
     description:
-      "Confirm the local building-authority pathway and inspection sequence with the contractor and design team.",
+      "Verify the local building-authority pathway, inspection sequence, and final approval requirements with the contractor and design team.",
     priority: Priority.CRITICAL,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 18,
@@ -1558,9 +1670,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "verify-florida-laser-rules",
     sectionSlug: "florida-lakeland-verification-notes",
-    title: "Florida verification: current laser/light-based hair removal licensure, supervision, and protocol requirements",
+    title: "Confirm Florida laser licensure and supervision requirements",
     description:
-      "Confirm current Florida requirements directly with the appropriate Department of Health / Medical Quality Assurance resources for the service model.",
+      "Verify the current Florida licensure, supervision, and protocol requirements directly with the appropriate state resources for the launch service model.",
     priority: Priority.CRITICAL,
     status: TaskStatus.BLOCKED,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
@@ -1574,9 +1686,9 @@ export const taskSeeds: TaskSeed[] = [
   {
     key: "verify-biomedical-waste",
     sectionSlug: "florida-lakeland-verification-notes",
-    title: "Florida verification: biomedical waste permitting and handling requirements if sharps/waste apply",
+    title: "Confirm biomedical waste requirements if sharps or regulated waste apply",
     description:
-      "If services generate sharps or biomedical waste, confirm Florida and county handling requirements before opening.",
+      "If launch services generate sharps or biomedical waste, verify the Florida and county handling, storage, and pickup requirements before opening.",
     priority: Priority.HIGH,
     openingPriority: OpeningPriority.MUST_HAVE_BEFORE_OPENING,
     dueOffsetDays: 128,
