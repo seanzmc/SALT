@@ -19,7 +19,10 @@ export function TaskFilters({
   sections: Array<{ slug: string; title: string }>;
   users: Array<{ id: string; name: string }>;
   current: ChecklistWorkspaceState;
-  onChange: (patch: Partial<ChecklistWorkspaceState>) => void;
+  onChange: (
+    patch: Partial<ChecklistWorkspaceState>,
+    options?: { history?: "replace" | "push" }
+  ) => void;
   onReset: () => void;
   isUpdating?: boolean;
 }) {
@@ -32,7 +35,7 @@ export function TaskFilters({
         </span>
         <Input
           className="h-11"
-          onChange={(event) => onChange({ q: event.target.value })}
+          onChange={(event) => onChange({ q: event.target.value }, { history: "replace" })}
           placeholder="Search tasks, notes, or descriptions"
           value={current.q}
         />
@@ -44,7 +47,7 @@ export function TaskFilters({
         </span>
         <Select
           className="h-11"
-          onChange={(event) => onChange({ status: event.target.value })}
+          onChange={(event) => onChange({ status: event.target.value }, { history: "push" })}
           value={current.status}
         >
           <option value="ALL">All statuses</option>
@@ -62,7 +65,7 @@ export function TaskFilters({
         </span>
         <Select
           className="h-11"
-          onChange={(event) => onChange({ section: event.target.value })}
+          onChange={(event) => onChange({ section: event.target.value }, { history: "push" })}
           value={current.section}
         >
           <option value="">All sections</option>
@@ -80,7 +83,7 @@ export function TaskFilters({
         </span>
         <Select
           className="h-11"
-          onChange={(event) => onChange({ priority: event.target.value })}
+          onChange={(event) => onChange({ priority: event.target.value }, { history: "push" })}
           value={current.priority}
         >
           <option value="">All priorities</option>
@@ -97,7 +100,7 @@ export function TaskFilters({
         </span>
         <Select
           className="h-11"
-          onChange={(event) => onChange({ assignee: event.target.value })}
+          onChange={(event) => onChange({ assignee: event.target.value }, { history: "push" })}
           value={current.assignee}
         >
           <option value="">All owners</option>
@@ -117,7 +120,9 @@ export function TaskFilters({
         </span>
         <Select
           className="h-11"
-          onChange={(event) => onChange({ sort: event.target.value as ChecklistWorkspaceState["sort"] })}
+          onChange={(event) =>
+            onChange({ sort: event.target.value as ChecklistWorkspaceState["sort"] }, { history: "push" })
+          }
           value={current.sort}
         >
           <option value="dueDate">Sort by due date</option>
@@ -134,7 +139,10 @@ export function TaskFilters({
         <Select
           className="h-11"
           onChange={(event) =>
-            onChange({ archived: event.target.value as ChecklistWorkspaceState["archived"] })
+            onChange(
+              { archived: event.target.value as ChecklistWorkspaceState["archived"] },
+              { history: "push" }
+            )
           }
           value={current.archived}
         >
@@ -151,7 +159,9 @@ export function TaskFilters({
         </span>
         <Select
           className="h-11"
-          onChange={(event) => onChange({ group: event.target.value as ChecklistWorkspaceState["group"] })}
+          onChange={(event) =>
+            onChange({ group: event.target.value as ChecklistWorkspaceState["group"] }, { history: "push" })
+          }
           value={current.group}
         >
           <option value="none">No grouping</option>

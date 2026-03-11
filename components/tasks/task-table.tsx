@@ -69,7 +69,8 @@ export function TaskTable({
               className={cn(
                 "transition-colors hover:bg-secondary/40",
                 onOpenTask ? "cursor-pointer" : undefined,
-                activeTaskId === task.id && "bg-secondary/50"
+                activeTaskId === task.id &&
+                  "bg-primary/5 shadow-[inset_3px_0_0_0_hsl(var(--primary))] hover:bg-primary/10"
               )}
               data-state={activeTaskId === task.id ? "selected" : undefined}
               onClick={onOpenTask ? () => onOpenTask(task.id) : undefined}

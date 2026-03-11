@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { FormEvent, ReactNode } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { OpeningPriority, Priority, Role, TaskStatus } from "@prisma/client";
 
@@ -35,7 +35,16 @@ type ActionState = {
 const initialState: ActionState = { status: "idle" };
 
 function toDateValue(value: Date | string | null) {
-  return value ? new Date(value).toISOString().slice(0, 10) : "";
+  if (!value) {
+    return "";
+  }
+
+  const date = new Date(value);
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
 }
 
 function SubmitButton({
@@ -270,7 +279,8 @@ export function TaskDetailForm({
   currentRole,
   sections,
   phases,
-  dependencyCandidates
+  dependencyCandidates,
+  onTaskSummaryChange
 }: {
   task: {
     id: string;
@@ -331,6 +341,12 @@ export function TaskDetailForm({
     dueDate: Date | string | null;
     assignedTo: { name: string } | null;
   }>;
+  onTaskSummaryChange?: (patch: {
+    title?: string;
+    status?: TaskStatus;
+    priority?: Priority;
+    dueDate?: string | null;
+  }) => void;
 }) {
   const [taskState, taskAction] = useFormState(updateTaskFeedbackAction, initialState);
   const [dependencyState, dependencyAction] = useFormState(
@@ -349,6 +365,20 @@ export function TaskDetailForm({
   );
   const activeSubtasks = task.subtasks.filter((subtask) => !subtask.archivedAt);
   const archivedSubtasks = task.subtasks.filter((subtask) => subtask.archivedAt);
+
+  function handleTaskSubmit(event: FormEvent<HTMLFormElement>) {
+    if (!onTaskSummaryChange) {
+      return;
+    }
+
+    const formData = new FormData(event.currentTarget);
+    onTaskSummaryChange({
+      title: String(formData.get("title") ?? task.title).trim() || task.title,
+      status: String(formData.get("status") ?? task.status) as TaskStatus,
+      priority: String(formData.get("priority") ?? task.priority) as Priority,
+      dueDate: String(formData.get("dueDate") ?? "").trim() || null
+    });
+  }
 
   return (
     <Card>
@@ -381,7 +411,7 @@ export function TaskDetailForm({
           title="Task Info"
           description="Core task details, ownership, due date, and blocked status."
         >
-          <form action={taskAction} className="space-y-4">
+          <form action={taskAction} className="space-y-4" onSubmit={handleTaskSubmit}>
             <input type="hidden" name="taskId" value={task.id} />
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2 md:col-span-2">

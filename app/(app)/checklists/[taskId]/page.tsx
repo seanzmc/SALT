@@ -21,6 +21,7 @@ export default async function TaskDetailPage({
       <TaskDetailWorkspace
         currentRole={session.user.role}
         currentUserId={session.user.id}
+        currentUserName={session.user.name ?? "User"}
         navigation={
           returnTo
             ? {

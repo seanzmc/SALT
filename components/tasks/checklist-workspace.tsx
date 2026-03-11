@@ -57,6 +57,7 @@ function parseLocationState() {
 type ChecklistWorkspaceProps = {
   currentRole: Role;
   currentUserId: string;
+  currentUserName: string;
   initialState: ChecklistWorkspaceState;
   initialSelectedTaskId?: string;
   initialSelectedTaskData?: SerializedTaskWorkspaceData | null;
@@ -68,6 +69,7 @@ type ChecklistWorkspaceProps = {
 export function ChecklistWorkspace({
   currentRole,
   currentUserId,
+  currentUserName,
   initialState,
   initialSelectedTaskId,
   initialSelectedTaskData,
@@ -76,6 +78,7 @@ export function ChecklistWorkspace({
   tasks
 }: ChecklistWorkspaceProps) {
   const [state, setState] = useState(initialState);
+  const [taskRecords, setTaskRecords] = useState(tasks);
   const [selectedTaskId, setSelectedTaskId] = useState(initialSelectedTaskId ?? "");
   const [detailCache, setDetailCache] = useState<Record<string, SerializedTaskWorkspaceData>>(() =>
     initialSelectedTaskId && initialSelectedTaskData
@@ -86,6 +89,8 @@ export function ChecklistWorkspace({
   const [isPending, startTransition] = useTransition();
   const deferredSearch = useDeferredValue(state.q);
   const inFlightTaskIds = useRef(new Set<string>());
+  const historyModeRef = useRef<"replace" | "push">("replace");
+  const shelfScrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setState(initialState);
@@ -104,9 +109,13 @@ export function ChecklistWorkspace({
     }
   }, [initialSelectedTaskData, initialSelectedTaskId]);
 
+  useEffect(() => {
+    setTaskRecords(tasks);
+  }, [tasks]);
+
   const queueCounts = useMemo(
-    () => getChecklistQueueCounts(tasks, currentUserId),
-    [currentUserId, tasks]
+    () => getChecklistQueueCounts(taskRecords, currentUserId),
+    [currentUserId, taskRecords]
   );
 
   const effectiveState = useMemo(
@@ -118,8 +127,8 @@ export function ChecklistWorkspace({
   );
 
   const visibleTasks = useMemo(
-    () => filterChecklistTasks(tasks, effectiveState, currentUserId),
-    [currentUserId, effectiveState, tasks]
+    () => filterChecklistTasks(taskRecords, effectiveState, currentUserId),
+    [currentUserId, effectiveState, taskRecords]
   );
 
   const cleanupMode = getChecklistCleanupMode(state);
@@ -160,12 +169,6 @@ export function ChecklistWorkspace({
       : undefined;
 
   useEffect(() => {
-    if (state.view !== "list" && selectedTaskId) {
-      setSelectedTaskId("");
-    }
-  }, [selectedTaskId, state.view]);
-
-  useEffect(() => {
     if (selectedTaskId && !selectedTaskVisible) {
       setSelectedTaskId("");
     }
@@ -181,9 +184,16 @@ export function ChecklistWorkspace({
     );
 
     if (`${window.location.pathname}${window.location.search}` !== nextHref) {
-      window.history.replaceState(null, "", nextHref);
+      const method = historyModeRef.current === "push" ? "pushState" : "replaceState";
+      window.history[method](null, "", nextHref);
     }
+
+    historyModeRef.current = "replace";
   }, [deferredSearch, selectedTaskId, state]);
+
+  useEffect(() => {
+    shelfScrollRef.current?.scrollTo({ top: 0 });
+  }, [selectedTaskId]);
 
   useEffect(() => {
     const handlePopState = () => {
@@ -321,7 +331,11 @@ export function ChecklistWorkspace({
       });
   }, [detailCache, nextTaskId]);
 
-  function updateState(patch: Partial<ChecklistWorkspaceState>) {
+  function updateState(
+    patch: Partial<ChecklistWorkspaceState>,
+    options?: { history?: "replace" | "push" }
+  ) {
+    historyModeRef.current = options?.history ?? "push";
     startTransition(() => {
       setState((current) => ({
         ...current,
@@ -346,6 +360,7 @@ export function ChecklistWorkspace({
   }
 
   function handleReset() {
+    historyModeRef.current = "push";
     startTransition(() => {
       setState({
         ...initialState,
@@ -363,25 +378,27 @@ export function ChecklistWorkspace({
         view: "list"
       });
       setSelectedTaskId("");
-      window.history.replaceState(null, "", "/checklists");
     });
   }
 
   function handleOpenTask(taskId: string) {
     if (state.view !== "list") {
+      historyModeRef.current = "push";
+      startTransition(() => {
+        setSelectedTaskId(taskId);
+      });
       return;
     }
 
+    historyModeRef.current = "push";
     startTransition(() => {
       setSelectedTaskId(taskId);
     });
-
-    window.history.pushState(null, "", toChecklistHref(state, taskId));
   }
 
   function handleCloseTask() {
+    historyModeRef.current = "push";
     setSelectedTaskId("");
-    window.history.replaceState(null, "", toChecklistHref(state));
   }
 
   function prefetchTask(taskId: string) {
@@ -423,6 +440,99 @@ export function ChecklistWorkspace({
         returnTo: toChecklistHref(state)
       }).toString()}`
     : undefined;
+
+  function updateTaskSummary(taskId: string, patch: {
+    title?: string;
+    status?: string;
+    priority?: string;
+    dueDate?: string | null;
+  }) {
+    setTaskRecords((current) =>
+      current.map((task) =>
+        task.id === taskId
+          ? {
+              ...task,
+              title: patch.title ?? task.title,
+              status: patch.status ?? task.status,
+              priority: patch.priority ?? task.priority,
+              dueDate: patch.dueDate ?? task.dueDate,
+              updatedAt: new Date().toISOString()
+            }
+          : task
+      )
+    );
+
+    setDetailCache((current) => {
+      const existing = current[taskId];
+      if (!existing?.task) {
+        return current;
+      }
+
+      return {
+        ...current,
+        [taskId]: {
+          ...existing,
+          task: {
+            ...existing.task,
+            title: patch.title ?? existing.task.title,
+            status: patch.status ?? existing.task.status,
+            priority: patch.priority ?? existing.task.priority,
+            dueDate:
+              patch.dueDate === undefined ? existing.task.dueDate : patch.dueDate
+          }
+        }
+      };
+    });
+  }
+
+  function addOptimisticComment(taskId: string, content: string, authorName?: string) {
+    setDetailCache((current) => {
+      const existing = current[taskId];
+
+      if (!existing?.task) {
+        return current;
+      }
+
+      return {
+        ...current,
+        [taskId]: {
+          ...existing,
+          task: {
+            ...existing.task,
+            comments: [
+              {
+                id: `optimistic-${Date.now()}`,
+                content,
+                createdAt: new Date().toISOString(),
+                author: { name: authorName ?? currentUserName }
+              },
+              ...existing.task.comments
+            ]
+          }
+        }
+      };
+    });
+  }
+
+  const shelfPlaceholder = (
+    <div className="flex h-full flex-col justify-between rounded-[1.5rem] border border-dashed border-border/80 bg-secondary/15 p-6">
+      <div className="space-y-3">
+        <Badge variant="outline">Shelf ready</Badge>
+        <div>
+          <h3 className="text-lg font-semibold">Open a task to keep working in context.</h3>
+          <p className="mt-2 text-sm text-muted-foreground">
+            The list or board stays anchored on the left while the right shelf holds task detail,
+            navigation, and edits.
+          </p>
+        </div>
+      </div>
+      <div className="space-y-2 text-sm text-muted-foreground">
+        <p>{visibleTasks.length} tasks in the current result set.</p>
+        <p>Queue: {state.queue.replaceAll("-", " ")}.</p>
+        <p>View: {state.view}.</p>
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-6">
@@ -515,14 +625,66 @@ export function ChecklistWorkspace({
           description="Reset the filters or search terms to reveal the seeded build-out checklist items."
         />
       ) : showBoardView ? (
-        <TaskBoard tasks={visibleTasks as never} />
+        <div
+          className={cn(
+            "grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(22rem,32rem)] xl:items-start"
+          )}
+        >
+          <div className="min-w-0">
+            <TaskBoard
+              activeTaskId={selectedTaskId || undefined}
+              onOpenTask={handleOpenTask}
+              onPrefetchTask={prefetchTask}
+              tasks={visibleTasks as never}
+            />
+          </div>
+          <aside className="min-w-0 xl:sticky xl:top-6 xl:h-[calc(100vh-3rem)] xl:self-start">
+            <div className="flex h-full flex-col overflow-hidden rounded-[1.7rem] border border-border/80 bg-card/95 shadow-[0_30px_80px_-44px_rgba(15,23,42,0.6)]">
+              <div className="border-b border-border/70 px-5 py-4">
+                <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                  Workspace shelf
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Board cards open in the same detail shelf as list rows.
+                </p>
+              </div>
+              <div className="flex-1 overflow-y-auto p-5" ref={shelfScrollRef}>
+                {selectedTaskId && selectedTaskData ? (
+                  <TaskDetailContent
+                    compact
+                    currentRole={currentRole}
+                    currentUserId={currentUserId}
+                    currentUserName={currentUserName}
+                    data={selectedTaskData}
+                    navigation={{
+                      closeLabel: "Close shelf",
+                      contextLabel: "Board queue",
+                      fullPageHref,
+                      onClose: handleCloseTask,
+                      onNext: nextTaskId ? () => handleOpenTask(nextTaskId) : undefined,
+                      onPrevious: previousTaskId ? () => handleOpenTask(previousTaskId) : undefined
+                    }}
+                    notFoundBehavior="card"
+                    onCommentAdd={(content) => addOptimisticComment(selectedTaskId, content, currentUserName)}
+                    onTaskSummaryChange={(patch) => updateTaskSummary(selectedTaskId, patch)}
+                  />
+                ) : selectedTaskId ? (
+                  <div className="space-y-4">
+                    <div className="h-24 animate-pulse rounded-[1.5rem] bg-secondary/60" />
+                    <div className="h-56 animate-pulse rounded-[1.5rem] bg-secondary/40" />
+                    <div className="h-40 animate-pulse rounded-[1.5rem] bg-secondary/35" />
+                  </div>
+                ) : (
+                  shelfPlaceholder
+                )}
+              </div>
+            </div>
+          </aside>
+        </div>
       ) : (
         <div
           className={cn(
-            "grid gap-6 xl:items-start",
-            selectedTaskId
-              ? "xl:grid-cols-[minmax(0,1fr)_minmax(24rem,36vw)]"
-              : "grid-cols-1"
+            "grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(22rem,32rem)] xl:items-start"
           )}
         >
           <div className="min-w-0">
@@ -540,53 +702,62 @@ export function ChecklistWorkspace({
             />
           </div>
 
-          {selectedTaskId ? (
-            <aside className="min-w-0 xl:sticky xl:top-6 xl:h-[calc(100vh-3rem)] xl:self-start">
-              <div className="flex h-full flex-col overflow-hidden rounded-[1.9rem] border border-border/80 bg-card/95 shadow-[0_36px_90px_-48px_rgba(15,23,42,0.65)]">
-                <div className="border-b border-border/70 px-5 py-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-                        Side shelf
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Task detail stays in context while the list remains visible.
-                      </p>
-                    </div>
-                    {loadingTaskId === selectedTaskId && !selectedTaskData ? (
-                      <Badge variant="outline">Loading…</Badge>
-                    ) : null}
+          <aside
+            className={cn(
+              "min-w-0",
+              selectedTaskId ? "block" : "hidden xl:block",
+              "xl:sticky xl:top-6 xl:h-[calc(100vh-3rem)] xl:self-start"
+            )}
+          >
+            <div className="flex h-full flex-col overflow-hidden rounded-[1.7rem] border border-border/80 bg-card/95 shadow-[0_30px_80px_-44px_rgba(15,23,42,0.6)]">
+              <div className="border-b border-border/70 px-5 py-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                      Workspace shelf
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Task detail stays in context while the list remains visible.
+                    </p>
                   </div>
-                </div>
-
-                <div className="flex-1 overflow-y-auto p-5">
-                  {selectedTaskData ? (
-                    <TaskDetailContent
-                      compact
-                      currentRole={currentRole}
-                      currentUserId={currentUserId}
-                      data={selectedTaskData}
-                      navigation={{
-                        closeLabel: "Close shelf",
-                        contextLabel: "Checklist queue",
-                        fullPageHref,
-                        onClose: handleCloseTask,
-                        onNext: nextTaskId ? () => handleOpenTask(nextTaskId) : undefined,
-                        onPrevious: previousTaskId ? () => handleOpenTask(previousTaskId) : undefined
-                      }}
-                      notFoundBehavior="card"
-                    />
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="h-24 animate-pulse rounded-[1.5rem] bg-secondary/60" />
-                      <div className="h-56 animate-pulse rounded-[1.5rem] bg-secondary/40" />
-                      <div className="h-40 animate-pulse rounded-[1.5rem] bg-secondary/35" />
-                    </div>
-                  )}
+                  {loadingTaskId === selectedTaskId && !selectedTaskData ? (
+                    <Badge variant="outline">Loading…</Badge>
+                  ) : null}
                 </div>
               </div>
-            </aside>
-          ) : null}
+
+              <div className="flex-1 overflow-y-auto p-5" ref={shelfScrollRef}>
+                {selectedTaskId && selectedTaskData ? (
+                  <TaskDetailContent
+                    compact
+                    currentRole={currentRole}
+                    currentUserId={currentUserId}
+                    currentUserName={currentUserName}
+                    data={selectedTaskData}
+                    navigation={{
+                      closeLabel: "Close shelf",
+                      contextLabel: "Checklist queue",
+                      fullPageHref,
+                      onClose: handleCloseTask,
+                      onNext: nextTaskId ? () => handleOpenTask(nextTaskId) : undefined,
+                      onPrevious: previousTaskId ? () => handleOpenTask(previousTaskId) : undefined
+                    }}
+                    notFoundBehavior="card"
+                    onCommentAdd={(content) => addOptimisticComment(selectedTaskId, content, currentUserName)}
+                    onTaskSummaryChange={(patch) => updateTaskSummary(selectedTaskId, patch)}
+                  />
+                ) : selectedTaskId ? (
+                  <div className="space-y-4">
+                    <div className="h-24 animate-pulse rounded-[1.5rem] bg-secondary/60" />
+                    <div className="h-56 animate-pulse rounded-[1.5rem] bg-secondary/40" />
+                    <div className="h-40 animate-pulse rounded-[1.5rem] bg-secondary/35" />
+                  </div>
+                ) : (
+                  shelfPlaceholder
+                )}
+              </div>
+            </div>
+          </aside>
         </div>
       )}
     </div>

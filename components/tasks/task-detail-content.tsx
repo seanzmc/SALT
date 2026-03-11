@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Role } from "@prisma/client";
+import { Priority, Role, TaskStatus } from "@prisma/client";
 
 import { TaskCommentForm } from "@/components/tasks/task-comment-form";
 import { TaskDetailForm } from "@/components/tasks/task-detail-form";
@@ -22,6 +22,13 @@ type TaskDetailNavigation = {
   onClose?: () => void;
   onPrevious?: () => void;
   onNext?: () => void;
+};
+
+type TaskSummaryPatch = {
+  title?: string;
+  status?: TaskStatus;
+  priority?: Priority;
+  dueDate?: string | null;
 };
 
 function NavigationAction({
@@ -58,16 +65,22 @@ export function TaskDetailContent({
   data,
   currentRole,
   currentUserId,
+  currentUserName,
   compact = false,
   navigation,
-  notFoundBehavior = "page"
+  notFoundBehavior = "page",
+  onTaskSummaryChange,
+  onCommentAdd
 }: {
   data: SerializedTaskWorkspaceData;
   currentRole: Role;
   currentUserId: string;
+  currentUserName?: string;
   compact?: boolean;
   navigation?: TaskDetailNavigation;
   notFoundBehavior?: "page" | "card";
+  onTaskSummaryChange?: (patch: TaskSummaryPatch) => void;
+  onCommentAdd?: (content: string, authorName?: string) => void;
 }) {
   const task = data.task;
 
@@ -159,6 +172,7 @@ export function TaskDetailContent({
         <TaskDetailForm
           currentRole={currentRole}
           dependencyCandidates={data.dependencyCandidates as never}
+          onTaskSummaryChange={onTaskSummaryChange}
           phases={data.phases as never}
           sections={data.sections as never}
           task={task as never}
@@ -210,7 +224,11 @@ export function TaskDetailContent({
                   </div>
                 </summary>
                 <div className="space-y-4 border-t border-border px-4 py-4">
-                  <TaskCommentForm taskId={task.id} />
+                  <TaskCommentForm
+                    currentUserName={currentUserName}
+                    onCommentAdd={onCommentAdd}
+                    taskId={task.id}
+                  />
                   <div className="space-y-3">
                     {task.comments.length === 0 ? (
                       <p className="text-sm text-muted-foreground">

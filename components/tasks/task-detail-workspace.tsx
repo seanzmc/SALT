@@ -18,6 +18,7 @@ export async function TaskDetailWorkspace({
   taskId,
   currentRole,
   currentUserId,
+  currentUserName,
   compact = false,
   navigation,
   notFoundBehavior = "page"
@@ -25,6 +26,7 @@ export async function TaskDetailWorkspace({
   taskId: string;
   currentRole: Role;
   currentUserId: string;
+  currentUserName?: string;
   compact?: boolean;
   navigation?: TaskDetailNavigation;
   notFoundBehavior?: "page" | "card";
@@ -40,6 +42,7 @@ export async function TaskDetailWorkspace({
       compact={compact}
       currentRole={currentRole}
       currentUserId={currentUserId}
+      currentUserName={currentUserName}
       data={serializeTaskWorkspaceData(data)}
       navigation={navigation}
       notFoundBehavior={notFoundBehavior}

@@ -45,6 +45,7 @@ export default async function ChecklistsPage({
         <ChecklistWorkspace
           currentRole={session.user.role}
           currentUserId={session.user.id}
+          currentUserName={session.user.name ?? "User"}
           initialSelectedTaskData={initialSelectedTaskData}
           initialSelectedTaskId={selectedTaskId || undefined}
           initialState={current}

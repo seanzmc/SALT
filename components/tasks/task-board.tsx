@@ -1,14 +1,17 @@
 "use client";
 
-import Link from "next/link";
 import { TaskStatus } from "@prisma/client";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import { formatDate } from "@/lib/utils";
 
 export function TaskBoard({
-  tasks
+  tasks,
+  activeTaskId,
+  onOpenTask,
+  onPrefetchTask
 }: {
   tasks: Array<{
     id: string;
@@ -18,6 +21,9 @@ export function TaskBoard({
     dueDate: Date | string | null;
     taskDependencies: Array<{ dependsOnTask: { status: TaskStatus } }>;
   }>;
+  activeTaskId?: string;
+  onOpenTask?: (taskId: string) => void;
+  onPrefetchTask?: (taskId: string) => void;
 }) {
   const columns = Object.values(TaskStatus).map((status) => ({
     status,
@@ -38,10 +44,17 @@ export function TaskBoard({
               );
 
               return (
-                <Link
+                <button
                   key={task.id}
-                  href={`/checklists/${task.id}`}
-                  className="block rounded-xl border border-border bg-secondary/40 p-3 hover:bg-secondary"
+                  className={cn(
+                    "block w-full rounded-xl border p-3 text-left transition-colors",
+                    activeTaskId === task.id
+                      ? "border-primary/35 bg-primary/10 shadow-[inset_3px_0_0_0_hsl(var(--primary))]"
+                      : "border-border bg-secondary/40 hover:bg-secondary"
+                  )}
+                  onClick={() => onOpenTask?.(task.id)}
+                  onMouseEnter={() => onPrefetchTask?.(task.id)}
+                  type="button"
                 >
                   <p className="font-medium">{task.title}</p>
                   <p className="mt-1 text-xs text-muted-foreground">{task.section.title}</p>
@@ -51,7 +64,7 @@ export function TaskBoard({
                     </Badge>
                     <span className="text-xs text-muted-foreground">{formatDate(task.dueDate)}</span>
                   </div>
-                </Link>
+                </button>
               );
             })}
           </CardContent>
