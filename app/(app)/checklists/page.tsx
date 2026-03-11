@@ -1,9 +1,11 @@
 import Link from "next/link";
 
 import { PageHeader } from "@/components/layout/page-header";
+import { GroupedTaskList } from "@/components/tasks/grouped-task-list";
 import { TaskCreateForm } from "@/components/tasks/task-create-form";
 import { TaskBoard } from "@/components/tasks/task-board";
 import { TaskFilters } from "@/components/tasks/task-filters";
+import { TaskQueueShortcuts } from "@/components/tasks/task-queue-shortcuts";
 import { TaskTable } from "@/components/tasks/task-table";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -24,16 +26,19 @@ export default async function ChecklistsPage({
     section: typeof searchParams.section === "string" ? searchParams.section : "",
     priority: typeof searchParams.priority === "string" ? searchParams.priority : "",
     assignee: typeof searchParams.assignee === "string" ? searchParams.assignee : "",
+    queue: typeof searchParams.queue === "string" ? searchParams.queue : "all",
+    group: typeof searchParams.group === "string" ? searchParams.group : "none",
     sort: typeof searchParams.sort === "string" ? searchParams.sort : "dueDate",
     view: typeof searchParams.view === "string" ? searchParams.view : "list"
   };
 
-  const { tasks, sections, users, phases } = await getTaskList({
+  const { tasks, sections, users, phases, queueCounts } = await getTaskList({
     q: current.q,
     status: current.status as never,
     section: current.section,
     priority: current.priority,
     assignee: current.assignee,
+    queue: current.queue as never,
     currentUserId: session.user.id,
     sort: current.sort as never
   });
@@ -67,11 +72,14 @@ export default async function ChecklistsPage({
 
       <TaskFilters sections={sections} users={users} current={current} />
 
+      <TaskQueueShortcuts counts={queueCounts} current={current} />
+
       <div className="flex flex-wrap gap-2">
         <Badge variant="secondary">{tasks.length} tasks shown</Badge>
         <Badge variant="outline">
           Sections: {[...new Set(tasks.map((task) => task.section.title))].length}
         </Badge>
+        <Badge variant="outline">Queue: {current.queue.replaceAll("-", " ")}</Badge>
       </div>
 
       {tasks.length === 0 ? (
@@ -81,6 +89,8 @@ export default async function ChecklistsPage({
         />
       ) : current.view === "board" ? (
         <TaskBoard tasks={tasks as never} />
+      ) : current.group === "section" ? (
+        <GroupedTaskList groupBy="section" tasks={tasks as never} />
       ) : (
         <TaskTable tasks={tasks as never} />
       )}

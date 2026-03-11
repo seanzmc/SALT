@@ -8,11 +8,16 @@ export type TaskFilters = {
   section?: string;
   priority?: string;
   assignee?: string;
+  queue?: "all" | "my-work" | "overdue" | "upcoming" | "blocked" | "unassigned";
   currentUserId?: string;
   sort?: "dueDate" | "priority" | "title" | "status";
 };
 
 export async function getTaskList(filters: TaskFilters = {}) {
+  const now = new Date();
+  const upcomingLimit = new Date(now);
+  upcomingLimit.setDate(upcomingLimit.getDate() + 7);
+
   const where: Prisma.TaskWhereInput = {
     AND: [
       filters.q
@@ -29,11 +34,31 @@ export async function getTaskList(filters: TaskFilters = {}) {
       filters.priority ? { priority: filters.priority as never } : {},
       filters.assignee === "unassigned"
         ? { assignedToId: null }
-      : filters.assignee === "me"
+        : filters.assignee === "me"
           ? { assignedToId: filters.currentUserId }
           : filters.assignee
             ? { assignedToId: filters.assignee }
-            : {}
+            : {},
+      filters.queue === "my-work"
+        ? { assignedToId: filters.currentUserId }
+        : filters.queue === "overdue"
+          ? {
+              dueDate: { lt: now },
+              status: { not: TaskStatus.COMPLETE }
+            }
+          : filters.queue === "upcoming"
+            ? {
+                dueDate: {
+                  gte: now,
+                  lte: upcomingLimit
+                },
+                status: { not: TaskStatus.COMPLETE }
+              }
+            : filters.queue === "blocked"
+              ? { status: TaskStatus.BLOCKED }
+              : filters.queue === "unassigned"
+                ? { assignedToId: null }
+                : {}
     ]
   };
 
@@ -46,7 +71,41 @@ export async function getTaskList(filters: TaskFilters = {}) {
           ? { status: "asc" }
           : { dueDate: "asc" };
 
-  const [tasks, sections, users, phases] = await Promise.all([
+  const queueCountsPromise = Promise.all([
+    prisma.task.count(),
+    prisma.task.count({
+      where: {
+        assignedToId: filters.currentUserId ?? undefined,
+        status: { not: TaskStatus.COMPLETE }
+      }
+    }),
+    prisma.task.count({
+      where: {
+        dueDate: { lt: now },
+        status: { not: TaskStatus.COMPLETE }
+      }
+    }),
+    prisma.task.count({
+      where: {
+        dueDate: {
+          gte: now,
+          lte: upcomingLimit
+        },
+        status: { not: TaskStatus.COMPLETE }
+      }
+    }),
+    prisma.task.count({
+      where: { status: TaskStatus.BLOCKED }
+    }),
+    prisma.task.count({
+      where: {
+        assignedToId: null,
+        status: { not: TaskStatus.COMPLETE }
+      }
+    })
+  ]);
+
+  const [tasks, sections, users, phases, queueCounts] = await Promise.all([
     prisma.task.findMany({
       where,
       include: {
@@ -83,10 +142,24 @@ export async function getTaskList(filters: TaskFilters = {}) {
     prisma.timelinePhase.findMany({
       orderBy: { sortOrder: "asc" },
       select: { id: true, title: true }
-    })
+    }),
+    queueCountsPromise
   ]);
 
-  return { tasks, sections, users, phases };
+  return {
+    tasks,
+    sections,
+    users,
+    phases,
+    queueCounts: {
+      all: queueCounts[0],
+      myWork: queueCounts[1],
+      overdue: queueCounts[2],
+      upcoming: queueCounts[3],
+      blocked: queueCounts[4],
+      unassigned: queueCounts[5]
+    }
+  };
 }
 
 export async function getTaskDetail(taskId: string) {

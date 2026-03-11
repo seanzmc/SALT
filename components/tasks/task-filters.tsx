@@ -19,6 +19,8 @@ export function TaskFilters({
     section?: string;
     priority?: string;
     assignee?: string;
+    queue?: string;
+    group?: string;
     sort?: string;
     view?: string;
   };
@@ -26,6 +28,7 @@ export function TaskFilters({
   return (
     <form className="grid gap-3 rounded-2xl border border-border bg-white/85 p-4 shadow-sm backdrop-blur md:grid-cols-7">
       <input type="hidden" name="view" value={current.view ?? "list"} />
+      <input type="hidden" name="queue" value={current.queue ?? "all"} />
       <Input defaultValue={current.q} name="q" placeholder="Search tasks, notes, or descriptions" className="md:col-span-2" />
       <Select defaultValue={current.status ?? "ALL"} name="status">
         <option value="ALL">All statuses</option>
@@ -66,7 +69,11 @@ export function TaskFilters({
         <option value="title">Sort by title</option>
         <option value="status">Sort by status</option>
       </Select>
-      <div className="flex gap-2 md:col-span-6">
+      <Select defaultValue={current.group ?? "none"} name="group">
+        <option value="none">No grouping</option>
+        <option value="section">Group by section</option>
+      </Select>
+      <div className="flex gap-2 md:col-span-7">
         <button className={cn(buttonVariants({ variant: "default" }))} type="submit">
           Apply filters
         </button>
