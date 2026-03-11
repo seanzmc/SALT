@@ -35,7 +35,7 @@ export async function saveUploadedFile(file: File) {
     .slice(0, 60) || "document";
   const fileName = `documents/${Date.now()}-${Math.random().toString(36).slice(2, 10)}-${safeBaseName}${extension.toLowerCase()}`;
   const blob = await put(fileName, file, {
-    access: "public",
+    access: "private",
     addRandomSuffix: false,
     contentType: file.type || "application/octet-stream"
   });
@@ -49,5 +49,5 @@ export async function saveUploadedFile(file: File) {
 }
 
 export function getStoragePolicySummary() {
-  return "Files are stored in Vercel Blob with the public object URL saved in document metadata for direct access.";
+  return "Files are stored in a private Vercel Blob store with authenticated application routes serving access.";
 }

@@ -20,10 +20,6 @@ export function DocumentTable({
     createdAt: Date;
   }>;
 }) {
-  function isOpenableStoragePath(storagePath: string) {
-    return storagePath.startsWith("/") || storagePath.startsWith("http://") || storagePath.startsWith("https://");
-  }
-
   return (
     <Table>
       <TableHeader>
@@ -40,13 +36,21 @@ export function DocumentTable({
           <TableRow key={document.id}>
             <TableCell>
               <p className="font-medium">{document.title}</p>
-              {isOpenableStoragePath(document.storagePath) ? (
-                <Link className="text-xs text-primary hover:underline" href={document.storagePath} target="_blank">
-                  {document.originalName}
+              <div className="flex flex-wrap items-center gap-3">
+                <Link
+                  className="text-xs text-primary hover:underline"
+                  href={`/api/documents/${document.id}`}
+                  target="_blank"
+                >
+                  Open {document.originalName}
                 </Link>
-              ) : (
-                <p className="text-xs text-muted-foreground">{document.originalName}</p>
-              )}
+                <Link
+                  className="text-xs text-primary hover:underline"
+                  href={`/api/documents/${document.id}?download=1`}
+                >
+                  Download
+                </Link>
+              </div>
               {document.notes ? <p className="mt-1 text-xs text-muted-foreground">{document.notes}</p> : null}
             </TableCell>
             <TableCell>

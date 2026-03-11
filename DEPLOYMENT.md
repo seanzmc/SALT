@@ -107,7 +107,7 @@ Document uploads now use Vercel Blob instead of local disk storage.
 Operational notes:
 
 - `app/api/upload/route.ts` still runs in the Node runtime, which is correct.
-- The app stores the public Blob URL in `Document.storagePath`, so existing document screens and task-linked attachments continue to work without schema changes.
+- The app stores the Blob URL in `Document.storagePath`, and authenticated app routes now serve private-document access without schema changes.
 - Existing older local paths like `/uploads/...` still remain valid locally if those files are present.
 - Production uploads will fail with a clear error until `BLOB_READ_WRITE_TOKEN` is set.
 

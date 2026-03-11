@@ -30,10 +30,6 @@ const documentCategories = [
   { value: DocumentCategory.OTHER, label: "Other" }
 ] as const;
 
-function isOpenableStoragePath(storagePath: string) {
-  return storagePath.startsWith("/") || storagePath.startsWith("http://") || storagePath.startsWith("https://");
-}
-
 export function TaskDocumentManager({
   taskId,
   isArchived,
@@ -120,17 +116,21 @@ export function TaskDocumentManager({
                     {attachment.document.notes ? (
                       <p className="text-sm text-muted-foreground">{attachment.document.notes}</p>
                     ) : null}
-                    {isOpenableStoragePath(attachment.document.storagePath) ? (
+                    <div className="flex flex-wrap items-center gap-3">
                       <Link
                         className="text-sm text-primary hover:underline"
-                        href={attachment.document.storagePath}
+                        href={`/api/documents/${attachment.document.id}`}
                         target="_blank"
                       >
                         Open {attachment.document.originalName}
                       </Link>
-                    ) : (
-                      <p className="text-xs text-muted-foreground">{attachment.document.originalName}</p>
-                    )}
+                      <Link
+                        className="text-sm text-primary hover:underline"
+                        href={`/api/documents/${attachment.document.id}?download=1`}
+                      >
+                        Download
+                      </Link>
+                    </div>
                   </div>
                   {canManageDocuments && !isArchived ? (
                     <form action={unlinkTaskDocumentAction}>
