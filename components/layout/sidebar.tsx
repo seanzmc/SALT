@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Building2 } from "lucide-react";
+import { Leaf } from "lucide-react";
 
 import { appNavigation } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
@@ -14,7 +14,7 @@ export function Sidebar() {
     <aside className="hidden w-72 shrink-0 border-r border-border bg-white/80 px-5 py-6 backdrop-blur xl:block">
       <div className="mb-8 flex items-center gap-3">
         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-          <Building2 className="h-5 w-5" />
+          <Leaf className="h-5 w-5" />
         </div>
         <div>
           <p className="text-sm font-medium text-muted-foreground">Skin And Laser Treatment</p>
