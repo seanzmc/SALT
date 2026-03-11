@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { AttentionCard } from "@/components/dashboard/attention-card";
 import { SectionProgress } from "@/components/dashboard/section-progress";
 import { SummaryCard } from "@/components/dashboard/summary-card";
 import { PageHeader } from "@/components/layout/page-header";
@@ -7,6 +8,14 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getDashboardData } from "@/server/dashboard";
 import { formatCurrency, formatDate, formatPercent } from "@/lib/utils";
+
+function checklistHref(params: Record<string, string>) {
+  return `/checklists?${new URLSearchParams({
+    view: "list",
+    archived: "active",
+    ...params
+  }).toString()}`;
+}
 
 export default async function DashboardPage() {
   const data = await getDashboardData();
@@ -18,7 +27,7 @@ export default async function DashboardPage() {
         description="Track SALT progress, budget health, upcoming deadlines, document activity, and launch readiness from one protected workspace."
       />
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         <SummaryCard
           title="Overall completion"
           value={formatPercent(data.overallCompletion)}
@@ -28,6 +37,11 @@ export default async function DashboardPage() {
           title="Overdue tasks"
           value={String(data.overdueTasks.length)}
           detail={`${data.blockedTasks.length} blocked items need attention`}
+        />
+        <SummaryCard
+          title="Unassigned tasks"
+          value={String(data.unassignedTasks.length)}
+          detail={`${data.staleTasks.length} tasks have not been updated in 7+ days`}
         />
         <SummaryCard
           title="Estimated budget"
@@ -74,12 +88,87 @@ export default async function DashboardPage() {
       </section>
 
       <section className="grid gap-6 xl:grid-cols-3">
+        <AttentionCard
+          title="Overdue Tasks"
+          count={data.overdueTasks.length}
+          detail="Past-due active work that should be triaged first."
+          href={checklistHref({ queue: "overdue" })}
+          linkLabel="Open overdue queue"
+          items={data.overdueTasks.slice(0, 4).map((task) => ({
+            id: task.id,
+            title: task.title,
+            href: `/checklists/${task.id}`,
+            meta: `Due ${formatDate(task.dueDate)} • ${task.assignedTo?.name ?? "Unassigned"}`
+          }))}
+          breakdown={data.overdueByAssignee}
+        />
+
+        <AttentionCard
+          title="Blocked Tasks"
+          count={data.blockedTasks.length}
+          detail="Tasks marked blocked and needing owner attention."
+          href={checklistHref({ queue: "blocked" })}
+          linkLabel="Open blocked queue"
+          items={data.blockedTasks.slice(0, 4).map((task) => ({
+            id: task.id,
+            title: task.title,
+            href: `/checklists/${task.id}`,
+            meta: `${task.section.title} • ${task.blockedReason || "Blocked"}`
+          }))}
+        />
+
+        <AttentionCard
+          title="Unassigned Tasks"
+          count={data.unassignedTasks.length}
+          detail="Open tasks with no owner currently assigned."
+          href={checklistHref({ queue: "unassigned" })}
+          linkLabel="Open unassigned queue"
+          items={data.unassignedTasks.slice(0, 4).map((task) => ({
+            id: task.id,
+            title: task.title,
+            href: `/checklists/${task.id}`,
+            meta: `${task.section.title} • Due ${formatDate(task.dueDate)}`
+          }))}
+        />
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-2">
+        <AttentionCard
+          title="Due This Week"
+          count={data.upcomingTasks.length}
+          detail="Active tasks due in the next 7 days."
+          href={checklistHref({ queue: "upcoming" })}
+          linkLabel="Open upcoming queue"
+          items={data.upcomingTasks.slice(0, 4).map((task) => ({
+            id: task.id,
+            title: task.title,
+            href: `/checklists/${task.id}`,
+            meta: `Due ${formatDate(task.dueDate)} • ${task.assignedTo?.name ?? "Unassigned"}`
+          }))}
+        />
+
+        <AttentionCard
+          title="Needs Update"
+          count={data.staleTasks.length}
+          detail="Approximation based on task `updatedAt` older than 7 days for incomplete active tasks."
+          href={checklistHref({ queue: "stale" })}
+          linkLabel="Open stale queue"
+          items={data.staleTasks.slice(0, 4).map((task) => ({
+            id: task.id,
+            title: task.title,
+            href: `/checklists/${task.id}`,
+            meta: `Last changed ${formatDate(task.updatedAt)} • ${task.assignedTo?.name ?? "Unassigned"}`
+          }))}
+        />
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-3">
         <Card>
           <CardHeader>
             <CardTitle>Upcoming Tasks</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {data.upcomingTasks.map((task) => (
+            {data.upcomingTasks.slice(0, 5).map((task) => (
               <Link key={task.id} href={`/checklists/${task.id}`} className="block rounded-lg border border-border p-3 hover:bg-muted/60">
                 <div className="flex items-center justify-between gap-3">
                   <p className="font-medium">{task.title}</p>
@@ -139,7 +228,7 @@ export default async function DashboardPage() {
             {data.overdueTasks.length === 0 ? (
               <p className="text-sm text-muted-foreground">No overdue tasks.</p>
             ) : (
-              data.overdueTasks.map((task) => (
+              data.overdueTasks.slice(0, 5).map((task) => (
                 <div key={task.id} className="rounded-lg border border-danger/20 bg-danger/5 p-3">
                   <p className="font-medium">{task.title}</p>
                   <p className="text-xs text-muted-foreground">Due {formatDate(task.dueDate)}</p>
@@ -154,7 +243,7 @@ export default async function DashboardPage() {
             <CardTitle>Blocked</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {data.blockedTasks.map((task) => (
+            {data.blockedTasks.slice(0, 5).map((task) => (
               <div key={task.id} className="rounded-lg border border-warning/30 bg-warning/10 p-3">
                 <p className="font-medium">{task.title}</p>
                 <p className="text-xs text-muted-foreground">{task.blockedReason || "Blocked"}</p>

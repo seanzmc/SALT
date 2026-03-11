@@ -8,7 +8,7 @@ export type TaskFilters = {
   section?: string;
   priority?: string;
   assignee?: string;
-  queue?: "all" | "my-work" | "overdue" | "upcoming" | "blocked" | "unassigned";
+  queue?: "all" | "my-work" | "overdue" | "upcoming" | "blocked" | "unassigned" | "stale";
   archived?: "active" | "archived" | "all";
   currentUserId?: string;
   sort?: "dueDate" | "priority" | "title" | "status";
@@ -18,6 +18,8 @@ export async function getTaskList(filters: TaskFilters = {}) {
   const now = new Date();
   const upcomingLimit = new Date(now);
   upcomingLimit.setDate(upcomingLimit.getDate() + 7);
+  const staleLimit = new Date(now);
+  staleLimit.setDate(staleLimit.getDate() - 7);
 
   const where: Prisma.TaskWhereInput = {
     AND: [
@@ -64,6 +66,11 @@ export async function getTaskList(filters: TaskFilters = {}) {
               ? { status: TaskStatus.BLOCKED }
               : filters.queue === "unassigned"
                 ? { assignedToId: null }
+                : filters.queue === "stale"
+                  ? {
+                      updatedAt: { lt: staleLimit },
+                      status: { not: TaskStatus.COMPLETE }
+                    }
                 : {}
     ]
   };
@@ -110,6 +117,13 @@ export async function getTaskList(filters: TaskFilters = {}) {
       where: {
         archivedAt: null,
         assignedToId: null,
+        status: { not: TaskStatus.COMPLETE }
+      }
+    }),
+    prisma.task.count({
+      where: {
+        archivedAt: null,
+        updatedAt: { lt: staleLimit },
         status: { not: TaskStatus.COMPLETE }
       }
     })
@@ -168,7 +182,8 @@ export async function getTaskList(filters: TaskFilters = {}) {
       overdue: queueCounts[2],
       upcoming: queueCounts[3],
       blocked: queueCounts[4],
-      unassigned: queueCounts[5]
+      unassigned: queueCounts[5],
+      stale: queueCounts[6]
     }
   };
 }

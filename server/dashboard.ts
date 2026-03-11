@@ -4,6 +4,10 @@ import { prisma } from "@/lib/prisma";
 
 export async function getDashboardData() {
   const now = new Date();
+  const upcomingLimit = new Date(now);
+  upcomingLimit.setDate(upcomingLimit.getDate() + 7);
+  const staleLimit = new Date(now);
+  staleLimit.setDate(staleLimit.getDate() - 7);
 
   const [
     tasks,
@@ -73,12 +77,24 @@ export async function getDashboardData() {
     (task) =>
       task.dueDate &&
       task.dueDate >= now &&
+      task.dueDate <= upcomingLimit &&
       task.status !== TaskStatus.COMPLETE
-  ).slice(0, 8);
+  );
   const blockedTasks = tasks.filter((task) => task.status === TaskStatus.BLOCKED);
+  const unassignedTasks = tasks.filter(
+    (task) => task.assignedToId === null && task.status !== TaskStatus.COMPLETE
+  );
+  const staleTasks = tasks.filter(
+    (task) => task.updatedAt < staleLimit && task.status !== TaskStatus.COMPLETE
+  );
   const recentlyCompletedTasks = tasks
     .filter((task) => task.status === TaskStatus.COMPLETE)
     .slice(0, 6);
+  const overdueByAssignee = overdueTasks.reduce<Record<string, number>>((acc, task) => {
+    const key = task.assignedTo?.name ?? "Unassigned";
+    acc[key] = (acc[key] ?? 0) + 1;
+    return acc;
+  }, {});
 
   const estimatedTotal = budgetItems.reduce((sum, item) => sum + Number(item.estimate), 0);
   const actualTotal = budgetItems.reduce((sum, item) => sum + Number(item.actual), 0);
@@ -108,12 +124,18 @@ export async function getDashboardData() {
     overdueTasks,
     upcomingTasks,
     blockedTasks,
+    unassignedTasks,
+    staleTasks,
     recentlyCompletedTasks,
     recentDocuments,
     recentMessages,
     phases,
     activities,
     sectionProgress,
+    overdueByAssignee: Object.entries(overdueByAssignee)
+      .map(([label, value]) => ({ label, value }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 5),
     budgetSummary: {
       estimatedTotal,
       actualTotal,

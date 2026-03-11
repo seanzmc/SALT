@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-type QueueKey = "all" | "my-work" | "overdue" | "upcoming" | "blocked" | "unassigned";
+type QueueKey = "all" | "my-work" | "overdue" | "upcoming" | "blocked" | "unassigned" | "stale";
 
 const queueConfig: Array<{
   key: QueueKey;
@@ -16,7 +16,8 @@ const queueConfig: Array<{
   { key: "overdue", label: "Overdue", countKey: "overdue" },
   { key: "upcoming", label: "Upcoming", countKey: "upcoming" },
   { key: "blocked", label: "Blocked", countKey: "blocked" },
-  { key: "unassigned", label: "Unassigned", countKey: "unassigned" }
+  { key: "unassigned", label: "Unassigned", countKey: "unassigned" },
+  { key: "stale", label: "Needs Update", countKey: "stale" }
 ];
 
 export type TaskQueueCounts = {
@@ -26,6 +27,7 @@ export type TaskQueueCounts = {
   upcoming: number;
   blocked: number;
   unassigned: number;
+  stale: number;
 };
 
 export function TaskQueueShortcuts({
