@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { TaskStatus } from "@prisma/client";
 
 import { AdminSetupPanel } from "@/components/settings/admin-setup-panel";
 import { PageHeader } from "@/components/layout/page-header";
@@ -10,8 +11,31 @@ import { requireOwner } from "@/server/authz";
 export default async function AdminSetupPage() {
   const session = await requireOwner();
 
-  const [users, tasks, subtasks] = await Promise.all([
+  const [users, activeAssignmentUsers, tasks, subtasks] = await Promise.all([
     prisma.user.findMany({
+      orderBy: [{ role: "asc" }, { name: "asc" }],
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        isActive: true,
+        assignedTasks: {
+          where: {
+            status: { not: TaskStatus.COMPLETE }
+          },
+          select: { id: true }
+        },
+        assignedSubtasks: {
+          where: {
+            isComplete: false
+          },
+          select: { id: true }
+        }
+      }
+    }),
+    prisma.user.findMany({
+      where: { isActive: true },
       orderBy: [{ role: "asc" }, { name: "asc" }],
       select: {
         id: true,
@@ -76,10 +100,19 @@ export default async function AdminSetupPage() {
         }
       />
       <AdminSetupPanel
+        activeAssignmentUsers={activeAssignmentUsers}
         currentUserId={session.user.id}
         subtasks={subtasks}
         tasks={tasks}
-        users={users}
+        users={users.map((user) => ({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          isActive: user.isActive,
+          openTaskCount: user.assignedTasks.length,
+          openSubtaskCount: user.assignedSubtasks.length
+        }))}
       />
     </div>
   );

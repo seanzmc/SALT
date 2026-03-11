@@ -31,6 +31,10 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
+        if (!user.isActive) {
+          return null;
+        }
+
         const passwordMatches = await compare(credentials.password, user.passwordHash);
 
         if (!passwordMatches) {
@@ -65,6 +69,36 @@ export const authOptions: NextAuthOptions = {
   }
 };
 
-export function getRequiredSession() {
-  return getServerSession(authOptions);
+export async function getRequiredSession() {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.id) {
+    return session;
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      isActive: true
+    }
+  });
+
+  if (!user?.isActive) {
+    return null;
+  }
+
+  return {
+    ...session,
+    user: {
+      ...session.user,
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role
+    }
+  };
 }

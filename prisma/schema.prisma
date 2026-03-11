@@ -94,6 +94,7 @@ model User {
   email            String         @unique
   passwordHash     String
   role             Role
+  isActive         Boolean        @default(true)
   resetTokens      PasswordResetToken[]
   assignedTasks    Task[]         @relation("TaskAssignee")
   assignedSubtasks Subtask[]      @relation("SubtaskAssignee")

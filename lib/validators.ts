@@ -225,6 +225,34 @@ export const adminUpdateUserSchema = z.object({
   role: z.nativeEnum(Role)
 });
 
+export const adminDeactivateUserSchema = z
+  .object({
+    userId: z.string().cuid(),
+    replacementUserId: z.string().cuid().optional().or(z.literal("")),
+    transferTasks: z.enum(["true", "false"]).default("false"),
+    transferSubtasks: z.enum(["true", "false"]).default("false")
+  })
+  .superRefine((data, ctx) => {
+    const wantsTransfer =
+      data.transferTasks === "true" || data.transferSubtasks === "true";
+
+    if (wantsTransfer && !data.replacementUserId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["replacementUserId"],
+        message: "Choose a replacement owner when transferring work."
+      });
+    }
+
+    if (data.replacementUserId && data.replacementUserId === data.userId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["replacementUserId"],
+        message: "Replacement owner must be a different active user."
+      });
+    }
+  });
+
 export const budgetUpdateSchema = z.object({
   itemId: z.string().cuid(),
   actual: z.coerce.number().min(0),

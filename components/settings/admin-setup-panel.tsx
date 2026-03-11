@@ -5,6 +5,7 @@ import { Role } from "@prisma/client";
 
 import {
   createAdminUserAction,
+  deactivateAdminUserAction,
   resetSetupStatusesAction,
   updateAdminUserAction,
   updateSubtaskSetupAction,
@@ -148,6 +149,9 @@ function UserRowForm({
     name: string;
     email: string;
     role: Role;
+    isActive: boolean;
+    openTaskCount: number;
+    openSubtaskCount: number;
   };
   isCurrentOwner: boolean;
 }) {
@@ -204,8 +208,84 @@ function UserRowForm({
             <SubmitButton idleLabel="Save" pendingLabel="Saving..." variant="outline" />
             {isCurrentOwner ? (
               <span className="text-xs text-muted-foreground">Signed-in owner</span>
+            ) : !user.isActive ? (
+              <span className="text-xs text-muted-foreground">Inactive user</span>
             ) : null}
+            <span className="text-xs text-muted-foreground">
+              {user.openTaskCount} open tasks • {user.openSubtaskCount} open checklist items
+            </span>
           </div>
+          <FormMessage state={state} />
+        </div>
+      </div>
+    </form>
+  );
+}
+
+function DeactivateUserForm({
+  user,
+  replacementUsers,
+  isCurrentOwner
+}: {
+  user: {
+    id: string;
+    name: string;
+    role: Role;
+    isActive: boolean;
+    openTaskCount: number;
+    openSubtaskCount: number;
+  };
+  replacementUsers: Array<{ id: string; name: string; role: Role }>;
+  isCurrentOwner: boolean;
+}) {
+  const [state, action] = useFormState(deactivateAdminUserAction, initialState);
+
+  if (!user.isActive || isCurrentOwner) {
+    return null;
+  }
+
+  return (
+    <form action={action} className="rounded-xl border border-border p-4">
+      <input type="hidden" name="userId" value={user.id} />
+      <div className="grid gap-4 lg:grid-cols-[1.2fr_1.1fr_auto_auto_auto]">
+        <div className="space-y-2">
+          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Deactivate user</p>
+          <div className="font-medium">{user.name}</div>
+          <p className="text-xs text-muted-foreground">
+            {user.role === Role.OWNER_ADMIN ? "Owner Admin" : "Collaborator"} • {user.openTaskCount} open tasks • {user.openSubtaskCount} open checklist items
+          </p>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor={`replacement-${user.id}`}>Replacement owner</Label>
+          <Select defaultValue="" id={`replacement-${user.id}`} name="replacementUserId">
+            <option value="">Keep current assignees</option>
+            {replacementUsers
+              .filter((replacementUser) => replacementUser.id !== user.id)
+              .map((replacementUser) => (
+                <option key={replacementUser.id} value={replacementUser.id}>
+                  {replacementUser.name} ({replacementUser.role === Role.OWNER_ADMIN ? "Owner" : "Collaborator"})
+                </option>
+              ))}
+          </Select>
+          <FieldError errors={state.fieldErrors?.replacementUserId} />
+        </div>
+        <div className="space-y-2">
+          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Open tasks</p>
+          <label className="flex items-center gap-2 text-sm">
+            <input defaultChecked={user.openTaskCount > 0} name="transferTasks" type="checkbox" value="true" />
+            Transfer open tasks
+          </label>
+        </div>
+        <div className="space-y-2">
+          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Checklist items</p>
+          <label className="flex items-center gap-2 text-sm">
+            <input defaultChecked={user.openSubtaskCount > 0} name="transferSubtasks" type="checkbox" value="true" />
+            Transfer open items
+          </label>
+        </div>
+        <div className="space-y-2">
+          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Action</p>
+          <SubmitButton idleLabel="Deactivate" pendingLabel="Deactivating..." variant="danger" />
           <FormMessage state={state} />
         </div>
       </div>
@@ -336,13 +416,23 @@ function SubtaskSetupRow({
 }
 
 export function AdminSetupPanel({
+  activeAssignmentUsers,
   currentUserId,
   users,
   tasks,
   subtasks
 }: {
+  activeAssignmentUsers: Array<{ id: string; name: string; email: string; role: Role }>;
   currentUserId: string;
-  users: Array<{ id: string; name: string; email: string; role: Role }>;
+  users: Array<{
+    id: string;
+    name: string;
+    email: string;
+    role: Role;
+    isActive: boolean;
+    openTaskCount: number;
+    openSubtaskCount: number;
+  }>;
   tasks: Array<{
     id: string;
     title: string;
@@ -413,6 +503,31 @@ export function AdminSetupPanel({
 
       <Card>
         <CardHeader>
+          <CardTitle>User lifecycle</CardTitle>
+          <CardDescription>
+            Deactivate users without deleting them. Historical assignments remain visible, and inactive users are removed from normal assignee pickers.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {users.some((user) => user.isActive && user.id !== currentUserId) ? (
+              users.map((user) => (
+                <DeactivateUserForm
+                  key={user.id}
+                  isCurrentOwner={user.id === currentUserId}
+                  replacementUsers={activeAssignmentUsers}
+                  user={user}
+                />
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground">No additional active users are available for deactivation.</p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>Task setup</CardTitle>
           <CardDescription>
             Assign task owners and due dates in one place. Full task editing stays in the checklist detail pages.
@@ -421,7 +536,7 @@ export function AdminSetupPanel({
         <CardContent>
           <div className="space-y-4">
             {tasks.map((task) => (
-              <TaskSetupRow key={task.id} task={task} users={users} />
+              <TaskSetupRow key={task.id} task={task} users={activeAssignmentUsers} />
             ))}
           </div>
         </CardContent>
@@ -437,7 +552,7 @@ export function AdminSetupPanel({
         <CardContent>
           <div className="space-y-4">
             {subtasks.map((subtask) => (
-              <SubtaskSetupRow key={subtask.id} subtask={subtask} users={users} />
+              <SubtaskSetupRow key={subtask.id} subtask={subtask} users={activeAssignmentUsers} />
             ))}
           </div>
         </CardContent>

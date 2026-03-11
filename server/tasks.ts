@@ -136,6 +136,7 @@ export async function getTaskList(filters: TaskFilters = {}) {
       orderBy: { sortOrder: "asc" }
     }),
     prisma.user.findMany({
+      where: { isActive: true },
       orderBy: { name: "asc" },
       select: { id: true, name: true, role: true }
     }),

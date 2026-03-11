@@ -15,6 +15,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import {
   adminCreateUserSchema,
+  adminDeactivateUserSchema,
   adminResetStatusesSchema,
   adminSubtaskSetupSchema,
   adminTaskSetupSchema,
@@ -918,6 +919,154 @@ export async function updateAdminUserAction(
     revalidatePath("/settings/account");
 
     return successState("User account updated.");
+  } catch (error) {
+    return validationErrorState(error);
+  }
+}
+
+export async function deactivateAdminUserAction(
+  _previousState: AccountActionState,
+  formData: FormData
+): Promise<AccountActionState> {
+  const session = await requireOwner();
+
+  try {
+    const parsed = adminDeactivateUserSchema.parse(Object.fromEntries(formData));
+
+    if (parsed.userId === session.user.id) {
+      return {
+        status: "error",
+        message: "You cannot deactivate the currently signed-in owner.",
+        fieldErrors: {
+          userId: ["You cannot deactivate the currently signed-in owner."]
+        }
+      };
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: parsed.userId },
+      select: {
+        id: true,
+        name: true,
+        role: true,
+        isActive: true
+      }
+    });
+
+    if (!user) {
+      return {
+        status: "error",
+        message: "User account not found."
+      };
+    }
+
+    if (!user.isActive) {
+      return {
+        status: "success",
+        message: "That user is already inactive."
+      };
+    }
+
+    if (user.role === Role.OWNER_ADMIN) {
+      const activeOwnerCount = await prisma.user.count({
+        where: {
+          role: Role.OWNER_ADMIN,
+          isActive: true
+        }
+      });
+
+      if (activeOwnerCount <= 1) {
+        return {
+          status: "error",
+          message: "At least one active owner admin must remain."
+        };
+      }
+    }
+
+    const replacementUserId = parsed.replacementUserId || null;
+
+    if (replacementUserId) {
+      const replacementUser = await prisma.user.findUnique({
+        where: { id: replacementUserId },
+        select: { id: true, isActive: true }
+      });
+
+      if (!replacementUser?.isActive) {
+        return {
+          status: "error",
+          message: "Replacement owner must be an active user.",
+          fieldErrors: {
+            replacementUserId: ["Replacement owner must be an active user."]
+          }
+        };
+      }
+    }
+
+    const transferTasks = parsed.transferTasks === "true";
+    const transferSubtasks = parsed.transferSubtasks === "true";
+
+    const [openTaskCount, openSubtaskCount] = await Promise.all([
+      prisma.task.count({
+        where: {
+          assignedToId: parsed.userId,
+          status: { not: TaskStatus.COMPLETE }
+        }
+      }),
+      prisma.subtask.count({
+        where: {
+          assignedToId: parsed.userId,
+          isComplete: false
+        }
+      })
+    ]);
+
+    await prisma.$transaction(async (tx) => {
+      if (transferTasks) {
+        await tx.task.updateMany({
+          where: {
+            assignedToId: parsed.userId,
+            status: { not: TaskStatus.COMPLETE }
+          },
+          data: {
+            assignedToId: replacementUserId
+          }
+        });
+      }
+
+      if (transferSubtasks) {
+        await tx.subtask.updateMany({
+          where: {
+            assignedToId: parsed.userId,
+            isComplete: false
+          },
+          data: {
+            assignedToId: replacementUserId
+          }
+        });
+      }
+
+      await tx.user.update({
+        where: { id: parsed.userId },
+        data: { isActive: false }
+      });
+    });
+
+    await logActivity({
+      actorId: session.user.id,
+      type: ActivityType.TASK_UPDATED,
+      entityType: "User",
+      entityId: parsed.userId,
+      description: `Deactivated user "${user.name}".`
+    });
+
+    revalidatePath("/checklists");
+    revalidatePath("/dashboard");
+    revalidatePath("/settings/setup");
+    revalidatePath("/settings/account");
+
+    return successState(
+      `Deactivated ${user.name}.${transferTasks ? ` Reassigned ${openTaskCount} open task${openTaskCount === 1 ? "" : "s"}.` : ""}${transferSubtasks ? ` Reassigned ${openSubtaskCount} open checklist item${openSubtaskCount === 1 ? "" : "s"}.` : ""}`
+    );
   } catch (error) {
     return validationErrorState(error);
   }

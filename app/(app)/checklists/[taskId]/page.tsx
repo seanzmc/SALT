@@ -18,6 +18,7 @@ export default async function TaskDetailPage({
   const [task, users, sections, phases, dependencyCandidates] = await Promise.all([
     getTaskDetail(params.taskId),
     prisma.user.findMany({
+      where: { isActive: true },
       select: { id: true, name: true, role: true },
       orderBy: { name: "asc" }
     }),
