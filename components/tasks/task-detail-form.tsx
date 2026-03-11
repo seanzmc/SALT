@@ -2,7 +2,9 @@ import { OpeningPriority, Priority, Role, TaskStatus } from "@prisma/client";
 
 import {
   createSubtaskAction,
+  createTaskDependencyAction,
   deleteSubtaskAction,
+  deleteTaskDependencyAction,
   deleteTaskAction,
   updateSubtaskAction,
   updateTaskAction
@@ -25,7 +27,8 @@ export function TaskDetailForm({
   users,
   currentRole,
   sections,
-  phases
+  phases,
+  dependencyCandidates
 }: {
   task: {
     id: string;
@@ -54,13 +57,44 @@ export function TaskDetailForm({
       sortOrder: number;
     }>;
     taskTags: Array<{ tag: { name: string } }>;
-    dependsOn: Array<{ dependsOnTask: { id: string; title: string; status: TaskStatus } }>;
+    taskDependencies: Array<{
+      dependsOnTask: {
+        id: string;
+        title: string;
+        status: TaskStatus;
+        dueDate?: Date | null;
+        assignedTo?: { name: string } | null;
+      };
+    }>;
+    dependsOn: Array<{
+      task: {
+        id: string;
+        title: string;
+        status: TaskStatus;
+        dueDate?: Date | null;
+        assignedTo?: { name: string } | null;
+      };
+    }>;
   };
   users: Array<{ id: string; name: string; role: Role }>;
   currentRole: Role;
   sections: Array<{ id: string; title: string }>;
   phases: Array<{ id: string; title: string }>;
+  dependencyCandidates: Array<{
+    id: string;
+    title: string;
+    status: TaskStatus;
+    dueDate: Date | null;
+    assignedTo: { name: string } | null;
+  }>;
 }) {
+  const currentDependencyIds = new Set(
+    task.taskDependencies.map((dependency) => dependency.dependsOnTask.id)
+  );
+  const availableDependencyCandidates = dependencyCandidates.filter(
+    (candidate) => !currentDependencyIds.has(candidate.id)
+  );
+
   return (
     <Card>
       <CardHeader>
@@ -190,6 +224,9 @@ export function TaskDetailForm({
             <div className="space-y-2">
               <Label htmlFor="blockedReason">Blocked reason</Label>
               <Input id="blockedReason" name="blockedReason" defaultValue={task.blockedReason ?? ""} />
+              <p className="text-xs text-muted-foreground">
+                Required when the task status is set to blocked. It is cleared automatically when the task is no longer blocked.
+              </p>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -214,15 +251,67 @@ export function TaskDetailForm({
         <div className="space-y-4">
           <div>
             <h3 className="font-semibold">Dependencies</h3>
+            <form action={createTaskDependencyAction} className="mt-3 grid gap-3 rounded-xl border border-border bg-secondary/20 p-4">
+              <input type="hidden" name="taskId" value={task.id} />
+              <div className="space-y-2">
+                <Label htmlFor="dependsOnTaskId">This task depends on</Label>
+                <Select id="dependsOnTaskId" name="dependsOnTaskId">
+                  {availableDependencyCandidates.length === 0 ? (
+                    <option value="">No available tasks</option>
+                  ) : (
+                    availableDependencyCandidates.map((candidate) => (
+                      <option key={candidate.id} value={candidate.id}>
+                        {candidate.title} | {candidate.status.replaceAll("_", " ")} | Due {formatDate(candidate.dueDate)} | {candidate.assignedTo?.name ?? "Unassigned"}
+                      </option>
+                    ))
+                  )}
+                </Select>
+              </div>
+              <div className="flex gap-2">
+                <Button disabled={availableDependencyCandidates.length === 0} type="submit" variant="outline">
+                  Add dependency
+                </Button>
+              </div>
+            </form>
+
+            <div className="mt-3 space-y-2">
+              {task.taskDependencies.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No direct dependencies.</p>
+              ) : (
+                task.taskDependencies.map((dependency) => (
+                  <div key={dependency.dependsOnTask.id} className="rounded-lg border border-border p-3">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className="font-medium">{dependency.dependsOnTask.title}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Status: {dependency.dependsOnTask.status.replaceAll("_", " ")} • Due {formatDate(dependency.dependsOnTask.dueDate ?? null)} • {dependency.dependsOnTask.assignedTo?.name ?? "Unassigned"}
+                        </p>
+                      </div>
+                      <form action={deleteTaskDependencyAction}>
+                        <input type="hidden" name="taskId" value={task.id} />
+                        <input type="hidden" name="dependsOnTaskId" value={dependency.dependsOnTask.id} />
+                        <Button type="submit" variant="danger">
+                          Remove
+                        </Button>
+                      </form>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          <div>
+            <h3 className="font-semibold">This Task Blocks</h3>
             <div className="mt-2 space-y-2">
               {task.dependsOn.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No explicit dependencies.</p>
+                <p className="text-sm text-muted-foreground">No downstream tasks are blocked by this one.</p>
               ) : (
                 task.dependsOn.map((dependency) => (
-                  <div key={dependency.dependsOnTask.id} className="rounded-lg border border-border p-3">
-                    <p className="font-medium">{dependency.dependsOnTask.title}</p>
+                  <div key={dependency.task.id} className="rounded-lg border border-border p-3">
+                    <p className="font-medium">{dependency.task.title}</p>
                     <p className="text-xs text-muted-foreground">
-                      Status: {dependency.dependsOnTask.status.replaceAll("_", " ")}
+                      Status: {dependency.task.status.replaceAll("_", " ")} • Due {formatDate(dependency.task.dueDate ?? null)} • {dependency.task.assignedTo?.name ?? "Unassigned"}
                     </p>
                   </div>
                 ))

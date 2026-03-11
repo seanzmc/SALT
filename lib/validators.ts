@@ -49,6 +49,14 @@ export const taskUpdateSchema = z.object({
   dueDate: z.string().optional().or(z.literal("")),
   assignedToId: z.string().cuid().optional().or(z.literal("")),
   blockedReason: z.string().max(300).optional().or(z.literal(""))
+}).superRefine((data, ctx) => {
+  if (data.status === TaskStatus.BLOCKED && !data.blockedReason?.trim()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["blockedReason"],
+      message: "Blocked reason is required when status is blocked."
+    });
+  }
 });
 
 export const taskCreateSchema = z.object({
@@ -92,6 +100,26 @@ export const subtaskUpdateSchema = z.object({
 
 export const subtaskDeleteSchema = z.object({
   subtaskId: z.string().cuid()
+});
+
+export const taskDependencyCreateSchema = z
+  .object({
+    taskId: z.string().cuid(),
+    dependsOnTaskId: z.string().cuid()
+  })
+  .superRefine((data, ctx) => {
+    if (data.taskId === data.dependsOnTaskId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["dependsOnTaskId"],
+        message: "A task cannot depend on itself."
+      });
+    }
+  });
+
+export const taskDependencyDeleteSchema = z.object({
+  taskId: z.string().cuid(),
+  dependsOnTaskId: z.string().cuid()
 });
 
 export const adminResetStatusesSchema = z.object({

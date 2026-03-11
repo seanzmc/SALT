@@ -15,7 +15,7 @@ export default async function TaskDetailPage({
   params: { taskId: string };
 }) {
   const session = await requireSession();
-  const [task, users, sections, phases] = await Promise.all([
+  const [task, users, sections, phases, dependencyCandidates] = await Promise.all([
     getTaskDetail(params.taskId),
     prisma.user.findMany({
       select: { id: true, name: true, role: true },
@@ -28,6 +28,21 @@ export default async function TaskDetailPage({
     prisma.timelinePhase.findMany({
       select: { id: true, title: true },
       orderBy: { sortOrder: "asc" }
+    }),
+    prisma.task.findMany({
+      where: { id: { not: params.taskId } },
+      select: {
+        id: true,
+        title: true,
+        status: true,
+        dueDate: true,
+        assignedTo: {
+          select: {
+            name: true
+          }
+        }
+      },
+      orderBy: [{ title: "asc" }]
     })
   ]);
 
@@ -47,6 +62,7 @@ export default async function TaskDetailPage({
           currentRole={session.user.role}
           phases={phases}
           sections={sections}
+          dependencyCandidates={dependencyCandidates}
           task={task as never}
           users={users}
         />

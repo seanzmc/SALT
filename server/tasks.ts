@@ -120,11 +120,17 @@ export async function getTaskDetail(taskId: string) {
       },
       dependsOn: {
         include: {
-          dependsOnTask: {
+          task: {
             select: {
               id: true,
               title: true,
-              status: true
+              status: true,
+              dueDate: true,
+              assignedTo: {
+                select: {
+                  name: true
+                }
+              }
             }
           }
         }
@@ -135,7 +141,13 @@ export async function getTaskDetail(taskId: string) {
             select: {
               id: true,
               title: true,
-              status: true
+              status: true,
+              dueDate: true,
+              assignedTo: {
+                select: {
+                  name: true
+                }
+              }
             }
           }
         }

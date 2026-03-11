@@ -28,6 +28,8 @@ import {
   subtaskCreateSchema,
   subtaskDeleteSchema,
   subtaskUpdateSchema,
+  taskDependencyCreateSchema,
+  taskDependencyDeleteSchema,
   taskCommentSchema,
   taskCreateSchema,
   taskDeleteSchema,
@@ -91,6 +93,20 @@ async function getTaskAccessContext(taskId: string) {
   });
 }
 
+async function requireTaskEditPermission(taskId: string, user: { id: string; role: Role }) {
+  const task = await getTaskAccessContext(taskId);
+
+  if (!task) {
+    throw new Error("Task not found.");
+  }
+
+  if (user.role !== Role.OWNER_ADMIN && task.assignedToId !== user.id) {
+    throw new Error("Collaborators can only edit tasks assigned to them.");
+  }
+
+  return task;
+}
+
 async function getSubtaskAccessContext(subtaskId: string) {
   return prisma.subtask.findUnique({
     where: { id: subtaskId },
@@ -112,18 +128,7 @@ export async function updateTaskAction(formData: FormData) {
   const session = await requireSession();
   const parsed = taskUpdateSchema.parse(Object.fromEntries(formData));
 
-  const currentTask = await getTaskAccessContext(parsed.taskId);
-
-  if (!currentTask) {
-    throw new Error("Task not found.");
-  }
-
-  if (
-    session.user.role !== Role.OWNER_ADMIN &&
-    currentTask.assignedToId !== session.user.id
-  ) {
-    throw new Error("Collaborators can only edit tasks assigned to them.");
-  }
+  const currentTask = await requireTaskEditPermission(parsed.taskId, session.user);
 
   if (
     session.user.role !== Role.OWNER_ADMIN &&
@@ -153,7 +158,8 @@ export async function updateTaskAction(formData: FormData) {
       openingPriority: parsed.openingPriority,
       dueDate: parseDate(parsed.dueDate),
       assignedToId: parsed.assignedToId || null,
-      blockedReason: parsed.blockedReason || null,
+      blockedReason:
+        parsed.status === TaskStatus.BLOCKED ? parsed.blockedReason?.trim() || null : null,
       completedAt: parsed.status === TaskStatus.COMPLETE ? new Date() : null
     }
   });
@@ -294,6 +300,92 @@ export async function createTaskCommentAction(formData: FormData) {
   });
 
   revalidatePath(`/checklists/${parsed.taskId}`);
+  revalidatePath("/dashboard");
+}
+
+export async function createTaskDependencyAction(formData: FormData) {
+  const session = await requireSession();
+  const parsed = taskDependencyCreateSchema.parse(Object.fromEntries(formData));
+  const task = await requireTaskEditPermission(parsed.taskId, session.user);
+
+  const dependencyTask = await prisma.task.findUnique({
+    where: { id: parsed.dependsOnTaskId },
+    select: { id: true, title: true, status: true }
+  });
+
+  if (!dependencyTask) {
+    throw new Error("Dependency task not found.");
+  }
+
+  const existingDependency = await prisma.taskDependency.findUnique({
+    where: {
+      taskId_dependsOnTaskId: {
+        taskId: parsed.taskId,
+        dependsOnTaskId: parsed.dependsOnTaskId
+      }
+    },
+    select: { taskId: true }
+  });
+
+  if (existingDependency) {
+    throw new Error("That dependency already exists.");
+  }
+
+  await prisma.taskDependency.create({
+    data: {
+      taskId: parsed.taskId,
+      dependsOnTaskId: parsed.dependsOnTaskId
+    }
+  });
+
+  await logActivity({
+    actorId: session.user.id,
+    taskId: parsed.taskId,
+    type: ActivityType.TASK_UPDATED,
+    entityType: "TaskDependency",
+    entityId: `${parsed.taskId}:${parsed.dependsOnTaskId}`,
+    description: `Added dependency on "${dependencyTask.title}".`
+  });
+
+  revalidatePath("/checklists");
+  revalidatePath(`/checklists/${parsed.taskId}`);
+  revalidatePath(`/checklists/${parsed.dependsOnTaskId}`);
+  revalidatePath("/dashboard");
+}
+
+export async function deleteTaskDependencyAction(formData: FormData) {
+  const session = await requireSession();
+  const parsed = taskDependencyDeleteSchema.parse(Object.fromEntries(formData));
+  await requireTaskEditPermission(parsed.taskId, session.user);
+
+  const dependencyTask = await prisma.task.findUnique({
+    where: { id: parsed.dependsOnTaskId },
+    select: { title: true }
+  });
+
+  await prisma.taskDependency.delete({
+    where: {
+      taskId_dependsOnTaskId: {
+        taskId: parsed.taskId,
+        dependsOnTaskId: parsed.dependsOnTaskId
+      }
+    }
+  });
+
+  await logActivity({
+    actorId: session.user.id,
+    taskId: parsed.taskId,
+    type: ActivityType.TASK_UPDATED,
+    entityType: "TaskDependency",
+    entityId: `${parsed.taskId}:${parsed.dependsOnTaskId}`,
+    description: dependencyTask
+      ? `Removed dependency on "${dependencyTask.title}".`
+      : "Removed a task dependency."
+  });
+
+  revalidatePath("/checklists");
+  revalidatePath(`/checklists/${parsed.taskId}`);
+  revalidatePath(`/checklists/${parsed.dependsOnTaskId}`);
   revalidatePath("/dashboard");
 }
 
