@@ -20,6 +20,10 @@ export function DocumentTable({
     createdAt: Date;
   }>;
 }) {
+  function isOpenableStoragePath(storagePath: string) {
+    return storagePath.startsWith("/") || storagePath.startsWith("http://") || storagePath.startsWith("https://");
+  }
+
   return (
     <Table>
       <TableHeader>
@@ -36,7 +40,7 @@ export function DocumentTable({
           <TableRow key={document.id}>
             <TableCell>
               <p className="font-medium">{document.title}</p>
-              {document.storagePath.startsWith("/") ? (
+              {isOpenableStoragePath(document.storagePath) ? (
                 <Link className="text-xs text-primary hover:underline" href={document.storagePath} target="_blank">
                   {document.originalName}
                 </Link>

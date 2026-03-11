@@ -9,6 +9,7 @@ Set these in Vercel for the `Production` environment:
 - `DATABASE_URL`
 - `NEXTAUTH_URL`
 - `NEXTAUTH_SECRET`
+- `BLOB_READ_WRITE_TOKEN`
 
 Set these only if you plan to run the seed script against a fresh production database:
 
@@ -22,6 +23,7 @@ Notes:
 - `DATABASE_URL` is the Neon Postgres connection string already used locally.
 - `NEXTAUTH_URL` must be the final production URL for this app, such as `https://<your-project>.vercel.app` or your custom domain.
 - `NEXTAUTH_SECRET` is the secret used by NextAuth and middleware JWT verification. Generate a long random value, for example with `openssl rand -base64 32`.
+- `BLOB_READ_WRITE_TOKEN` comes from Vercel Blob and is required for production-safe document uploads. Add Blob storage to the project in Vercel, then copy the read/write token into the project environment variables.
 
 ## 2. Create or link the Vercel project
 
@@ -98,14 +100,19 @@ After the first successful deploy:
 
 If you used the seed script on a fresh database, log in with the `SEED_OWNER_EMAIL` and `SEED_OWNER_PASSWORD` values you supplied for that seed run.
 
-## 7. Important limitation
+## 7. Document uploads
 
-Document uploads still use local disk storage under `public/uploads`.
+Document uploads now use Vercel Blob instead of local disk storage.
 
-That works locally, but Vercel deployments run on a read-only filesystem for this path. The app now fails those uploads with a clear error instead of a low-level filesystem failure.
+Operational notes:
 
-For production on Vercel:
+- `app/api/upload/route.ts` still runs in the Node runtime, which is correct.
+- The app stores the public Blob URL in `Document.storagePath`, so existing document screens and task-linked attachments continue to work without schema changes.
+- Existing older local paths like `/uploads/...` still remain valid locally if those files are present.
+- Production uploads will fail with a clear error until `BLOB_READ_WRITE_TOKEN` is set.
 
-- Do not rely on document uploads yet.
-- Existing database records that only reference metadata remain fine.
-- Add external object storage later if uploads need to work in production.
+Recommended setup in Vercel:
+
+1. Add a Blob store to the project.
+2. Copy its read/write token into the `BLOB_READ_WRITE_TOKEN` environment variable for Production and Preview as needed.
+3. Redeploy after adding the variable.

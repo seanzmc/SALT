@@ -1,7 +1,6 @@
-import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { put } from "@vercel/blob";
 
-const uploadRoot = path.join(process.cwd(), "public", "uploads");
 const maxFileSizeBytes = 10 * 1024 * 1024;
 const allowedMimeTypes = new Set([
   "application/pdf",
@@ -21,32 +20,28 @@ export async function saveUploadedFile(file: File) {
     throw new Error("File exceeds 10MB size limit.");
   }
 
-  const extension = path.extname(file.name) || "";
-  const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}${extension}`;
-  const absolutePath = path.join(uploadRoot, fileName);
-  const arrayBuffer = await file.arrayBuffer();
-  const fileBuffer = Buffer.from(arrayBuffer);
-
-  try {
-    await mkdir(uploadRoot, { recursive: true });
-    await writeFile(absolutePath, fileBuffer);
-  } catch (error) {
-    const code =
-      typeof error === "object" && error !== null && "code" in error
-        ? (error as { code?: string }).code
-        : undefined;
-
-    if (code === "EROFS" || code === "EPERM") {
-      throw new Error(
-        "Document uploads require writable local disk storage. This deployment is read-only, so uploads must stay disabled until external object storage is added."
-      );
-    }
-
-    throw error;
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    throw new Error(
+      "Document uploads require Vercel Blob. Set BLOB_READ_WRITE_TOKEN before uploading files."
+    );
   }
 
+  const extension = path.extname(file.name) || "";
+  const safeBaseName = path
+    .basename(file.name, extension)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60) || "document";
+  const fileName = `documents/${Date.now()}-${Math.random().toString(36).slice(2, 10)}-${safeBaseName}${extension.toLowerCase()}`;
+  const blob = await put(fileName, file, {
+    access: "public",
+    addRandomSuffix: false,
+    contentType: file.type || "application/octet-stream"
+  });
+
   return {
-    storagePath: `/uploads/${fileName}`,
+    storagePath: blob.url,
     size: file.size,
     mimeType: file.type || "application/octet-stream",
     originalName: file.name
@@ -54,5 +49,5 @@ export async function saveUploadedFile(file: File) {
 }
 
 export function getStoragePolicySummary() {
-  return "Files are stored locally under public/uploads with DB metadata isolated for later S3 replacement.";
+  return "Files are stored in Vercel Blob with the public object URL saved in document metadata for direct access.";
 }

@@ -30,6 +30,10 @@ const documentCategories = [
   { value: DocumentCategory.OTHER, label: "Other" }
 ] as const;
 
+function isOpenableStoragePath(storagePath: string) {
+  return storagePath.startsWith("/") || storagePath.startsWith("http://") || storagePath.startsWith("https://");
+}
+
 export function TaskDocumentManager({
   taskId,
   isArchived,
@@ -116,7 +120,7 @@ export function TaskDocumentManager({
                     {attachment.document.notes ? (
                       <p className="text-sm text-muted-foreground">{attachment.document.notes}</p>
                     ) : null}
-                    {attachment.document.storagePath.startsWith("/") ? (
+                    {isOpenableStoragePath(attachment.document.storagePath) ? (
                       <Link
                         className="text-sm text-primary hover:underline"
                         href={attachment.document.storagePath}
