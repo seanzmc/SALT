@@ -17,6 +17,18 @@ function checklistHref(params: Record<string, string>) {
   }).toString()}`;
 }
 
+function cleanupHref(
+  queue: "overdue" | "blocked" | "unassigned" | "stale" | "upcoming",
+  bulk: "assign" | "status" | "setDueDate"
+) {
+  return checklistHref({
+    queue,
+    cleanup: "1",
+    bulk,
+    sort: queue === "blocked" ? "status" : "dueDate"
+  });
+}
+
 export default async function DashboardPage() {
   const data = await getDashboardData();
 
@@ -92,8 +104,10 @@ export default async function DashboardPage() {
           title="Overdue Tasks"
           count={data.overdueTasks.length}
           detail="Past-due active work that should be triaged first."
-          href={checklistHref({ queue: "overdue" })}
-          linkLabel="Open overdue queue"
+          href={cleanupHref("overdue", "setDueDate")}
+          linkLabel="Clean up overdue work"
+          secondaryHref={checklistHref({ queue: "overdue" })}
+          secondaryLinkLabel="Open queue"
           items={data.overdueTasks.slice(0, 4).map((task) => ({
             id: task.id,
             title: task.title,
@@ -107,8 +121,10 @@ export default async function DashboardPage() {
           title="Blocked Tasks"
           count={data.blockedTasks.length}
           detail="Tasks marked blocked and needing owner attention."
-          href={checklistHref({ queue: "blocked" })}
-          linkLabel="Open blocked queue"
+          href={cleanupHref("blocked", "status")}
+          linkLabel="Review blocked cleanup"
+          secondaryHref={checklistHref({ queue: "blocked" })}
+          secondaryLinkLabel="Open queue"
           items={data.blockedTasks.slice(0, 4).map((task) => ({
             id: task.id,
             title: task.title,
@@ -121,8 +137,10 @@ export default async function DashboardPage() {
           title="Unassigned Tasks"
           count={data.unassignedTasks.length}
           detail="Open tasks with no owner currently assigned."
-          href={checklistHref({ queue: "unassigned" })}
-          linkLabel="Open unassigned queue"
+          href={cleanupHref("unassigned", "assign")}
+          linkLabel="Assign owners now"
+          secondaryHref={checklistHref({ queue: "unassigned" })}
+          secondaryLinkLabel="Open queue"
           items={data.unassignedTasks.slice(0, 4).map((task) => ({
             id: task.id,
             title: task.title,
@@ -137,8 +155,10 @@ export default async function DashboardPage() {
           title="Due This Week"
           count={data.upcomingTasks.length}
           detail="Active tasks due in the next 7 days."
-          href={checklistHref({ queue: "upcoming" })}
-          linkLabel="Open upcoming queue"
+          href={cleanupHref("upcoming", "assign")}
+          linkLabel="Prepare this week"
+          secondaryHref={checklistHref({ queue: "upcoming" })}
+          secondaryLinkLabel="Open queue"
           items={data.upcomingTasks.slice(0, 4).map((task) => ({
             id: task.id,
             title: task.title,
@@ -151,8 +171,10 @@ export default async function DashboardPage() {
           title="Needs Update"
           count={data.staleTasks.length}
           detail="Approximation based on task `updatedAt` older than 7 days for incomplete active tasks."
-          href={checklistHref({ queue: "stale" })}
-          linkLabel="Open stale queue"
+          href={cleanupHref("stale", "status")}
+          linkLabel="Review stale tasks"
+          secondaryHref={checklistHref({ queue: "stale" })}
+          secondaryLinkLabel="Open queue"
           items={data.staleTasks.slice(0, 4).map((task) => ({
             id: task.id,
             title: task.title,

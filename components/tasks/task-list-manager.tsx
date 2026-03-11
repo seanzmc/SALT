@@ -18,6 +18,17 @@ type ActionState = {
   fieldErrors?: Record<string, string[] | undefined>;
 };
 
+type BulkAction =
+  | "assign"
+  | "clearAssignee"
+  | "status"
+  | "priority"
+  | "setDueDate"
+  | "shiftDueDate"
+  | "markComplete"
+  | "archive"
+  | "restore";
+
 const initialState: ActionState = { status: "idle" };
 
 function BulkSubmitButton() {
@@ -35,16 +46,22 @@ export function TaskListManager({
   tasks,
   users,
   currentRole,
-  groupBy
+  groupBy,
+  cleanupMode,
+  preferredBulkAction
 }: {
   archiveView: "active" | "archived" | "all";
   tasks: TaskTableRow[];
   users: Array<{ id: string; name: string; role: Role }>;
   currentRole: Role;
   groupBy: "none" | "section";
+  cleanupMode?: "overdue" | "blocked" | "unassigned" | "stale" | "upcoming" | null;
+  preferredBulkAction?: BulkAction;
 }) {
   const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
-  const [action, setAction] = useState(archiveView === "archived" ? "restore" : "assign");
+  const [action, setAction] = useState(
+    archiveView === "archived" ? "restore" : preferredBulkAction ?? "assign"
+  );
   const [state, formAction] = useFormState(bulkUpdateTasksAction, initialState);
 
   useEffect(() => {
@@ -52,8 +69,8 @@ export function TaskListManager({
   }, [tasks, groupBy]);
 
   useEffect(() => {
-    setAction(archiveView === "archived" ? "restore" : "assign");
-  }, [archiveView]);
+    setAction(archiveView === "archived" ? "restore" : preferredBulkAction ?? "assign");
+  }, [archiveView, preferredBulkAction]);
 
   useEffect(() => {
     if (state.status === "success") {
@@ -120,6 +137,19 @@ export function TaskListManager({
         }, {})
       : null;
 
+  const cleanupHint =
+    cleanupMode === "overdue"
+      ? "Cleanup mode: review past-due work in list view, then use bulk due-date or status updates to reschedule and unblock the queue."
+      : cleanupMode === "blocked"
+        ? "Cleanup mode: select blocked work and use bulk status updates after clearing blockers or adding clearer blocked reasons."
+        : cleanupMode === "unassigned"
+          ? "Cleanup mode: select visible tasks and use bulk assign to put owners on the queue quickly."
+          : cleanupMode === "stale"
+            ? "Cleanup mode: select stale tasks and use bulk status or owner updates after reviewing what needs a fresh update."
+            : cleanupMode === "upcoming"
+              ? "Cleanup mode: review the next 7 days of work and use bulk due-date or owner updates to smooth the week."
+              : null;
+
   return (
     <div className="space-y-4">
       {currentRole === Role.OWNER_ADMIN ? (
@@ -130,6 +160,9 @@ export function TaskListManager({
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {cleanupHint ? (
+              <p className="text-sm text-muted-foreground">{cleanupHint}</p>
+            ) : null}
             {selectedTaskIds.length === 0 ? (
               <div className="flex flex-wrap items-center gap-3">
                 <p className="text-sm text-muted-foreground">
@@ -150,7 +183,7 @@ export function TaskListManager({
                     defaultValue={action}
                     id="bulk-action"
                     name="action"
-                    onChange={(event) => setAction(event.target.value)}
+                    onChange={(event) => setAction(event.target.value as BulkAction)}
                     value={action}
                   >
                     {actionOptions.map((option) => (

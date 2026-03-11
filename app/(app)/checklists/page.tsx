@@ -7,6 +7,7 @@ import { TaskFilters } from "@/components/tasks/task-filters";
 import { TaskListManager } from "@/components/tasks/task-list-manager";
 import { TaskQueueShortcuts } from "@/components/tasks/task-queue-shortcuts";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { buttonVariants } from "@/components/ui/button";
 import { getTaskList } from "@/server/tasks";
@@ -29,8 +30,42 @@ export default async function ChecklistsPage({
     archived: typeof searchParams.archived === "string" ? searchParams.archived : "active",
     group: typeof searchParams.group === "string" ? searchParams.group : "none",
     sort: typeof searchParams.sort === "string" ? searchParams.sort : "dueDate",
-    view: typeof searchParams.view === "string" ? searchParams.view : "list"
+    view: typeof searchParams.view === "string" ? searchParams.view : "list",
+    cleanup: typeof searchParams.cleanup === "string" ? searchParams.cleanup : "",
+    bulk: typeof searchParams.bulk === "string" ? searchParams.bulk : ""
   };
+
+  const cleanupMode =
+    current.cleanup === "1" &&
+    ["overdue", "blocked", "unassigned", "stale", "upcoming"].includes(current.queue)
+      ? (current.queue as "overdue" | "blocked" | "unassigned" | "stale" | "upcoming")
+      : null;
+
+  const cleanupTitle =
+    cleanupMode === "overdue"
+      ? "Overdue cleanup"
+      : cleanupMode === "blocked"
+        ? "Blocked cleanup"
+        : cleanupMode === "unassigned"
+          ? "Assignment cleanup"
+          : cleanupMode === "stale"
+            ? "Needs update cleanup"
+            : cleanupMode === "upcoming"
+              ? "Upcoming work cleanup"
+              : null;
+
+  const cleanupDescription =
+    cleanupMode === "overdue"
+      ? "You came from the dashboard overdue card. This view is already in list mode so you can select visible work and use bulk due-date or status updates."
+      : cleanupMode === "blocked"
+        ? "You came from the blocked attention card. Review the visible tasks, then use bulk status updates once blockers are resolved."
+        : cleanupMode === "unassigned"
+          ? "You came from the unassigned attention card. Select visible tasks and use bulk assign to clear ownership gaps quickly."
+          : cleanupMode === "stale"
+            ? "You came from the needs update attention card. Review stale work, then bulk-update status or ownership as needed."
+            : cleanupMode === "upcoming"
+              ? "You came from the due-this-week attention card. Use this list view to rebalance ownership and dates before deadlines slip."
+              : null;
 
   const { tasks, sections, users, phases, queueCounts } = await getTaskList({
     q: current.q,
@@ -84,6 +119,26 @@ export default async function ChecklistsPage({
         <Badge variant="outline">Archive: {current.archived}</Badge>
       </div>
 
+      {cleanupMode && current.view === "list" ? (
+        <Card>
+          <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
+            <div>
+              <p className="font-medium">{cleanupTitle}</p>
+              <p className="text-sm text-muted-foreground">{cleanupDescription}</p>
+            </div>
+            <Link
+              className={cn(buttonVariants({ variant: "outline" }))}
+              href={`/checklists?${new URLSearchParams({
+                ...current,
+                cleanup: "0"
+              }).toString()}`}
+            >
+              Exit cleanup mode
+            </Link>
+          </CardContent>
+        </Card>
+      ) : null}
+
       {tasks.length === 0 ? (
         <EmptyState
           title="No tasks match the current filters"
@@ -94,8 +149,22 @@ export default async function ChecklistsPage({
       ) : (
         <TaskListManager
           archiveView={current.archived as "active" | "archived" | "all"}
+          cleanupMode={cleanupMode}
           currentRole={session.user.role}
           groupBy={current.group as "none" | "section"}
+          preferredBulkAction={
+            current.bulk === "assign" ||
+            current.bulk === "status" ||
+            current.bulk === "setDueDate" ||
+            current.bulk === "shiftDueDate" ||
+            current.bulk === "clearAssignee" ||
+            current.bulk === "priority" ||
+            current.bulk === "markComplete" ||
+            current.bulk === "archive" ||
+            current.bulk === "restore"
+              ? current.bulk
+              : undefined
+          }
           tasks={tasks as never}
           users={users}
         />

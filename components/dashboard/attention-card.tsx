@@ -17,6 +17,8 @@ export function AttentionCard({
   count,
   href,
   linkLabel,
+  secondaryHref,
+  secondaryLinkLabel,
   detail,
   items,
   breakdown
@@ -25,6 +27,8 @@ export function AttentionCard({
   count: number;
   href: string;
   linkLabel: string;
+  secondaryHref?: string;
+  secondaryLinkLabel?: string;
   detail: string;
   items?: AttentionItem[];
   breakdown?: Array<{ label: string; value: number }>;
@@ -39,9 +43,19 @@ export function AttentionCard({
           </div>
           <Badge variant={count > 0 ? "warning" : "outline"}>{count}</Badge>
         </div>
-        <Link className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-fit")} href={href}>
-          {linkLabel}
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-fit")} href={href}>
+            {linkLabel}
+          </Link>
+          {secondaryHref && secondaryLinkLabel ? (
+            <Link
+              className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "w-fit")}
+              href={secondaryHref}
+            >
+              {secondaryLinkLabel}
+            </Link>
+          ) : null}
+        </div>
       </CardHeader>
       <CardContent className="space-y-3">
         {items && items.length > 0 ? (
