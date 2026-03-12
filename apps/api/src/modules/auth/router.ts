@@ -15,11 +15,11 @@ import {
   resetPasswordSchema
 } from "@salt/validation";
 
-import { apiEnv } from "../../config/env";
-import { AppError } from "../../lib/app-error";
-import { asyncHandler } from "../../lib/async-handler";
-import { sendPasswordResetEmail } from "../../lib/password-reset-email";
-import { requireSession } from "../../middleware/auth-session";
+import { apiEnv } from "../../config/env.js";
+import { AppError } from "../../lib/app-error.js";
+import { asyncHandler } from "../../lib/async-handler.js";
+import { sendPasswordResetEmail } from "../../lib/password-reset-email.js";
+import { requireSession } from "../../middleware/auth-session.js";
 
 export const authRouter = Router();
 

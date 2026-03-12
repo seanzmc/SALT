@@ -25,9 +25,9 @@ import {
   adminUpdateUserSchema
 } from "@salt/validation";
 
-import { AppError } from "../../lib/app-error";
-import { asyncHandler } from "../../lib/async-handler";
-import { requireOwner } from "../../middleware/auth-session";
+import { AppError } from "../../lib/app-error.js";
+import { asyncHandler } from "../../lib/async-handler.js";
+import { requireOwner } from "../../middleware/auth-session.js";
 
 export const adminRouter = Router();
 

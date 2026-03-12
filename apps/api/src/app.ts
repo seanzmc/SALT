@@ -1,19 +1,19 @@
-import { accountRouter } from "./modules/account/router";
-import { adminRouter } from "./modules/admin/router";
+import { accountRouter } from "./modules/account/router.js";
+import { adminRouter } from "./modules/admin/router.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import express from "express";
 
-import { apiEnv } from "./config/env";
-import { attachSession } from "./middleware/auth-session";
-import { errorHandler, notFoundHandler } from "./middleware/error-handler";
-import { authRouter } from "./modules/auth/router";
-import { budgetRouter } from "./modules/budget/router";
-import { dashboardRouter } from "./modules/dashboard/router";
-import { documentsRouter } from "./modules/documents/router";
-import { messagesRouter } from "./modules/messages/router";
-import { tasksRouter } from "./modules/tasks/router";
-import { timelineRouter } from "./modules/timeline/router";
+import { apiEnv } from "./config/env.js";
+import { attachSession } from "./middleware/auth-session.js";
+import { errorHandler, notFoundHandler } from "./middleware/error-handler.js";
+import { authRouter } from "./modules/auth/router.js";
+import { budgetRouter } from "./modules/budget/router.js";
+import { dashboardRouter } from "./modules/dashboard/router.js";
+import { documentsRouter } from "./modules/documents/router.js";
+import { messagesRouter } from "./modules/messages/router.js";
+import { tasksRouter } from "./modules/tasks/router.js";
+import { timelineRouter } from "./modules/timeline/router.js";
 
 export function createApp() {
   const app = express();

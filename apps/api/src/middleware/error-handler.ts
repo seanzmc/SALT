@@ -2,7 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 
 import { DomainError } from "@salt/domain";
 
-import { AppError } from "../lib/app-error";
+import { AppError } from "../lib/app-error.js";
 
 export function notFoundHandler(
   _request: Request,

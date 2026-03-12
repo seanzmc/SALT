@@ -2,8 +2,8 @@ import { Router } from "express";
 
 import { getDashboardActivity, getDashboardSummary } from "@salt/domain";
 
-import { asyncHandler } from "../../lib/async-handler";
-import { requireSession } from "../../middleware/auth-session";
+import { asyncHandler } from "../../lib/async-handler.js";
+import { requireSession } from "../../middleware/auth-session.js";
 
 export const dashboardRouter = Router();
 

@@ -7,8 +7,8 @@ import {
   verifySessionToken
 } from "@salt/domain";
 
-import { apiEnv } from "../config/env";
-import { AppError } from "../lib/app-error";
+import { apiEnv } from "../config/env.js";
+import { AppError } from "../lib/app-error.js";
 
 export async function attachSession(
   request: Request,

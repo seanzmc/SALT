@@ -24,10 +24,10 @@ import {
   documentUploadMetadataSchema
 } from "@salt/validation";
 
-import { AppError } from "../../lib/app-error";
-import { asyncHandler } from "../../lib/async-handler";
-import { parseMultipartFormData } from "../../lib/parse-form-data";
-import { requireSession } from "../../middleware/auth-session";
+import { AppError } from "../../lib/app-error.js";
+import { asyncHandler } from "../../lib/async-handler.js";
+import { parseMultipartFormData } from "../../lib/parse-form-data.js";
+import { requireSession } from "../../middleware/auth-session.js";
 
 export const documentsRouter = Router();
 
