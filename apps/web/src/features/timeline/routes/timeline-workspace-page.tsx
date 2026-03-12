@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { TimelinePhaseRecord, TimelinePhaseUpdateInput, TimelineWorkspaceData } from "@salt/types";
 
 import { ApiClientError } from "../../../lib/api-client";
+import { useToast } from "../../../app/providers/toast-provider";
 import { getTimelineWorkspace, updateTimelinePhase } from "../api/timeline-client";
 import { TimelineOverview } from "../components/timeline-overview";
 import { TimelinePhaseCard } from "../components/timeline-phase-card";
@@ -34,6 +35,7 @@ function patchTimelineWorkspace(
 export function TimelineWorkspacePage() {
   const queryClient = useQueryClient();
   const [saveError, setSaveError] = useState<string>();
+  const toast = useToast();
 
   const timelineQuery = useQuery({
     queryKey: timelineQueryKeys.workspace,
@@ -64,9 +66,10 @@ export function TimelineWorkspacePage() {
       return { previousWorkspace };
     },
     onError: (error, _payload, context) => {
-      setSaveError(
-        error instanceof ApiClientError ? error.message : "Unable to update the timeline phase."
-      );
+      const message =
+        error instanceof ApiClientError ? error.message : "Unable to update the timeline phase.";
+      setSaveError(message);
+      toast.error("Timeline save failed", message);
 
       if (context?.previousWorkspace) {
         queryClient.setQueryData(timelineQueryKeys.workspace, context.previousWorkspace);
@@ -80,6 +83,7 @@ export function TimelineWorkspacePage() {
       );
       void queryClient.invalidateQueries({ queryKey: ["dashboard", "activity"] });
       void queryClient.invalidateQueries({ queryKey: ["dashboard", "summary"] });
+      toast.success("Timeline phase saved", phase.title);
     }
   });
 

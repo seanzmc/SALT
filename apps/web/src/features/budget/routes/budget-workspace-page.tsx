@@ -8,6 +8,7 @@ import type {
 import { useSearchParams } from "react-router-dom";
 
 import { ApiClientError } from "../../../lib/api-client";
+import { useToast } from "../../../app/providers/toast-provider";
 import { useAuthSessionQuery } from "../../auth/hooks/use-auth-session-query";
 import { budgetQueryKeys } from "../lib/query-keys";
 import {
@@ -78,6 +79,7 @@ function patchBudgetWorkspace(
 export function BudgetWorkspacePage() {
   const queryClient = useQueryClient();
   const sessionQuery = useAuthSessionQuery();
+  const toast = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
   const [saveError, setSaveError] = useState<string>();
   const searchState = getBudgetSearchState(searchParams);
@@ -111,9 +113,10 @@ export function BudgetWorkspacePage() {
       return { previousWorkspace };
     },
     onError: (error, _payload, context) => {
-      setSaveError(
-        error instanceof ApiClientError ? error.message : "Unable to update the budget item."
-      );
+      const message =
+        error instanceof ApiClientError ? error.message : "Unable to update the budget item.";
+      setSaveError(message);
+      toast.error("Budget save failed", message);
 
       if (context?.previousWorkspace) {
         queryClient.setQueryData(workspaceKey, context.previousWorkspace);
@@ -127,6 +130,7 @@ export function BudgetWorkspacePage() {
       );
       void queryClient.invalidateQueries({ queryKey: ["dashboard", "summary"] });
       void queryClient.invalidateQueries({ queryKey: ["dashboard", "activity"] });
+      toast.success("Budget item saved", item.lineItem);
     }
   });
 

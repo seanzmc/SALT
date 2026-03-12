@@ -8,6 +8,7 @@ import { z } from "zod";
 import { accountEmailSchema, accountPasswordSchema } from "@salt/validation";
 
 import { ApiClientError } from "../../../lib/api-client";
+import { useToast } from "../../../app/providers/toast-provider";
 import { useAuthSessionQuery } from "../../auth/hooks/use-auth-session-query";
 import { updateAccountEmail, updateAccountPassword } from "../api/account-client";
 
@@ -35,6 +36,7 @@ function SettingsCard({
 export function AccountSettingsPage() {
   const queryClient = useQueryClient();
   const sessionQuery = useAuthSessionQuery();
+  const toast = useToast();
   const emailForm = useForm<EmailFormValues>({
     resolver: zodResolver(accountEmailSchema),
     defaultValues: {
@@ -58,19 +60,33 @@ export function AccountSettingsPage() {
 
   const emailMutation = useMutation({
     mutationFn: updateAccountEmail,
-    onSuccess: async () => {
+    onSuccess: async (result) => {
       await queryClient.invalidateQueries({ queryKey: ["auth", "session"] });
+      toast.success("Email updated", result.message);
+    },
+    onError: (error) => {
+      toast.error(
+        "Email update failed",
+        error instanceof ApiClientError ? error.message : "Unable to update email."
+      );
     }
   });
 
   const passwordMutation = useMutation({
     mutationFn: updateAccountPassword,
-    onSuccess: () => {
+    onSuccess: (result) => {
       passwordForm.reset({
         currentPassword: "",
         newPassword: "",
         confirmPassword: ""
       });
+      toast.success("Password updated", result.message);
+    },
+    onError: (error) => {
+      toast.error(
+        "Password update failed",
+        error instanceof ApiClientError ? error.message : "Unable to update password."
+      );
     }
   });
 

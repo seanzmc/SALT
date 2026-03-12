@@ -4,6 +4,7 @@ import type { MessageRecord, MessageThreadData, MessageThreadListResponse } from
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import { ApiClientError } from "../../../lib/api-client";
+import { useToast } from "../../../app/providers/toast-provider";
 import {
   createMessage,
   getMessageThread,
@@ -50,6 +51,7 @@ export function MessagesWorkspacePage() {
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const [messageError, setMessageError] = useState<string>();
+  const toast = useToast();
 
   const selectedThreadId = params.threadId;
   const searchState = getMessagesSearchState(searchParams);
@@ -105,9 +107,10 @@ export function MessagesWorkspacePage() {
       return { previousDetail };
     },
     onError: (error, _payload, context) => {
-      setMessageError(
-        error instanceof ApiClientError ? error.message : "Unable to post message."
-      );
+      const message =
+        error instanceof ApiClientError ? error.message : "Unable to post message.";
+      setMessageError(message);
+      toast.error("Message failed", message);
       if (selectedThreadId && context?.previousDetail) {
         queryClient.setQueryData(messageQueryKeys.detail(selectedThreadId), context.previousDetail);
       }
@@ -120,6 +123,7 @@ export function MessagesWorkspacePage() {
 
       queryClient.setQueryData(messageQueryKeys.detail(data.thread.id), data);
       await queryClient.invalidateQueries({ queryKey: messageQueryKeys.lists() });
+      toast.success("Message posted");
     }
   });
 

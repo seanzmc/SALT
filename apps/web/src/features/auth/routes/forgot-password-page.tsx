@@ -7,11 +7,13 @@ import { z } from "zod";
 import { forgotPasswordSchema } from "@salt/validation";
 
 import { ApiClientError } from "../../../lib/api-client";
+import { useToast } from "../../../app/providers/toast-provider";
 import { requestPasswordReset } from "../api/auth-client";
 
 type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
 
 export function ForgotPasswordPage() {
+  const toast = useToast();
   const form = useForm<ForgotPasswordFormValues>({
     resolver: zodResolver(forgotPasswordSchema),
     defaultValues: {
@@ -20,7 +22,16 @@ export function ForgotPasswordPage() {
   });
 
   const requestMutation = useMutation({
-    mutationFn: requestPasswordReset
+    mutationFn: requestPasswordReset,
+    onSuccess: (result) => {
+      toast.success("Reset link requested", result.message);
+    },
+    onError: (error) => {
+      toast.error(
+        "Reset request failed",
+        error instanceof ApiClientError ? error.message : "Unable to request a reset link."
+      );
+    }
   });
 
   return (

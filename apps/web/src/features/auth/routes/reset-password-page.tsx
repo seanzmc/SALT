@@ -7,11 +7,13 @@ import { z } from "zod";
 import { resetPasswordSchema } from "@salt/validation";
 
 import { ApiClientError } from "../../../lib/api-client";
+import { useToast } from "../../../app/providers/toast-provider";
 import { resetPassword, validateResetToken } from "../api/auth-client";
 
 type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
 
 export function ResetPasswordPage() {
+  const toast = useToast();
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token") ?? "";
 
@@ -32,7 +34,16 @@ export function ResetPasswordPage() {
   });
 
   const resetMutation = useMutation({
-    mutationFn: resetPassword
+    mutationFn: resetPassword,
+    onSuccess: (result) => {
+      toast.success("Password reset complete", result.message);
+    },
+    onError: (error) => {
+      toast.error(
+        "Password reset failed",
+        error instanceof ApiClientError ? error.message : "Unable to reset password."
+      );
+    }
   });
 
   if (!token) {

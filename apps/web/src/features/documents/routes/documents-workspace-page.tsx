@@ -4,6 +4,7 @@ import type { DocumentRecord, DocumentWorkspaceData } from "@salt/types";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import { ApiClientError } from "../../../lib/api-client";
+import { useToast } from "../../../app/providers/toast-provider";
 import { useAuthSessionQuery } from "../../auth/hooks/use-auth-session-query";
 import {
   getDocumentList,
@@ -40,6 +41,7 @@ export function DocumentsWorkspacePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [uploadError, setUploadError] = useState<string>();
   const [linkError, setLinkError] = useState<string>();
+  const toast = useToast();
   const sessionQuery = useAuthSessionQuery();
 
   const selectedDocumentId = params.documentId;
@@ -68,9 +70,10 @@ export function DocumentsWorkspacePage() {
   const uploadMutation = useMutation({
     mutationFn: uploadDocument,
     onError: (error) => {
-      setUploadError(
-        error instanceof ApiClientError ? error.message : "Unable to upload document."
-      );
+      const message =
+        error instanceof ApiClientError ? error.message : "Unable to upload document.";
+      setUploadError(message);
+      toast.error("Document upload failed", message);
     },
     onSuccess: async (data) => {
       setUploadError(undefined);
@@ -80,6 +83,7 @@ export function DocumentsWorkspacePage() {
 
       queryClient.setQueryData(documentQueryKeys.detail(data.document.id), data);
       await queryClient.invalidateQueries({ queryKey: documentQueryKeys.lists() });
+      toast.success("Document uploaded", data.document.title);
       navigate({
         pathname: `/documents/${data.document.id}`,
         search: buildDocumentSearchParams(searchState).toString()
@@ -132,7 +136,10 @@ export function DocumentsWorkspacePage() {
       return { previousDetail };
     },
     onError: (error, _payload, context) => {
-      setLinkError(error instanceof ApiClientError ? error.message : "Unable to link document.");
+      const message =
+        error instanceof ApiClientError ? error.message : "Unable to link document.";
+      setLinkError(message);
+      toast.error("Document link failed", message);
       if (selectedDocumentId && context?.previousDetail) {
         queryClient.setQueryData(documentQueryKeys.detail(selectedDocumentId), context.previousDetail);
       }
@@ -148,6 +155,7 @@ export function DocumentsWorkspacePage() {
         current ? updateDocumentInList(current, data.document!) : current
       );
       await queryClient.invalidateQueries({ queryKey: documentQueryKeys.lists() });
+      toast.success("Document linked to task");
     }
   });
 
@@ -184,9 +192,10 @@ export function DocumentsWorkspacePage() {
       return { previousDetail };
     },
     onError: (error, _payload, context) => {
-      setLinkError(
-        error instanceof ApiClientError ? error.message : "Unable to unlink document."
-      );
+      const message =
+        error instanceof ApiClientError ? error.message : "Unable to unlink document.";
+      setLinkError(message);
+      toast.error("Document unlink failed", message);
       if (selectedDocumentId && context?.previousDetail) {
         queryClient.setQueryData(documentQueryKeys.detail(selectedDocumentId), context.previousDetail);
       }
@@ -202,6 +211,7 @@ export function DocumentsWorkspacePage() {
         current ? updateDocumentInList(current, data.document!) : current
       );
       await queryClient.invalidateQueries({ queryKey: documentQueryKeys.lists() });
+      toast.success("Document unlinked from task");
     }
   });
 

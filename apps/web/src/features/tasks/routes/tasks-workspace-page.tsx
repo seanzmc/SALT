@@ -20,6 +20,7 @@ import type {
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import { ApiClientError } from "../../../lib/api-client";
+import { useToast } from "../../../app/providers/toast-provider";
 import { useAuthSessionQuery } from "../../auth/hooks/use-auth-session-query";
 import {
   archiveSubtask,
@@ -313,6 +314,7 @@ export function TasksWorkspacePage() {
   const [dependencyError, setDependencyError] = useState<string>();
   const [archiveError, setArchiveError] = useState<string>();
   const [bulkError, setBulkError] = useState<string>();
+  const toast = useToast();
   const sessionQuery = useAuthSessionQuery();
 
   const selectedTaskId = params.taskId;
@@ -433,9 +435,10 @@ export function TasksWorkspacePage() {
       };
     },
     onError: (error, _payload, context) => {
-      setTaskError(
-        error instanceof ApiClientError ? error.message : "Unable to save task changes."
-      );
+      const message =
+        error instanceof ApiClientError ? error.message : "Unable to save task changes.";
+      setTaskError(message);
+      toast.error("Task update failed", message);
 
       if (context?.previousList) {
         queryClient.setQueryData(currentListKey, context.previousList);
@@ -448,6 +451,7 @@ export function TasksWorkspacePage() {
     onSuccess: (data) => {
       setTaskError(undefined);
       syncWorkspaceResult(data);
+      toast.success("Task updated", data.task?.title);
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: taskQueryKeys.lists() });
@@ -491,9 +495,10 @@ export function TasksWorkspacePage() {
       };
     },
     onError: (error, _payload, context) => {
-      setCommentError(
-        error instanceof ApiClientError ? error.message : "Unable to post comment."
-      );
+      const message =
+        error instanceof ApiClientError ? error.message : "Unable to post comment.";
+      setCommentError(message);
+      toast.error("Comment failed", message);
 
       if (selectedTaskId && context?.previousDetail) {
         queryClient.setQueryData(taskQueryKeys.detail(selectedTaskId), context.previousDetail);
@@ -514,6 +519,7 @@ export function TasksWorkspacePage() {
       );
 
       patchCurrentListTask(payload.taskId, {});
+      toast.success("Comment posted");
     }
   });
 
@@ -561,9 +567,10 @@ export function TasksWorkspacePage() {
       };
     },
     onError: (error, _payload, context) => {
-      setSubtaskError(
-        error instanceof ApiClientError ? error.message : "Unable to add checklist item."
-      );
+      const message =
+        error instanceof ApiClientError ? error.message : "Unable to add checklist item.";
+      setSubtaskError(message);
+      toast.error("Checklist item failed", message);
 
       if (selectedTaskId && context?.previousDetail) {
         queryClient.setQueryData(taskQueryKeys.detail(selectedTaskId), context.previousDetail);
@@ -572,6 +579,7 @@ export function TasksWorkspacePage() {
     onSuccess: (data) => {
       setSubtaskError(undefined);
       syncWorkspaceResult(data);
+      toast.success("Checklist item added");
     }
   });
 
@@ -611,9 +619,10 @@ export function TasksWorkspacePage() {
       };
     },
     onError: (error, _payload, context) => {
-      setSubtaskError(
-        error instanceof ApiClientError ? error.message : "Unable to save checklist item."
-      );
+      const message =
+        error instanceof ApiClientError ? error.message : "Unable to save checklist item.";
+      setSubtaskError(message);
+      toast.error("Checklist item save failed", message);
 
       if (selectedTaskId && context?.previousDetail) {
         queryClient.setQueryData(taskQueryKeys.detail(selectedTaskId), context.previousDetail);
@@ -622,6 +631,7 @@ export function TasksWorkspacePage() {
     onSuccess: (data) => {
       setSubtaskError(undefined);
       syncWorkspaceResult(data);
+      toast.success("Checklist item updated");
     }
   });
 
@@ -649,9 +659,10 @@ export function TasksWorkspacePage() {
       };
     },
     onError: (error, _payload, context) => {
-      setSubtaskError(
-        error instanceof ApiClientError ? error.message : "Unable to delete checklist item."
-      );
+      const message =
+        error instanceof ApiClientError ? error.message : "Unable to delete checklist item.";
+      setSubtaskError(message);
+      toast.error("Checklist item delete failed", message);
 
       if (selectedTaskId && context?.previousDetail) {
         queryClient.setQueryData(taskQueryKeys.detail(selectedTaskId), context.previousDetail);
@@ -660,6 +671,7 @@ export function TasksWorkspacePage() {
     onSuccess: (data) => {
       setSubtaskError(undefined);
       syncWorkspaceResult(data);
+      toast.success("Checklist item removed");
     }
   });
 
@@ -690,9 +702,10 @@ export function TasksWorkspacePage() {
       };
     },
     onError: (error, _payload, context) => {
-      setSubtaskError(
-        error instanceof ApiClientError ? error.message : "Unable to archive checklist item."
-      );
+      const message =
+        error instanceof ApiClientError ? error.message : "Unable to archive checklist item.";
+      setSubtaskError(message);
+      toast.error("Checklist item archive failed", message);
 
       if (selectedTaskId && context?.previousDetail) {
         queryClient.setQueryData(taskQueryKeys.detail(selectedTaskId), context.previousDetail);
@@ -701,6 +714,7 @@ export function TasksWorkspacePage() {
     onSuccess: (data) => {
       setSubtaskError(undefined);
       syncWorkspaceResult(data);
+      toast.success("Checklist item archived");
     }
   });
 
@@ -731,9 +745,10 @@ export function TasksWorkspacePage() {
       };
     },
     onError: (error, _payload, context) => {
-      setSubtaskError(
-        error instanceof ApiClientError ? error.message : "Unable to restore checklist item."
-      );
+      const message =
+        error instanceof ApiClientError ? error.message : "Unable to restore checklist item.";
+      setSubtaskError(message);
+      toast.error("Checklist item restore failed", message);
 
       if (selectedTaskId && context?.previousDetail) {
         queryClient.setQueryData(taskQueryKeys.detail(selectedTaskId), context.previousDetail);
@@ -742,6 +757,7 @@ export function TasksWorkspacePage() {
     onSuccess: (data) => {
       setSubtaskError(undefined);
       syncWorkspaceResult(data);
+      toast.success("Checklist item restored");
     }
   });
 
@@ -793,9 +809,10 @@ export function TasksWorkspacePage() {
       };
     },
     onError: (error, _payload, context) => {
-      setDependencyError(
-        error instanceof ApiClientError ? error.message : "Unable to add dependency."
-      );
+      const message =
+        error instanceof ApiClientError ? error.message : "Unable to add dependency.";
+      setDependencyError(message);
+      toast.error("Dependency update failed", message);
 
       if (selectedTaskId && context?.previousDetail) {
         queryClient.setQueryData(taskQueryKeys.detail(selectedTaskId), context.previousDetail);
@@ -804,6 +821,7 @@ export function TasksWorkspacePage() {
     onSuccess: (data) => {
       setDependencyError(undefined);
       syncWorkspaceResult(data);
+      toast.success("Dependency added");
     }
   });
 
@@ -854,9 +872,10 @@ export function TasksWorkspacePage() {
       };
     },
     onError: (error, _payload, context) => {
-      setDependencyError(
-        error instanceof ApiClientError ? error.message : "Unable to remove dependency."
-      );
+      const message =
+        error instanceof ApiClientError ? error.message : "Unable to remove dependency.";
+      setDependencyError(message);
+      toast.error("Dependency update failed", message);
 
       if (selectedTaskId && context?.previousDetail) {
         queryClient.setQueryData(taskQueryKeys.detail(selectedTaskId), context.previousDetail);
@@ -865,6 +884,7 @@ export function TasksWorkspacePage() {
     onSuccess: (data) => {
       setDependencyError(undefined);
       syncWorkspaceResult(data);
+      toast.success("Dependency removed");
     }
   });
 
@@ -908,9 +928,10 @@ export function TasksWorkspacePage() {
       };
     },
     onError: (error, _payload, context) => {
-      setArchiveError(
-        error instanceof ApiClientError ? error.message : "Unable to archive task."
-      );
+      const message =
+        error instanceof ApiClientError ? error.message : "Unable to archive task.";
+      setArchiveError(message);
+      toast.error("Task archive failed", message);
 
       if (context?.previousList) {
         queryClient.setQueryData(currentListKey, context.previousList);
@@ -923,6 +944,7 @@ export function TasksWorkspacePage() {
     onSuccess: (data) => {
       setArchiveError(undefined);
       syncWorkspaceResult(data);
+      toast.success("Task archived", data.task?.title);
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: taskQueryKeys.lists() });
@@ -968,9 +990,10 @@ export function TasksWorkspacePage() {
       };
     },
     onError: (error, _payload, context) => {
-      setArchiveError(
-        error instanceof ApiClientError ? error.message : "Unable to restore task."
-      );
+      const message =
+        error instanceof ApiClientError ? error.message : "Unable to restore task.";
+      setArchiveError(message);
+      toast.error("Task restore failed", message);
 
       if (context?.previousList) {
         queryClient.setQueryData(currentListKey, context.previousList);
@@ -983,6 +1006,7 @@ export function TasksWorkspacePage() {
     onSuccess: (data) => {
       setArchiveError(undefined);
       syncWorkspaceResult(data);
+      toast.success("Task restored", data.task?.title);
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: taskQueryKeys.lists() });
@@ -1111,9 +1135,10 @@ export function TasksWorkspacePage() {
       };
     },
     onError: (error, _payload, context) => {
-      setBulkError(
-        error instanceof ApiClientError ? error.message : "Unable to apply bulk action."
-      );
+      const message =
+        error instanceof ApiClientError ? error.message : "Unable to apply bulk action.";
+      setBulkError(message);
+      toast.error("Bulk action failed", message);
 
       if (context?.previousList) {
         queryClient.setQueryData(currentListKey, context.previousList);
@@ -1126,6 +1151,10 @@ export function TasksWorkspacePage() {
     onSuccess: async (result) => {
       setBulkError(undefined);
       setSelectedTaskIds([]);
+      toast.success(
+        "Bulk action applied",
+        `${result.updatedTaskIds.length} task${result.updatedTaskIds.length === 1 ? "" : "s"} updated.`
+      );
 
       await Promise.all(
         result.updatedTaskIds.map((taskId) =>

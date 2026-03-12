@@ -13,6 +13,7 @@ import type {
 } from "@salt/types";
 
 import { ApiClientError } from "../../../lib/api-client";
+import { useToast } from "../../../app/providers/toast-provider";
 import { useAuthSessionQuery } from "../../auth/hooks/use-auth-session-query";
 import {
   createAdminUser,
@@ -695,6 +696,7 @@ function SubtaskSetupRow({
 export function AdminSetupPage() {
   const queryClient = useQueryClient();
   const sessionQuery = useAuthSessionQuery();
+  const toast = useToast();
   const adminQuery = useQuery({
     queryKey: adminQueryKeys.setup,
     queryFn: getAdminSetupData
@@ -737,19 +739,49 @@ export function AdminSetupPage() {
             <div className="grid gap-4 xl:grid-cols-3">
               <ResetStatusCard
                 description="Sets every task back to NOT_STARTED and clears completed and blocked fields."
-                onRun={refreshAdminAfterMutation}
+                onRun={async (target) => {
+                  await refreshAdminAfterMutation();
+                  toast.success(
+                    "Operational reset complete",
+                    target === "all"
+                      ? "Tasks and checklist items were reset."
+                      : target === "tasks"
+                        ? "Task statuses were reset."
+                        : "Checklist item statuses were reset."
+                  );
+                }}
                 target="tasks"
                 title="Reset task statuses"
               />
               <ResetStatusCard
                 description="Marks every checklist item as pending while preserving titles, dates, and assignments."
-                onRun={refreshAdminAfterMutation}
+                onRun={async (target) => {
+                  await refreshAdminAfterMutation();
+                  toast.success(
+                    "Operational reset complete",
+                    target === "all"
+                      ? "Tasks and checklist items were reset."
+                      : target === "tasks"
+                        ? "Task statuses were reset."
+                        : "Checklist item statuses were reset."
+                  );
+                }}
                 target="subtasks"
                 title="Reset checklist items"
               />
               <ResetStatusCard
                 description="Runs both resets together for a clean operational baseline."
-                onRun={refreshAdminAfterMutation}
+                onRun={async (target) => {
+                  await refreshAdminAfterMutation();
+                  toast.success(
+                    "Operational reset complete",
+                    target === "all"
+                      ? "Tasks and checklist items were reset."
+                      : target === "tasks"
+                        ? "Task statuses were reset."
+                        : "Checklist item statuses were reset."
+                  );
+                }}
                 target="all"
                 title="Reset both"
               />
@@ -759,6 +791,7 @@ export function AdminSetupPage() {
           <CreateUserForm
             onCreated={async () => {
               await refreshAdminAfterMutation();
+              toast.success("User created");
             }}
           />
 
@@ -776,8 +809,9 @@ export function AdminSetupPage() {
                   <UserRowForm
                     currentUserId={currentUserId}
                     key={user.id}
-                    onSaved={async () => {
+                    onSaved={async (updatedUser) => {
                       await refreshAdminAfterMutation();
+                      toast.success("User updated", updatedUser.name);
                     }}
                     user={user}
                   />
@@ -796,7 +830,10 @@ export function AdminSetupPage() {
                   <DeactivateUserForm
                     currentUserId={currentUserId}
                     key={user.id}
-                    onDeactivated={refreshAdminAfterMutation}
+                    onDeactivated={async () => {
+                      await refreshAdminAfterMutation();
+                      toast.success("User deactivated", user.name);
+                    }}
                     replacementUsers={activeAssignmentUsers}
                     user={user}
                   />
@@ -811,7 +848,10 @@ export function AdminSetupPage() {
                 sortedUsers.map((user) => (
                   <ReactivateUserForm
                     key={`reactivate-${user.id}`}
-                    onReactivated={refreshAdminAfterMutation}
+                    onReactivated={async () => {
+                      await refreshAdminAfterMutation();
+                      toast.success("User reactivated", user.name);
+                    }}
                     user={user}
                   />
                 ))
@@ -836,8 +876,9 @@ export function AdminSetupPage() {
                 {setupData.tasks.map((task) => (
                   <TaskSetupRow
                     key={task.id}
-                    onSaved={async () => {
+                    onSaved={async (updatedTask) => {
                       await refreshAdminAfterMutation();
+                      toast.success("Task setup saved", updatedTask.title);
                     }}
                     task={task}
                     users={activeAssignmentUsers}
@@ -860,8 +901,9 @@ export function AdminSetupPage() {
                 {setupData.subtasks.map((subtask) => (
                   <SubtaskSetupRow
                     key={subtask.id}
-                    onSaved={async () => {
+                    onSaved={async (updatedSubtask) => {
                       await refreshAdminAfterMutation();
+                      toast.success("Checklist item setup saved", updatedSubtask.title);
                     }}
                     subtask={subtask}
                     users={activeAssignmentUsers}
