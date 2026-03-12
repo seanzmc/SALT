@@ -28,7 +28,7 @@ export function createApp() {
   app.use(cookieParser());
   app.use(attachSession);
 
-  app.get("/api/health", (_request, response) => {
+  app.get(["/health", "/api/health"], (_request, response) => {
     response.status(200).json({ ok: true, service: "salt-api" });
   });
 
