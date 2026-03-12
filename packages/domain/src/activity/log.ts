@@ -8,7 +8,9 @@ export async function logActivity(input: {
     | "TASK_STATUS_CHANGED"
     | "TASK_ASSIGNED"
     | "TASK_COMMENTED"
+    | "BUDGET_UPDATED"
     | "DOCUMENT_UPLOADED"
+    | "TIMELINE_UPDATED"
     | "MESSAGE_POSTED";
   entityType: string;
   entityId: string;

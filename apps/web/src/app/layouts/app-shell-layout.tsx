@@ -15,7 +15,7 @@ export function AppShellLayout({ children }: PropsWithChildren) {
           </p>
           <h1 className="text-2xl font-semibold">Workspace v2</h1>
           <p className="text-sm text-muted-foreground">
-            Tasks, documents, and messages on the rebuild stack.
+            Core workspaces on the rebuild stack.
           </p>
         </div>
 
@@ -71,6 +71,32 @@ export function AppShellLayout({ children }: PropsWithChildren) {
             to="/messages"
           >
             Messages
+          </NavLink>
+          <NavLink
+            className={({ isActive }) =>
+              [
+                "block rounded-2xl px-4 py-3 text-sm font-medium transition-colors",
+                isActive
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-card text-foreground hover:bg-muted"
+              ].join(" ")
+            }
+            to="/budget"
+          >
+            Budget
+          </NavLink>
+          <NavLink
+            className={({ isActive }) =>
+              [
+                "block rounded-2xl px-4 py-3 text-sm font-medium transition-colors",
+                isActive
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-card text-foreground hover:bg-muted"
+              ].join(" ")
+            }
+            to="/timeline"
+          >
+            Timeline
           </NavLink>
         </nav>
 

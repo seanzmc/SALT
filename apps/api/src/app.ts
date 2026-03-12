@@ -6,10 +6,12 @@ import { apiEnv } from "./config/env";
 import { attachSession } from "./middleware/auth-session";
 import { errorHandler, notFoundHandler } from "./middleware/error-handler";
 import { authRouter } from "./modules/auth/router";
+import { budgetRouter } from "./modules/budget/router";
 import { dashboardRouter } from "./modules/dashboard/router";
 import { documentsRouter } from "./modules/documents/router";
 import { messagesRouter } from "./modules/messages/router";
 import { tasksRouter } from "./modules/tasks/router";
+import { timelineRouter } from "./modules/timeline/router";
 
 export function createApp() {
   const app = express();
@@ -29,10 +31,12 @@ export function createApp() {
   });
 
   app.use("/api/auth", authRouter);
+  app.use("/api/budget", budgetRouter);
   app.use("/api/dashboard", dashboardRouter);
   app.use("/api/documents", documentsRouter);
   app.use("/api/messages", messagesRouter);
   app.use("/api/tasks", tasksRouter);
+  app.use("/api/timeline", timelineRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);
