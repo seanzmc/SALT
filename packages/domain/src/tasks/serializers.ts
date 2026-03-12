@@ -82,6 +82,13 @@ export function serializeTaskWorkspace(input: {
   users: TaskWorkspaceData["users"];
   sections: TaskWorkspaceData["sections"];
   phases: TaskWorkspaceData["phases"];
+  dependencyCandidates: Array<{
+    id: string;
+    title: string;
+    status: TaskSummary["status"];
+    dueDate: Date | null;
+    assignedTo: { id?: string; name: string } | null;
+  }>;
 }): TaskWorkspaceData {
   return {
     task: input.task
@@ -135,7 +142,10 @@ export function serializeTaskWorkspace(input: {
             originalName: attachment.document.originalName,
             storagePath: attachment.document.storagePath,
             createdAt: attachment.document.createdAt.toISOString()
-          }))
+          })),
+          dependencyCandidates: input.dependencyCandidates.map((candidate) =>
+            serializeDependency(candidate)
+          )
         }
       : null,
     users: input.users,

@@ -28,6 +28,15 @@ export const TASK_QUEUE_VALUES = [
 export const TASK_ARCHIVE_VALUES = ["active", "archived", "all"] as const;
 export const TASK_SORT_VALUES = ["dueDate", "priority", "title", "status"] as const;
 export const TASK_VIEW_VALUES = ["list", "board"] as const;
+export const TASK_BULK_ACTION_VALUES = [
+  "assign",
+  "clearAssignee",
+  "status",
+  "priority",
+  "setDueDate",
+  "archive",
+  "restore"
+] as const;
 
 export type TaskStatus = (typeof TASK_STATUS_VALUES)[number];
 export type TaskPriority = (typeof PRIORITY_VALUES)[number];
@@ -36,6 +45,7 @@ export type TaskQueue = (typeof TASK_QUEUE_VALUES)[number];
 export type TaskArchiveView = (typeof TASK_ARCHIVE_VALUES)[number];
 export type TaskSort = (typeof TASK_SORT_VALUES)[number];
 export type TaskWorkspaceView = (typeof TASK_VIEW_VALUES)[number];
+export type TaskBulkAction = (typeof TASK_BULK_ACTION_VALUES)[number];
 
 export type TaskSummary = {
   id: string;
@@ -102,6 +112,17 @@ export type TaskWorkspaceDependency = {
   } | null;
 };
 
+export type TaskWorkspaceDependencyCandidate = {
+  id: string;
+  title: string;
+  status: TaskStatus;
+  dueDate: string | null;
+  assignedTo: {
+    id?: string;
+    name: string;
+  } | null;
+};
+
 export type TaskWorkspaceDocument = {
   id: string;
   title: string;
@@ -121,6 +142,7 @@ export type TaskWorkspaceData = {
     dependencies: TaskWorkspaceDependency[];
     dependents: TaskWorkspaceDependency[];
     attachments: TaskWorkspaceDocument[];
+    dependencyCandidates: TaskWorkspaceDependencyCandidate[];
   }) | null;
   users: Array<{
     id: string;
@@ -147,6 +169,18 @@ export type TaskListFilters = {
   queue?: TaskQueue;
   archived?: TaskArchiveView;
   sort?: TaskSort;
+};
+
+export type TaskWorkspaceSearchState = {
+  q: string;
+  status: TaskStatus | "ALL";
+  section: string;
+  priority: TaskPriority | "";
+  assignee: string;
+  queue: TaskQueue;
+  archived: TaskArchiveView;
+  sort: TaskSort;
+  view: TaskWorkspaceView;
 };
 
 export type TaskQueueCounts = {
@@ -189,4 +223,61 @@ export type TaskWorkspaceUpdateInput = {
 export type TaskCommentCreateInput = {
   taskId: string;
   content: string;
+};
+
+export type TaskArchiveInput = {
+  taskId: string;
+};
+
+export type TaskSubtaskCreateInput = {
+  taskId: string;
+  title: string;
+  notes: string | null;
+  dueDate: string | null;
+  assignedToId: string | null;
+};
+
+export type TaskSubtaskUpdateInput = {
+  subtaskId: string;
+  title: string;
+  notes: string | null;
+  dueDate: string | null;
+  assignedToId: string | null;
+  isComplete: boolean;
+  sortOrder: number;
+};
+
+export type TaskSubtaskArchiveInput = {
+  subtaskId: string;
+};
+
+export type TaskSubtaskDeleteInput = {
+  subtaskId: string;
+};
+
+export type TaskDependencyCreateInput = {
+  taskId: string;
+  dependsOnTaskId: string;
+};
+
+export type TaskDependencyDeleteInput = {
+  taskId: string;
+  dependsOnTaskId: string;
+};
+
+export type TaskBulkActionInput = {
+  taskIds: string[];
+  action: TaskBulkAction;
+  assignedToId?: string | null;
+  status?: TaskStatus;
+  priority?: TaskPriority;
+  dueDate?: string | null;
+  blockedReason?: string | null;
+};
+
+export type TaskBulkActionResult = {
+  action: TaskBulkAction;
+  updatedTaskIds: string[];
+  skippedTaskIds: string[];
+  message: string;
 };

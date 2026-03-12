@@ -1,22 +1,9 @@
 import type {
-  TaskArchiveView,
   TaskListFilters,
   TaskPriority,
-  TaskQueue,
-  TaskSort,
-  TaskStatus
+  TaskStatus,
+  TaskWorkspaceSearchState
 } from "@salt/types";
-
-type TaskWorkspaceSearchState = {
-  q: string;
-  status: TaskStatus | "ALL";
-  section: string;
-  priority: TaskPriority | "";
-  assignee: string;
-  queue: TaskQueue;
-  archived: TaskArchiveView;
-  sort: TaskSort;
-};
 
 const DEFAULT_STATE: TaskWorkspaceSearchState = {
   q: "",
@@ -26,7 +13,8 @@ const DEFAULT_STATE: TaskWorkspaceSearchState = {
   assignee: "",
   queue: "all",
   archived: "active",
-  sort: "dueDate"
+  sort: "dueDate",
+  view: "list"
 };
 
 export function getTaskWorkspaceSearchState(
@@ -38,10 +26,11 @@ export function getTaskWorkspaceSearchState(
     section: searchParams.get("section") ?? DEFAULT_STATE.section,
     priority: (searchParams.get("priority") as TaskPriority | null) ?? DEFAULT_STATE.priority,
     assignee: searchParams.get("assignee") ?? DEFAULT_STATE.assignee,
-    queue: (searchParams.get("queue") as TaskQueue | null) ?? DEFAULT_STATE.queue,
+    queue: (searchParams.get("queue") as TaskWorkspaceSearchState["queue"] | null) ?? DEFAULT_STATE.queue,
     archived:
-      (searchParams.get("archived") as TaskArchiveView | null) ?? DEFAULT_STATE.archived,
-    sort: (searchParams.get("sort") as TaskSort | null) ?? DEFAULT_STATE.sort
+      (searchParams.get("archived") as TaskWorkspaceSearchState["archived"] | null) ?? DEFAULT_STATE.archived,
+    sort: (searchParams.get("sort") as TaskWorkspaceSearchState["sort"] | null) ?? DEFAULT_STATE.sort,
+    view: (searchParams.get("view") as TaskWorkspaceSearchState["view"] | null) ?? DEFAULT_STATE.view
   };
 }
 
@@ -98,6 +87,10 @@ export function buildTaskSearchParams(
 
   if (state.sort !== DEFAULT_STATE.sort) {
     searchParams.set("sort", state.sort);
+  }
+
+  if (state.view !== DEFAULT_STATE.view) {
+    searchParams.set("view", state.view);
   }
 
   return searchParams;

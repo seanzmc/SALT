@@ -160,7 +160,7 @@ export async function listTasks(filters: TaskListFilters & { currentUserId?: str
 }
 
 export async function getTaskWorkspace(taskId: string) {
-  const [task, users, sections, phases] = await Promise.all([
+  const [task, users, sections, phases, dependencyCandidates] = await Promise.all([
     prisma.task.findUnique({
       where: { id: taskId },
       include: {
@@ -233,6 +233,25 @@ export async function getTaskWorkspace(taskId: string) {
     prisma.timelinePhase.findMany({
       select: { id: true, title: true },
       orderBy: { sortOrder: "asc" }
+    }),
+    prisma.task.findMany({
+      where: {
+        id: { not: taskId },
+        archivedAt: null
+      },
+      select: {
+        id: true,
+        title: true,
+        status: true,
+        dueDate: true,
+        assignedTo: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
+      },
+      orderBy: [{ title: "asc" }]
     })
   ]);
 
@@ -240,6 +259,7 @@ export async function getTaskWorkspace(taskId: string) {
     task,
     users,
     sections,
-    phases
+    phases,
+    dependencyCandidates
   });
 }

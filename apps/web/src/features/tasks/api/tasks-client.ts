@@ -1,7 +1,16 @@
 import type {
+  TaskArchiveInput,
+  TaskBulkActionInput,
+  TaskBulkActionResult,
   TaskCommentCreateInput,
+  TaskDependencyCreateInput,
+  TaskDependencyDeleteInput,
   TaskListFilters,
   TaskListResponse,
+  TaskSubtaskArchiveInput,
+  TaskSubtaskCreateInput,
+  TaskSubtaskDeleteInput,
+  TaskSubtaskUpdateInput,
   TaskWorkspaceComment,
   TaskWorkspaceData,
   TaskWorkspaceUpdateInput
@@ -43,6 +52,73 @@ export function updateTaskWorkspace(payload: TaskWorkspaceUpdateInput) {
 
 export function createTaskComment(payload: TaskCommentCreateInput) {
   return apiClient<TaskWorkspaceComment>(`/api/tasks/${payload.taskId}/comments`, {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+}
+
+export function createSubtask(payload: TaskSubtaskCreateInput) {
+  return apiClient<TaskWorkspaceData>(`/api/tasks/${payload.taskId}/subtasks`, {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+}
+
+export function updateSubtask(payload: TaskSubtaskUpdateInput) {
+  return apiClient<TaskWorkspaceData>(`/api/tasks/subtasks/${payload.subtaskId}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload)
+  });
+}
+
+export function deleteSubtask(payload: TaskSubtaskDeleteInput) {
+  return apiClient<TaskWorkspaceData>(`/api/tasks/subtasks/${payload.subtaskId}`, {
+    method: "DELETE"
+  });
+}
+
+export function archiveSubtask(payload: TaskSubtaskArchiveInput) {
+  return apiClient<TaskWorkspaceData>(`/api/tasks/subtasks/${payload.subtaskId}/archive`, {
+    method: "POST"
+  });
+}
+
+export function restoreSubtask(payload: TaskSubtaskArchiveInput) {
+  return apiClient<TaskWorkspaceData>(`/api/tasks/subtasks/${payload.subtaskId}/restore`, {
+    method: "POST"
+  });
+}
+
+export function createTaskDependency(payload: TaskDependencyCreateInput) {
+  return apiClient<TaskWorkspaceData>(`/api/tasks/${payload.taskId}/dependencies`, {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+}
+
+export function deleteTaskDependency(payload: TaskDependencyDeleteInput) {
+  return apiClient<TaskWorkspaceData>(
+    `/api/tasks/${payload.taskId}/dependencies/${payload.dependsOnTaskId}`,
+    {
+      method: "DELETE"
+    }
+  );
+}
+
+export function archiveTask(payload: TaskArchiveInput) {
+  return apiClient<TaskWorkspaceData>(`/api/tasks/${payload.taskId}/archive`, {
+    method: "POST"
+  });
+}
+
+export function restoreTask(payload: TaskArchiveInput) {
+  return apiClient<TaskWorkspaceData>(`/api/tasks/${payload.taskId}/restore`, {
+    method: "POST"
+  });
+}
+
+export function bulkUpdateTasks(payload: TaskBulkActionInput) {
+  return apiClient<TaskBulkActionResult>("/api/tasks/bulk", {
     method: "POST",
     body: JSON.stringify(payload)
   });

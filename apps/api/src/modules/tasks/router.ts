@@ -1,13 +1,32 @@
 import { Router } from "express";
 
 import {
+  archiveSubtaskCommand,
+  archiveTaskCommand,
+  bulkUpdateTasksCommand,
+  createSubtaskCommand,
   createTaskCommentCommand,
+  createTaskDependencyCommand,
+  deleteSubtaskCommand,
+  deleteTaskDependencyCommand,
   getTaskWorkspace,
   listTasks,
+  restoreSubtaskCommand,
+  restoreTaskCommand,
+  updateSubtaskCommand,
   updateTaskCommand
 } from "@salt/domain";
 import {
+  subtaskArchiveSchema,
+  subtaskCreateSchema,
+  subtaskDeleteSchema,
+  subtaskIdParamSchema,
+  subtaskUpdateSchema,
+  taskArchiveSchema,
+  taskBulkActionSchema,
   taskCommentCreateSchema,
+  taskDependencyCreateSchema,
+  taskDependencyDeleteSchema,
   taskIdParamSchema,
   taskListQuerySchema,
   taskWorkspaceUpdateSchema
@@ -19,6 +38,10 @@ import { requireSession } from "../../middleware/auth-session";
 
 export const tasksRouter = Router();
 
+function validationError(message: string, fieldErrors?: Record<string, string[] | undefined>) {
+  return new AppError(400, "VALIDATION_ERROR", message, fieldErrors);
+}
+
 tasksRouter.use(requireSession);
 
 tasksRouter.get(
@@ -27,7 +50,7 @@ tasksRouter.get(
     const parsed = taskListQuerySchema.safeParse(request.query);
 
     if (!parsed.success) {
-      throw new AppError(400, "VALIDATION_ERROR", "Invalid task query filters.");
+      throw validationError("Invalid task query filters.");
     }
 
     const data = await listTasks({
@@ -39,13 +62,39 @@ tasksRouter.get(
   })
 );
 
+tasksRouter.post(
+  "/bulk",
+  asyncHandler(async (request, response) => {
+    const parsed = taskBulkActionSchema.safeParse(request.body);
+
+    if (!parsed.success) {
+      throw validationError("Please correct the highlighted bulk-action fields.", parsed.error.flatten().fieldErrors);
+    }
+
+    const result = await bulkUpdateTasksCommand({
+      actor: request.authSession!.user,
+      payload: {
+        taskIds: parsed.data.taskIds,
+        action: parsed.data.action,
+        assignedToId: parsed.data.assignedToId || null,
+        status: parsed.data.status,
+        priority: parsed.data.priority,
+        dueDate: parsed.data.dueDate || null,
+        blockedReason: parsed.data.blockedReason || null
+      }
+    });
+
+    response.status(200).json(result);
+  })
+);
+
 tasksRouter.get(
   "/:taskId",
   asyncHandler(async (request, response) => {
     const parsed = taskIdParamSchema.safeParse(request.params);
 
     if (!parsed.success) {
-      throw new AppError(400, "VALIDATION_ERROR", "Invalid task id.");
+      throw validationError("Invalid task id.");
     }
 
     const data = await getTaskWorkspace(parsed.data.taskId);
@@ -64,7 +113,7 @@ tasksRouter.patch(
     const params = taskIdParamSchema.safeParse(request.params);
 
     if (!params.success) {
-      throw new AppError(400, "VALIDATION_ERROR", "Invalid task id.");
+      throw validationError("Invalid task id.");
     }
 
     const parsed = taskWorkspaceUpdateSchema.safeParse({
@@ -73,9 +122,7 @@ tasksRouter.patch(
     });
 
     if (!parsed.success) {
-      throw new AppError(
-        400,
-        "VALIDATION_ERROR",
+      throw validationError(
         "Please correct the highlighted fields.",
         parsed.error.flatten().fieldErrors
       );
@@ -102,7 +149,7 @@ tasksRouter.post(
     const params = taskIdParamSchema.safeParse(request.params);
 
     if (!params.success) {
-      throw new AppError(400, "VALIDATION_ERROR", "Invalid task id.");
+      throw validationError("Invalid task id.");
     }
 
     const parsed = taskCommentCreateSchema.safeParse({
@@ -111,9 +158,7 @@ tasksRouter.post(
     });
 
     if (!parsed.success) {
-      throw new AppError(
-        400,
-        "VALIDATION_ERROR",
+      throw validationError(
         "Please enter a comment before posting.",
         parsed.error.flatten().fieldErrors
       );
@@ -125,5 +170,247 @@ tasksRouter.post(
     });
 
     response.status(201).json(comment);
+  })
+);
+
+tasksRouter.post(
+  "/:taskId/subtasks",
+  asyncHandler(async (request, response) => {
+    const params = taskIdParamSchema.safeParse(request.params);
+
+    if (!params.success) {
+      throw validationError("Invalid task id.");
+    }
+
+    const parsed = subtaskCreateSchema.safeParse({
+      ...request.body,
+      taskId: params.data.taskId
+    });
+
+    if (!parsed.success) {
+      throw validationError(
+        "Please correct the highlighted checklist-item fields.",
+        parsed.error.flatten().fieldErrors
+      );
+    }
+
+    const data = await createSubtaskCommand({
+      actor: request.authSession!.user,
+      payload: {
+        taskId: parsed.data.taskId,
+        title: parsed.data.title,
+        notes: parsed.data.notes || null,
+        dueDate: parsed.data.dueDate || null,
+        assignedToId: parsed.data.assignedToId || null
+      }
+    });
+
+    response.status(201).json(data);
+  })
+);
+
+tasksRouter.patch(
+  "/subtasks/:subtaskId",
+  asyncHandler(async (request, response) => {
+    const params = subtaskIdParamSchema.safeParse(request.params);
+
+    if (!params.success) {
+      throw validationError("Invalid checklist item id.");
+    }
+
+    const parsed = subtaskUpdateSchema.safeParse({
+      ...request.body,
+      subtaskId: params.data.subtaskId
+    });
+
+    if (!parsed.success) {
+      throw validationError(
+        "Please correct the highlighted checklist-item fields.",
+        parsed.error.flatten().fieldErrors
+      );
+    }
+
+    const data = await updateSubtaskCommand({
+      actor: request.authSession!.user,
+      payload: {
+        subtaskId: parsed.data.subtaskId,
+        title: parsed.data.title,
+        notes: parsed.data.notes || null,
+        dueDate: parsed.data.dueDate || null,
+        assignedToId: parsed.data.assignedToId || null,
+        isComplete: parsed.data.isComplete,
+        sortOrder: parsed.data.sortOrder
+      }
+    });
+
+    response.status(200).json(data);
+  })
+);
+
+tasksRouter.delete(
+  "/subtasks/:subtaskId",
+  asyncHandler(async (request, response) => {
+    const params = subtaskIdParamSchema.safeParse(request.params);
+
+    if (!params.success) {
+      throw validationError("Invalid checklist item id.");
+    }
+
+    const parsed = subtaskDeleteSchema.safeParse(params.data);
+
+    if (!parsed.success) {
+      throw validationError("Invalid checklist item id.");
+    }
+
+    const data = await deleteSubtaskCommand({
+      actor: request.authSession!.user,
+      payload: parsed.data
+    });
+
+    response.status(200).json(data);
+  })
+);
+
+tasksRouter.post(
+  "/subtasks/:subtaskId/archive",
+  asyncHandler(async (request, response) => {
+    const params = subtaskIdParamSchema.safeParse(request.params);
+
+    if (!params.success) {
+      throw validationError("Invalid checklist item id.");
+    }
+
+    const parsed = subtaskArchiveSchema.safeParse(params.data);
+
+    if (!parsed.success) {
+      throw validationError("Invalid checklist item id.");
+    }
+
+    const data = await archiveSubtaskCommand({
+      actor: request.authSession!.user,
+      payload: parsed.data
+    });
+
+    response.status(200).json(data);
+  })
+);
+
+tasksRouter.post(
+  "/subtasks/:subtaskId/restore",
+  asyncHandler(async (request, response) => {
+    const params = subtaskIdParamSchema.safeParse(request.params);
+
+    if (!params.success) {
+      throw validationError("Invalid checklist item id.");
+    }
+
+    const parsed = subtaskArchiveSchema.safeParse(params.data);
+
+    if (!parsed.success) {
+      throw validationError("Invalid checklist item id.");
+    }
+
+    const data = await restoreSubtaskCommand({
+      actor: request.authSession!.user,
+      payload: parsed.data
+    });
+
+    response.status(200).json(data);
+  })
+);
+
+tasksRouter.post(
+  "/:taskId/dependencies",
+  asyncHandler(async (request, response) => {
+    const params = taskIdParamSchema.safeParse(request.params);
+
+    if (!params.success) {
+      throw validationError("Invalid task id.");
+    }
+
+    const parsed = taskDependencyCreateSchema.safeParse({
+      taskId: params.data.taskId,
+      dependsOnTaskId: request.body.dependsOnTaskId
+    });
+
+    if (!parsed.success) {
+      throw validationError(
+        "Please select a valid dependency.",
+        parsed.error.flatten().fieldErrors
+      );
+    }
+
+    const data = await createTaskDependencyCommand({
+      actor: request.authSession!.user,
+      payload: parsed.data
+    });
+
+    response.status(201).json(data);
+  })
+);
+
+tasksRouter.delete(
+  "/:taskId/dependencies/:dependsOnTaskId",
+  asyncHandler(async (request, response) => {
+    const params = taskDependencyDeleteSchema.safeParse(request.params);
+
+    if (!params.success) {
+      throw validationError("Invalid dependency id.");
+    }
+
+    const data = await deleteTaskDependencyCommand({
+      actor: request.authSession!.user,
+      payload: params.data
+    });
+
+    response.status(200).json(data);
+  })
+);
+
+tasksRouter.post(
+  "/:taskId/archive",
+  asyncHandler(async (request, response) => {
+    const params = taskIdParamSchema.safeParse(request.params);
+
+    if (!params.success) {
+      throw validationError("Invalid task id.");
+    }
+
+    const parsed = taskArchiveSchema.safeParse(params.data);
+
+    if (!parsed.success) {
+      throw validationError("Invalid task id.");
+    }
+
+    const data = await archiveTaskCommand({
+      actor: request.authSession!.user,
+      payload: parsed.data
+    });
+
+    response.status(200).json(data);
+  })
+);
+
+tasksRouter.post(
+  "/:taskId/restore",
+  asyncHandler(async (request, response) => {
+    const params = taskIdParamSchema.safeParse(request.params);
+
+    if (!params.success) {
+      throw validationError("Invalid task id.");
+    }
+
+    const parsed = taskArchiveSchema.safeParse(params.data);
+
+    if (!parsed.success) {
+      throw validationError("Invalid task id.");
+    }
+
+    const data = await restoreTaskCommand({
+      actor: request.authSession!.user,
+      payload: parsed.data
+    });
+
+    response.status(200).json(data);
   })
 );

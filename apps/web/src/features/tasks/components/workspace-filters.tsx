@@ -1,4 +1,12 @@
-import type { TaskListResponse, TaskPriority, TaskQueue, TaskSort, TaskStatus } from "@salt/types";
+import type {
+  TaskArchiveView,
+  TaskListResponse,
+  TaskPriority,
+  TaskQueue,
+  TaskSort,
+  TaskStatus,
+  TaskWorkspaceView
+} from "@salt/types";
 
 type WorkspaceFiltersProps = {
   currentUserId: string;
@@ -8,7 +16,9 @@ type WorkspaceFiltersProps = {
   priority: TaskPriority | "";
   assignee: string;
   queue: TaskQueue;
+  archived: TaskArchiveView;
   sort: TaskSort;
+  view: TaskWorkspaceView;
   queueCounts: TaskListResponse["queueCounts"];
   sections: TaskListResponse["sections"];
   users: TaskListResponse["users"];
@@ -21,7 +31,8 @@ type WorkspaceFiltersProps = {
       assignee: string;
       queue: TaskQueue;
       sort: TaskSort;
-      archived: "active" | "archived" | "all";
+      archived: TaskArchiveView;
+      view: TaskWorkspaceView;
     }>
   ) => void;
   onReset: () => void;
@@ -45,7 +56,9 @@ export function WorkspaceFilters({
   priority,
   assignee,
   queue,
+  archived,
   sort,
+  view,
   queueCounts,
   sections,
   users,
@@ -86,6 +99,74 @@ export function WorkspaceFilters({
             {option.label} {queueCounts[option.countKey]}
           </button>
         ))}
+      </div>
+
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-2">
+          <button
+            className={[
+              "rounded-full px-4 py-2 text-sm transition-colors",
+              view === "list"
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-foreground hover:bg-accent"
+            ].join(" ")}
+            onClick={() => onChange({ view: "list" })}
+            type="button"
+          >
+            List view
+          </button>
+          <button
+            className={[
+              "rounded-full px-4 py-2 text-sm transition-colors",
+              view === "board"
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-foreground hover:bg-accent"
+            ].join(" ")}
+            onClick={() => onChange({ view: "board" })}
+            type="button"
+          >
+            Board view
+          </button>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <button
+            className={[
+              "rounded-full px-4 py-2 text-sm transition-colors",
+              archived === "active"
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-foreground hover:bg-accent"
+            ].join(" ")}
+            onClick={() => onChange({ archived: "active" })}
+            type="button"
+          >
+            Active
+          </button>
+          <button
+            className={[
+              "rounded-full px-4 py-2 text-sm transition-colors",
+              archived === "archived"
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-foreground hover:bg-accent"
+            ].join(" ")}
+            onClick={() => onChange({ archived: "archived" })}
+            type="button"
+          >
+            Archived
+          </button>
+          <button
+            className={[
+              "rounded-full px-4 py-2 text-sm transition-colors",
+              archived === "all"
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-foreground hover:bg-accent"
+            ].join(" ")}
+            onClick={() => onChange({ archived: "all" })}
+            type="button"
+          >
+            All
+          </button>
+        </div>
       </div>
 
       <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
