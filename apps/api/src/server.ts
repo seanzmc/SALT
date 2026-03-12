@@ -1,6 +1,6 @@
 import "dotenv/config";
 
-import app from "./index.js";
+import app from "./app.js";
 import { apiEnv } from "./config/env.js";
 
 app.listen(apiEnv.PORT, () => {
