@@ -29,6 +29,19 @@ export function AppShellLayout({ children }: PropsWithChildren) {
                   : "bg-card text-foreground hover:bg-muted"
               ].join(" ")
             }
+            to="/dashboard"
+          >
+            Dashboard
+          </NavLink>
+          <NavLink
+            className={({ isActive }) =>
+              [
+                "block rounded-2xl px-4 py-3 text-sm font-medium transition-colors",
+                isActive
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-card text-foreground hover:bg-muted"
+              ].join(" ")
+            }
             to="/tasks"
           >
             Tasks Workspace

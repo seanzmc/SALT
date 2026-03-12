@@ -1,14 +1,47 @@
 import type { DocumentRecord } from "./documents";
 import type { MessageThreadSummary } from "./messages";
+import type { TaskSummary } from "./tasks";
+
+export type DashboardTaskPreview = {
+  id: string;
+  title: string;
+  dueDate: string | null;
+  updatedAt: string;
+  blockedReason: string | null;
+  section: Pick<TaskSummary["section"], "id" | "slug" | "title">;
+  assignedTo: {
+    id: string;
+    name: string;
+  } | null;
+};
+
+export type DashboardBreakdownItem = {
+  label: string;
+  value: number;
+};
+
+export type DashboardAttentionQueue = {
+  count: number;
+  items: DashboardTaskPreview[];
+  breakdown?: DashboardBreakdownItem[];
+};
 
 export type DashboardSummary = {
   overallCompletion: number;
+  recentlyCompletedCount: number;
   queueCounts: {
     overdue: number;
     upcoming: number;
     blocked: number;
     unassigned: number;
     stale: number;
+  };
+  attention: {
+    overdue: DashboardAttentionQueue;
+    upcoming: DashboardAttentionQueue;
+    blocked: DashboardAttentionQueue;
+    unassigned: DashboardAttentionQueue;
+    stale: DashboardAttentionQueue;
   };
   recentDocuments: Pick<DocumentRecord, "id" | "title" | "category" | "createdAt" | "uploadedBy" | "linkedTask">[];
   recentMessages: Array<{
