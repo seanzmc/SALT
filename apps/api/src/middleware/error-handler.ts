@@ -1,5 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 
+import { DomainError } from "@salt/domain";
+
 import { AppError } from "../lib/app-error";
 
 export function notFoundHandler(
@@ -20,7 +22,19 @@ export function errorHandler(
     response.status(error.statusCode).json({
       error: {
         code: error.code,
-        message: error.message
+        message: error.message,
+        fieldErrors: error.fieldErrors
+      }
+    });
+    return;
+  }
+
+  if (error instanceof DomainError) {
+    response.status(error.statusCode).json({
+      error: {
+        code: error.code,
+        message: error.message,
+        fieldErrors: error.fieldErrors
       }
     });
     return;

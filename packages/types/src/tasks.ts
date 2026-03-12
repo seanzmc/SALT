@@ -177,3 +177,16 @@ export type TaskListResponse = {
   }>;
   queueCounts: TaskQueueCounts;
 };
+
+export type TaskWorkspaceUpdateInput = {
+  taskId: string;
+  status: TaskStatus;
+  priority: TaskPriority;
+  assignedToId: string | null;
+  blockedReason: string | null;
+};
+
+export type TaskCommentCreateInput = {
+  taskId: string;
+  content: string;
+};

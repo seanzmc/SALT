@@ -1,4 +1,4 @@
-export class AppError extends Error {
+export class DomainError extends Error {
   constructor(
     public readonly statusCode: number,
     public readonly code: string,
@@ -6,6 +6,6 @@ export class AppError extends Error {
     public readonly fieldErrors?: Record<string, string[] | undefined>
   ) {
     super(message);
-    this.name = "AppError";
+    this.name = "DomainError";
   }
 }
