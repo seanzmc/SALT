@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import { getBudgetWorkspace, updateBudgetItemCommand } from "@salt/domain";
+import type { BudgetItemUpdateInput, BudgetListFilters } from "@salt/types";
 import {
   budgetItemIdParamSchema,
   budgetItemUpdateSchema,
@@ -28,7 +29,9 @@ budgetRouter.get(
       throw validationError("Invalid budget query filters.");
     }
 
-    response.status(200).json(await getBudgetWorkspace(parsed.data));
+    const filters: BudgetListFilters = parsed.data;
+
+    response.status(200).json(await getBudgetWorkspace(filters));
   })
 );
 
@@ -53,16 +56,18 @@ budgetRouter.patch(
       );
     }
 
+    const payload: BudgetItemUpdateInput = {
+      itemId: parsed.data.itemId,
+      actual: parsed.data.actual,
+      vendor: parsed.data.vendor || null,
+      paidStatus: parsed.data.paidStatus,
+      notes: parsed.data.notes || null
+    };
+
     response.status(200).json(
       await updateBudgetItemCommand({
         actor: request.authSession!.user,
-        payload: {
-          itemId: parsed.data.itemId,
-          actual: parsed.data.actual,
-          vendor: parsed.data.vendor || null,
-          paidStatus: parsed.data.paidStatus,
-          notes: parsed.data.notes || null
-        }
+        payload
       })
     );
   })

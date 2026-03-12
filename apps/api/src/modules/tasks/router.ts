@@ -16,6 +16,19 @@ import {
   updateSubtaskCommand,
   updateTaskCommand
 } from "@salt/domain";
+import type {
+  TaskArchiveInput,
+  TaskBulkActionInput,
+  TaskCommentCreateInput,
+  TaskDependencyCreateInput,
+  TaskDependencyDeleteInput,
+  TaskListFilters,
+  TaskSubtaskArchiveInput,
+  TaskSubtaskCreateInput,
+  TaskSubtaskDeleteInput,
+  TaskSubtaskUpdateInput,
+  TaskWorkspaceUpdateInput
+} from "@salt/types";
 import {
   subtaskArchiveSchema,
   subtaskCreateSchema,
@@ -53,10 +66,12 @@ tasksRouter.get(
       throw validationError("Invalid task query filters.");
     }
 
-    const data = await listTasks({
+    const filters: TaskListFilters & { currentUserId: string } = {
       ...parsed.data,
       currentUserId: request.authSession!.user.id
-    });
+    };
+
+    const data = await listTasks(filters);
 
     response.status(200).json(data);
   })
@@ -71,17 +86,19 @@ tasksRouter.post(
       throw validationError("Please correct the highlighted bulk-action fields.", parsed.error.flatten().fieldErrors);
     }
 
+    const payload: TaskBulkActionInput = {
+      taskIds: parsed.data.taskIds,
+      action: parsed.data.action,
+      assignedToId: parsed.data.assignedToId || null,
+      status: parsed.data.status,
+      priority: parsed.data.priority,
+      dueDate: parsed.data.dueDate || null,
+      blockedReason: parsed.data.blockedReason || null
+    };
+
     const result = await bulkUpdateTasksCommand({
       actor: request.authSession!.user,
-      payload: {
-        taskIds: parsed.data.taskIds,
-        action: parsed.data.action,
-        assignedToId: parsed.data.assignedToId || null,
-        status: parsed.data.status,
-        priority: parsed.data.priority,
-        dueDate: parsed.data.dueDate || null,
-        blockedReason: parsed.data.blockedReason || null
-      }
+      payload
     });
 
     response.status(200).json(result);
@@ -128,15 +145,17 @@ tasksRouter.patch(
       );
     }
 
+    const payload: TaskWorkspaceUpdateInput = {
+      taskId: parsed.data.taskId,
+      status: parsed.data.status,
+      priority: parsed.data.priority,
+      assignedToId: parsed.data.assignedToId || null,
+      blockedReason: parsed.data.blockedReason || null
+    };
+
     const data = await updateTaskCommand({
       actor: request.authSession!.user,
-      payload: {
-        taskId: parsed.data.taskId,
-        status: parsed.data.status,
-        priority: parsed.data.priority,
-        assignedToId: parsed.data.assignedToId || null,
-        blockedReason: parsed.data.blockedReason || null
-      }
+      payload
     });
 
     response.status(200).json(data);
@@ -164,9 +183,11 @@ tasksRouter.post(
       );
     }
 
+    const payload: TaskCommentCreateInput = parsed.data;
+
     const comment = await createTaskCommentCommand({
       actor: request.authSession!.user,
-      payload: parsed.data
+      payload
     });
 
     response.status(201).json(comment);
@@ -194,15 +215,17 @@ tasksRouter.post(
       );
     }
 
+    const payload: TaskSubtaskCreateInput = {
+      taskId: parsed.data.taskId,
+      title: parsed.data.title,
+      notes: parsed.data.notes || null,
+      dueDate: parsed.data.dueDate || null,
+      assignedToId: parsed.data.assignedToId || null
+    };
+
     const data = await createSubtaskCommand({
       actor: request.authSession!.user,
-      payload: {
-        taskId: parsed.data.taskId,
-        title: parsed.data.title,
-        notes: parsed.data.notes || null,
-        dueDate: parsed.data.dueDate || null,
-        assignedToId: parsed.data.assignedToId || null
-      }
+      payload
     });
 
     response.status(201).json(data);
@@ -230,17 +253,19 @@ tasksRouter.patch(
       );
     }
 
+    const payload: TaskSubtaskUpdateInput = {
+      subtaskId: parsed.data.subtaskId,
+      title: parsed.data.title,
+      notes: parsed.data.notes || null,
+      dueDate: parsed.data.dueDate || null,
+      assignedToId: parsed.data.assignedToId || null,
+      isComplete: parsed.data.isComplete,
+      sortOrder: parsed.data.sortOrder
+    };
+
     const data = await updateSubtaskCommand({
       actor: request.authSession!.user,
-      payload: {
-        subtaskId: parsed.data.subtaskId,
-        title: parsed.data.title,
-        notes: parsed.data.notes || null,
-        dueDate: parsed.data.dueDate || null,
-        assignedToId: parsed.data.assignedToId || null,
-        isComplete: parsed.data.isComplete,
-        sortOrder: parsed.data.sortOrder
-      }
+      payload
     });
 
     response.status(200).json(data);
@@ -262,9 +287,11 @@ tasksRouter.delete(
       throw validationError("Invalid checklist item id.");
     }
 
+    const payload: TaskSubtaskDeleteInput = parsed.data;
+
     const data = await deleteSubtaskCommand({
       actor: request.authSession!.user,
-      payload: parsed.data
+      payload
     });
 
     response.status(200).json(data);
@@ -286,9 +313,11 @@ tasksRouter.post(
       throw validationError("Invalid checklist item id.");
     }
 
+    const payload: TaskSubtaskArchiveInput = parsed.data;
+
     const data = await archiveSubtaskCommand({
       actor: request.authSession!.user,
-      payload: parsed.data
+      payload
     });
 
     response.status(200).json(data);
@@ -310,9 +339,11 @@ tasksRouter.post(
       throw validationError("Invalid checklist item id.");
     }
 
+    const payload: TaskSubtaskArchiveInput = parsed.data;
+
     const data = await restoreSubtaskCommand({
       actor: request.authSession!.user,
-      payload: parsed.data
+      payload
     });
 
     response.status(200).json(data);
@@ -340,9 +371,11 @@ tasksRouter.post(
       );
     }
 
+    const payload: TaskDependencyCreateInput = parsed.data;
+
     const data = await createTaskDependencyCommand({
       actor: request.authSession!.user,
-      payload: parsed.data
+      payload
     });
 
     response.status(201).json(data);
@@ -358,9 +391,11 @@ tasksRouter.delete(
       throw validationError("Invalid dependency id.");
     }
 
+    const payload: TaskDependencyDeleteInput = params.data;
+
     const data = await deleteTaskDependencyCommand({
       actor: request.authSession!.user,
-      payload: params.data
+      payload
     });
 
     response.status(200).json(data);
@@ -382,9 +417,11 @@ tasksRouter.post(
       throw validationError("Invalid task id.");
     }
 
+    const payload: TaskArchiveInput = parsed.data;
+
     const data = await archiveTaskCommand({
       actor: request.authSession!.user,
-      payload: parsed.data
+      payload
     });
 
     response.status(200).json(data);
@@ -406,9 +443,11 @@ tasksRouter.post(
       throw validationError("Invalid task id.");
     }
 
+    const payload: TaskArchiveInput = parsed.data;
+
     const data = await restoreTaskCommand({
       actor: request.authSession!.user,
-      payload: parsed.data
+      payload
     });
 
     response.status(200).json(data);

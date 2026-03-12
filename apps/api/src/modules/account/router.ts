@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import { updateAccountEmailCommand, updateAccountPasswordCommand } from "@salt/domain";
+import type { AccountEmailUpdateInput, AccountPasswordUpdateInput } from "@salt/types";
 import { accountEmailSchema, accountPasswordSchema } from "@salt/validation";
 
 import { AppError } from "../../lib/app-error";
@@ -27,10 +28,12 @@ accountRouter.patch(
       );
     }
 
+    const payload: AccountEmailUpdateInput = parsed.data;
+
     response.status(200).json(
       await updateAccountEmailCommand({
         actor: request.authSession!.user,
-        payload: parsed.data
+        payload
       })
     );
   })
@@ -48,10 +51,12 @@ accountRouter.patch(
       );
     }
 
+    const payload: AccountPasswordUpdateInput = parsed.data;
+
     response.status(200).json(
       await updateAccountPasswordCommand({
         actor: request.authSession!.user,
-        payload: parsed.data
+        payload
       })
     );
   })

@@ -5,6 +5,7 @@ import {
   getMessageThread,
   listMessageThreads
 } from "@salt/domain";
+import type { MessageCreateInput, MessageListFilters } from "@salt/types";
 import {
   messageCreateSchema,
   messageThreadIdParamSchema,
@@ -32,7 +33,9 @@ messagesRouter.get(
       throw validationError("Invalid message query filters.");
     }
 
-    response.status(200).json(await listMessageThreads(parsed.data));
+    const filters: MessageListFilters = parsed.data;
+
+    response.status(200).json(await listMessageThreads(filters));
   })
 );
 
@@ -70,10 +73,12 @@ messagesRouter.post(
       );
     }
 
+    const payload: MessageCreateInput = parsed.data;
+
     response.status(201).json(
       await createMessageCommand({
         actor: request.authSession!.user,
-        payload: parsed.data
+        payload
       })
     );
   })

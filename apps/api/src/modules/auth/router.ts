@@ -8,6 +8,7 @@ import {
   requestPasswordResetCommand,
   resetPasswordWithTokenCommand
 } from "@salt/domain";
+import type { ForgotPasswordInput, ResetPasswordInput } from "@salt/types";
 import {
   forgotPasswordSchema,
   loginSchema,
@@ -85,8 +86,10 @@ authRouter.post(
       );
     }
 
+    const payload: ForgotPasswordInput = parsed.data;
+
     const result = await requestPasswordResetCommand({
-      email: parsed.data.email,
+      email: payload.email,
       baseUrl: apiEnv.WEB_ORIGIN
     });
 
@@ -127,10 +130,12 @@ authRouter.post(
       );
     }
 
+    const payload: ResetPasswordInput = parsed.data;
+
     response.status(200).json(
       await resetPasswordWithTokenCommand({
-        token: parsed.data.token,
-        newPassword: parsed.data.newPassword
+        token: payload.token,
+        newPassword: payload.newPassword
       })
     );
   })

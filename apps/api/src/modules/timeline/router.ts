@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import { getTimelineWorkspace, updateTimelinePhaseCommand } from "@salt/domain";
+import type { TimelinePhaseUpdateInput } from "@salt/types";
 import {
   timelinePhaseIdParamSchema,
   timelinePhaseUpdateSchema
@@ -46,17 +47,19 @@ timelineRouter.patch(
       );
     }
 
+    const payload: TimelinePhaseUpdateInput = {
+      phaseId: parsed.data.phaseId,
+      status: parsed.data.status,
+      notes: parsed.data.notes || null,
+      blockers: parsed.data.blockers || null,
+      startDate: parsed.data.startDate || null,
+      endDate: parsed.data.endDate || null
+    };
+
     response.status(200).json(
       await updateTimelinePhaseCommand({
         actor: request.authSession!.user,
-        payload: {
-          phaseId: parsed.data.phaseId,
-          status: parsed.data.status,
-          notes: parsed.data.notes || null,
-          blockers: parsed.data.blockers || null,
-          startDate: parsed.data.startDate || null,
-          endDate: parsed.data.endDate || null
-        }
+        payload
       })
     );
   })

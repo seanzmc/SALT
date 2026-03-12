@@ -10,6 +10,12 @@ import {
   unlinkDocumentFromTaskCommand,
   uploadDocumentCommand
 } from "@salt/domain";
+import type {
+  DocumentListFilters,
+  DocumentTaskLinkInput,
+  DocumentTaskUnlinkInput,
+  DocumentUploadMetadataInput
+} from "@salt/types";
 import {
   documentIdParamSchema,
   documentListQuerySchema,
@@ -47,7 +53,9 @@ documentsRouter.get(
       throw validationError("Invalid document query filters.");
     }
 
-    response.status(200).json(await listDocuments(parsed.data));
+    const filters: DocumentListFilters = parsed.data;
+
+    response.status(200).json(await listDocuments(filters));
   })
 );
 
@@ -153,15 +161,17 @@ documentsRouter.post(
       );
     }
 
+    const payload: DocumentUploadMetadataInput = {
+      title: parsed.data.title,
+      category: parsed.data.category,
+      notes: parsed.data.notes || null,
+      linkedTaskId: parsed.data.linkedTaskId || null,
+      linkedBudgetItemId: parsed.data.linkedBudgetItemId || null
+    };
+
     const data = await uploadDocumentCommand({
       actor: request.authSession!.user,
-      payload: {
-        title: parsed.data.title,
-        category: parsed.data.category,
-        notes: parsed.data.notes || null,
-        linkedTaskId: parsed.data.linkedTaskId || null,
-        linkedBudgetItemId: parsed.data.linkedBudgetItemId || null
-      },
+      payload,
       file
     });
 
@@ -184,10 +194,12 @@ documentsRouter.post(
       );
     }
 
+    const payload: DocumentTaskLinkInput = parsed.data;
+
     response.status(200).json(
       await linkDocumentToTaskCommand({
         actor: request.authSession!.user,
-        payload: parsed.data
+        payload
       })
     );
   })
@@ -202,10 +214,12 @@ documentsRouter.delete(
       throw validationError("Invalid document-task link.");
     }
 
+    const payload: DocumentTaskUnlinkInput = parsed.data;
+
     response.status(200).json(
       await unlinkDocumentFromTaskCommand({
         actor: request.authSession!.user,
-        payload: parsed.data
+        payload
       })
     );
   })
