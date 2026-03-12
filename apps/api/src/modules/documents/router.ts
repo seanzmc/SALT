@@ -53,7 +53,10 @@ documentsRouter.get(
       throw validationError("Invalid document query filters.");
     }
 
-    const filters: DocumentListFilters = parsed.data;
+    const filters: DocumentListFilters = {
+      q: parsed.data.q,
+      category: parsed.data.category
+    };
 
     response.status(200).json(await listDocuments(filters));
   })
@@ -194,7 +197,10 @@ documentsRouter.post(
       );
     }
 
-    const payload: DocumentTaskLinkInput = parsed.data;
+    const payload: DocumentTaskLinkInput = {
+      documentId: parsed.data.documentId,
+      taskId: parsed.data.taskId
+    };
 
     response.status(200).json(
       await linkDocumentToTaskCommand({
@@ -214,7 +220,10 @@ documentsRouter.delete(
       throw validationError("Invalid document-task link.");
     }
 
-    const payload: DocumentTaskUnlinkInput = parsed.data;
+    const payload: DocumentTaskUnlinkInput = {
+      documentId: parsed.data.documentId,
+      taskId: parsed.data.taskId
+    };
 
     response.status(200).json(
       await unlinkDocumentFromTaskCommand({

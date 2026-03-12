@@ -29,7 +29,9 @@ budgetRouter.get(
       throw validationError("Invalid budget query filters.");
     }
 
-    const filters: BudgetListFilters = parsed.data;
+    const filters: BudgetListFilters = {
+      category: parsed.data.category
+    };
 
     response.status(200).json(await getBudgetWorkspace(filters));
   })

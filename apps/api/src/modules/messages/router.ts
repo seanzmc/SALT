@@ -33,7 +33,11 @@ messagesRouter.get(
       throw validationError("Invalid message query filters.");
     }
 
-    const filters: MessageListFilters = parsed.data;
+    const filters: MessageListFilters = {
+      q: parsed.data.q,
+      scope: parsed.data.scope,
+      category: parsed.data.category
+    };
 
     response.status(200).json(await listMessageThreads(filters));
   })
@@ -73,7 +77,10 @@ messagesRouter.post(
       );
     }
 
-    const payload: MessageCreateInput = parsed.data;
+    const payload: MessageCreateInput = {
+      threadId: parsed.data.threadId,
+      content: parsed.data.content
+    };
 
     response.status(201).json(
       await createMessageCommand({

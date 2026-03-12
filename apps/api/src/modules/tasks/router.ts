@@ -67,7 +67,14 @@ tasksRouter.get(
     }
 
     const filters: TaskListFilters & { currentUserId: string } = {
-      ...parsed.data,
+      q: parsed.data.q,
+      status: parsed.data.status,
+      section: parsed.data.section,
+      priority: parsed.data.priority,
+      assignee: parsed.data.assignee,
+      queue: parsed.data.queue,
+      archived: parsed.data.archived,
+      sort: parsed.data.sort,
       currentUserId: request.authSession!.user.id
     };
 
@@ -183,7 +190,10 @@ tasksRouter.post(
       );
     }
 
-    const payload: TaskCommentCreateInput = parsed.data;
+    const payload: TaskCommentCreateInput = {
+      taskId: parsed.data.taskId,
+      content: parsed.data.content
+    };
 
     const comment = await createTaskCommentCommand({
       actor: request.authSession!.user,
@@ -287,7 +297,9 @@ tasksRouter.delete(
       throw validationError("Invalid checklist item id.");
     }
 
-    const payload: TaskSubtaskDeleteInput = parsed.data;
+    const payload: TaskSubtaskDeleteInput = {
+      subtaskId: parsed.data.subtaskId
+    };
 
     const data = await deleteSubtaskCommand({
       actor: request.authSession!.user,
@@ -313,7 +325,9 @@ tasksRouter.post(
       throw validationError("Invalid checklist item id.");
     }
 
-    const payload: TaskSubtaskArchiveInput = parsed.data;
+    const payload: TaskSubtaskArchiveInput = {
+      subtaskId: parsed.data.subtaskId
+    };
 
     const data = await archiveSubtaskCommand({
       actor: request.authSession!.user,
@@ -339,7 +353,9 @@ tasksRouter.post(
       throw validationError("Invalid checklist item id.");
     }
 
-    const payload: TaskSubtaskArchiveInput = parsed.data;
+    const payload: TaskSubtaskArchiveInput = {
+      subtaskId: parsed.data.subtaskId
+    };
 
     const data = await restoreSubtaskCommand({
       actor: request.authSession!.user,
@@ -371,7 +387,10 @@ tasksRouter.post(
       );
     }
 
-    const payload: TaskDependencyCreateInput = parsed.data;
+    const payload: TaskDependencyCreateInput = {
+      taskId: parsed.data.taskId,
+      dependsOnTaskId: parsed.data.dependsOnTaskId
+    };
 
     const data = await createTaskDependencyCommand({
       actor: request.authSession!.user,
@@ -391,7 +410,10 @@ tasksRouter.delete(
       throw validationError("Invalid dependency id.");
     }
 
-    const payload: TaskDependencyDeleteInput = params.data;
+    const payload: TaskDependencyDeleteInput = {
+      taskId: params.data.taskId,
+      dependsOnTaskId: params.data.dependsOnTaskId
+    };
 
     const data = await deleteTaskDependencyCommand({
       actor: request.authSession!.user,
@@ -417,7 +439,9 @@ tasksRouter.post(
       throw validationError("Invalid task id.");
     }
 
-    const payload: TaskArchiveInput = parsed.data;
+    const payload: TaskArchiveInput = {
+      taskId: parsed.data.taskId
+    };
 
     const data = await archiveTaskCommand({
       actor: request.authSession!.user,
@@ -443,7 +467,9 @@ tasksRouter.post(
       throw validationError("Invalid task id.");
     }
 
-    const payload: TaskArchiveInput = parsed.data;
+    const payload: TaskArchiveInput = {
+      taskId: parsed.data.taskId
+    };
 
     const data = await restoreTaskCommand({
       actor: request.authSession!.user,
