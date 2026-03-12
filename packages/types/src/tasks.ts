@@ -1,4 +1,4 @@
-import type { UserRole } from "./auth";
+import type { UserRole } from "./auth.js";
 
 export const TASK_STATUS_VALUES = [
   "NOT_STARTED",

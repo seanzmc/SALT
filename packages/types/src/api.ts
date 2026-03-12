@@ -1,4 +1,4 @@
-import type { AuthErrorCode } from "./auth";
+import type { AuthErrorCode } from "./auth.js";
 
 export type ApiErrorResponse = {
   error: {

@@ -1,6 +1,6 @@
-import type { MessageResponse } from "./api";
-import type { UserRole } from "./auth";
-import type { TaskStatus } from "./tasks";
+import type { MessageResponse } from "./api.js";
+import type { UserRole } from "./auth.js";
+import type { TaskStatus } from "./tasks.js";
 
 export const ADMIN_RESET_TARGET_VALUES = ["tasks", "subtasks", "all"] as const;
 

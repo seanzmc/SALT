@@ -3,7 +3,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@salt/db";
 import type { DocumentListFilters } from "@salt/types";
 
-import { serializeDocumentListResponse, serializeDocumentWorkspace } from "./serializers";
+import { serializeDocumentListResponse, serializeDocumentWorkspace } from "./serializers.js";
 
 export async function listDocuments(filters: DocumentListFilters = {}) {
   const where: Prisma.DocumentWhereInput = {

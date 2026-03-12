@@ -13,9 +13,9 @@ import type {
   SessionPayload
 } from "@salt/types";
 
-import { logActivity } from "../activity/log";
-import { DomainError } from "../shared/domain-error";
-import { serializeAdminSubtask, serializeAdminTask, serializeAdminUser } from "./serializers";
+import { logActivity } from "../activity/log.js";
+import { DomainError } from "../shared/domain-error.js";
+import { serializeAdminSubtask, serializeAdminTask, serializeAdminUser } from "./serializers.js";
 
 type Actor = SessionPayload["user"];
 

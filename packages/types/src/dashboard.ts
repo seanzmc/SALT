@@ -1,6 +1,6 @@
-import type { DocumentRecord } from "./documents";
-import type { MessageThreadSummary } from "./messages";
-import type { TaskSummary } from "./tasks";
+import type { DocumentRecord } from "./documents.js";
+import type { MessageThreadSummary } from "./messages.js";
+import type { TaskSummary } from "./tasks.js";
 
 export type DashboardTaskPreview = {
   id: string;

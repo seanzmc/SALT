@@ -3,7 +3,7 @@ import { TaskStatus, type Prisma } from "@prisma/client";
 import { prisma } from "@salt/db";
 import type { TaskListFilters } from "@salt/types";
 
-import { serializeTaskListResponse, serializeTaskWorkspace } from "./serializers";
+import { serializeTaskListResponse, serializeTaskWorkspace } from "./serializers.js";
 
 export async function listTasks(filters: TaskListFilters & { currentUserId?: string } = {}) {
   const now = new Date();

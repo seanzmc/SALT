@@ -1,4 +1,4 @@
-import type { UserRole } from "./auth";
+import type { UserRole } from "./auth.js";
 
 export const DOCUMENT_CATEGORY_VALUES = [
   "PERMIT",

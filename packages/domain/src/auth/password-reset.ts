@@ -3,7 +3,7 @@ import { createHash, randomBytes } from "node:crypto";
 
 import { prisma } from "@salt/db";
 
-import { DomainError } from "../shared/domain-error";
+import { DomainError } from "../shared/domain-error.js";
 
 const PASSWORD_RESET_TOKEN_BYTES = 32;
 const PASSWORD_RESET_TTL_MS = 60 * 60 * 1000;

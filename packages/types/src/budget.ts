@@ -1,4 +1,4 @@
-import type { TaskOpeningPriority, TaskPriority } from "./tasks";
+import type { TaskOpeningPriority, TaskPriority } from "./tasks.js";
 
 export const PAYMENT_STATUS_VALUES = [
   "NOT_PAID",

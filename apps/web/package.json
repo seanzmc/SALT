@@ -3,9 +3,12 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "vite",
-    "build": "tsc --project tsconfig.json --noEmit && vite build",
+    "build": "npm run build -w @salt/types && npm run build -w @salt/validation && tsc --project tsconfig.json --noEmit && vite build",
     "typecheck": "tsc --project tsconfig.json --noEmit"
   },
   "dependencies": {

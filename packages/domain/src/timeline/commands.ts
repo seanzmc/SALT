@@ -1,9 +1,9 @@
 import { prisma } from "@salt/db";
 import type { SessionPayload, TimelinePhaseUpdateInput } from "@salt/types";
 
-import { logActivity } from "../activity/log";
-import { DomainError } from "../shared/domain-error";
-import { serializeTimelinePhase } from "./serializers";
+import { logActivity } from "../activity/log.js";
+import { DomainError } from "../shared/domain-error.js";
+import { serializeTimelinePhase } from "./serializers.js";
 
 type Actor = SessionPayload["user"];
 

@@ -1,4 +1,4 @@
-import type { TaskStatus } from "./tasks";
+import type { TaskStatus } from "./tasks.js";
 
 export const TIMELINE_PHASE_STATUS_VALUES = [
   "NOT_STARTED",

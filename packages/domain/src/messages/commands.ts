@@ -1,9 +1,9 @@
 import { prisma } from "@salt/db";
 import type { MessageCreateInput, SessionPayload } from "@salt/types";
 
-import { logActivity } from "../activity/log";
-import { DomainError } from "../shared/domain-error";
-import { getMessageThread } from "./queries";
+import { logActivity } from "../activity/log.js";
+import { DomainError } from "../shared/domain-error.js";
+import { getMessageThread } from "./queries.js";
 
 type Actor = SessionPayload["user"];
 

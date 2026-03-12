@@ -1,7 +1,7 @@
 import { prisma } from "@salt/db";
 import type { BudgetListFilters, BudgetWorkspaceData } from "@salt/types";
 
-import { serializeBudgetWorkspace } from "./serializers";
+import { serializeBudgetWorkspace } from "./serializers.js";
 
 export async function getBudgetWorkspace(
   filters: BudgetListFilters = {}

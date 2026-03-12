@@ -1,9 +1,9 @@
 import { prisma } from "@salt/db";
 import type { BudgetItemUpdateInput, SessionPayload } from "@salt/types";
 
-import { logActivity } from "../activity/log";
-import { DomainError } from "../shared/domain-error";
-import { serializeBudgetItem } from "./serializers";
+import { logActivity } from "../activity/log.js";
+import { DomainError } from "../shared/domain-error.js";
+import { serializeBudgetItem } from "./serializers.js";
 
 type Actor = SessionPayload["user"];
 

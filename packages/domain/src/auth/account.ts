@@ -7,7 +7,7 @@ import type {
   SessionPayload
 } from "@salt/types";
 
-import { DomainError } from "../shared/domain-error";
+import { DomainError } from "../shared/domain-error.js";
 
 type Actor = SessionPayload["user"];
 

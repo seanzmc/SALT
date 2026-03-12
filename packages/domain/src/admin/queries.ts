@@ -3,7 +3,7 @@ import { TaskStatus } from "@prisma/client";
 import { prisma } from "@salt/db";
 import type { AdminSetupData } from "@salt/types";
 
-import { serializeAdminSetupData } from "./serializers";
+import { serializeAdminSetupData } from "./serializers.js";
 
 export async function getAdminSetupData(): Promise<AdminSetupData> {
   const [users, activeAssignmentUsers, tasks, subtasks] = await Promise.all([

@@ -3,7 +3,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@salt/db";
 import type { MessageListFilters } from "@salt/types";
 
-import { serializeMessageThread, serializeMessageThreadListResponse } from "./serializers";
+import { serializeMessageThread, serializeMessageThreadListResponse } from "./serializers.js";
 
 export async function listMessageThreads(filters: MessageListFilters = {}) {
   const where: Prisma.MessageThreadWhereInput = {

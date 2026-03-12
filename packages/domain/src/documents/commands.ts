@@ -6,11 +6,11 @@ import type {
   SessionPayload
 } from "@salt/types";
 
-import { logActivity } from "../activity/log";
-import { DomainError } from "../shared/domain-error";
-import { canEditTask } from "../tasks/policies";
-import { getDocumentWorkspace } from "./queries";
-import { saveUploadedFile } from "./storage";
+import { logActivity } from "../activity/log.js";
+import { DomainError } from "../shared/domain-error.js";
+import { canEditTask } from "../tasks/policies.js";
+import { getDocumentWorkspace } from "./queries.js";
+import { saveUploadedFile } from "./storage.js";
 
 type Actor = SessionPayload["user"];
 

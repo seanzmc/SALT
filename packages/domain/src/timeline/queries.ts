@@ -1,7 +1,7 @@
 import { prisma } from "@salt/db";
 import type { TimelineWorkspaceData } from "@salt/types";
 
-import { serializeTimelineWorkspace } from "./serializers";
+import { serializeTimelineWorkspace } from "./serializers.js";
 
 export async function getTimelineWorkspace(): Promise<TimelineWorkspaceData> {
   const phases = await prisma.timelinePhase.findMany({

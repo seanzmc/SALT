@@ -17,10 +17,10 @@ import type {
   TaskWorkspaceUpdateInput
 } from "@salt/types";
 
-import { logActivity } from "../activity/log";
-import { DomainError } from "../shared/domain-error";
-import { canEditSubtask, canEditTask } from "./policies";
-import { getTaskWorkspace } from "./queries";
+import { logActivity } from "../activity/log.js";
+import { DomainError } from "../shared/domain-error.js";
+import { canEditSubtask, canEditTask } from "./policies.js";
+import { getTaskWorkspace } from "./queries.js";
 
 type Actor = SessionPayload["user"];
 
