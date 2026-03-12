@@ -80,28 +80,32 @@ export function BulkActionsPanel({
 
   if (selectedCount === 0) {
     return (
-      <section className="rounded-[1.5rem] border border-dashed border-border bg-card/70 p-4 text-sm text-muted-foreground shadow-sm">
-        Select tasks from the current queue to apply owner-only bulk actions. {visibleCount} task
-        {visibleCount === 1 ? "" : "s"} visible.
-      </section>
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-[1.25rem] border border-dashed border-border bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
+        <p>
+          Owner bulk actions become available after selecting tasks from the visible queue.
+        </p>
+        <span>
+          {visibleCount} visible task{visibleCount === 1 ? "" : "s"}
+        </span>
+      </div>
     );
   }
 
   return (
-    <section className="rounded-[1.5rem] border border-border bg-card/90 p-5 shadow-sm">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <div className="rounded-[1.25rem] border border-border/80 bg-muted/18 px-4 py-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-sm font-semibold">Bulk task actions</p>
+          <p className="font-medium text-foreground">Bulk task actions</p>
           <p className="text-sm text-muted-foreground">
-            Apply targeted owner-only updates without leaving the queue.
+            Apply owner-only changes without leaving the queue.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
+          <span className="rounded-full bg-white px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
             {selectedCount} selected
           </span>
           <button
-            className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground hover:bg-muted"
+            className="rounded-full border border-border bg-white px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted"
             onClick={onClearSelection}
             type="button"
           >
@@ -118,11 +122,11 @@ export function BulkActionsPanel({
         }}
       >
         <label className="space-y-2">
-          <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
             Action
           </span>
           <select
-            className="w-full rounded-2xl border border-border bg-card px-4 py-3"
+            className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
             onChange={(event) =>
               setValues((current) => ({
                 ...current,
@@ -141,11 +145,11 @@ export function BulkActionsPanel({
 
         {values.action === "assign" ? (
           <label className="space-y-2">
-            <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
               Owner
             </span>
             <select
-              className="w-full rounded-2xl border border-border bg-card px-4 py-3"
+              className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
               onChange={(event) =>
                 setValues((current) => ({
                   ...current,
@@ -167,11 +171,11 @@ export function BulkActionsPanel({
         {values.action === "status" ? (
           <>
             <label className="space-y-2">
-              <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                 Status
               </span>
               <select
-                className="w-full rounded-2xl border border-border bg-card px-4 py-3"
+                className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
                 onChange={(event) =>
                   setValues((current) => ({
                     ...current,
@@ -189,11 +193,11 @@ export function BulkActionsPanel({
 
             {values.status === "BLOCKED" ? (
               <label className="space-y-2 md:col-span-2">
-                <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                   Blocked reason
                 </span>
                 <input
-                  className="w-full rounded-2xl border border-border bg-card px-4 py-3"
+                  className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
                   onChange={(event) =>
                     setValues((current) => ({
                       ...current,
@@ -209,11 +213,11 @@ export function BulkActionsPanel({
 
         {values.action === "priority" ? (
           <label className="space-y-2">
-            <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
               Priority
             </span>
             <select
-              className="w-full rounded-2xl border border-border bg-card px-4 py-3"
+              className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
               onChange={(event) =>
                 setValues((current) => ({
                   ...current,
@@ -232,11 +236,11 @@ export function BulkActionsPanel({
 
         {values.action === "setDueDate" ? (
           <label className="space-y-2">
-            <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
               Due date
             </span>
             <input
-              className="w-full rounded-2xl border border-border bg-card px-4 py-3"
+              className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
               onChange={(event) =>
                 setValues((current) => ({
                   ...current,
@@ -251,16 +255,16 @@ export function BulkActionsPanel({
 
         <div className="flex items-end">
           <button
-            className="w-full rounded-2xl bg-primary px-4 py-3 text-sm font-medium text-primary-foreground disabled:opacity-60"
+            className="w-full rounded-[1rem] bg-primary px-4 py-3 text-sm font-medium text-primary-foreground disabled:opacity-60"
             disabled={isPending}
             type="submit"
           >
-            {isPending ? "Applying…" : "Apply bulk action"}
+            {isPending ? "Applying..." : "Apply bulk action"}
           </button>
         </div>
       </form>
 
       {error ? <p className="mt-3 text-sm text-red-700">{error}</p> : null}
-    </section>
+    </div>
   );
 }

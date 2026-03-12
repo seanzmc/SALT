@@ -1,4 +1,4 @@
-import { compare } from "bcryptjs";
+import bcrypt from "bcryptjs";
 
 import { prisma } from "@salt/db";
 import type { SessionPayload } from "@salt/types";
@@ -21,7 +21,7 @@ export async function authenticateWithCredentials(email: string, password: strin
     return null;
   }
 
-  const passwordMatches = await compare(password, user.passwordHash);
+  const passwordMatches = await bcrypt.compare(password, user.passwordHash);
 
   if (!passwordMatches) {
     return null;

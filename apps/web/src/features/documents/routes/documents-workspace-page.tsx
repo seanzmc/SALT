@@ -1,9 +1,14 @@
-import { useDeferredValue, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { DocumentRecord, DocumentWorkspaceData } from "@salt/types";
-import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import { ApiClientError } from "../../../lib/api-client";
+import { SlideOverPanel } from "../../../app/components/slide-over-panel";
+import {
+  WorkspacePageHeader,
+  WorkspaceSurface
+} from "../../../app/components/workspace-page";
 import { useToast } from "../../../app/providers/toast-provider";
 import { useAuthSessionQuery } from "../../auth/hooks/use-auth-session-query";
 import {
@@ -41,6 +46,8 @@ export function DocumentsWorkspacePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [uploadError, setUploadError] = useState<string>();
   const [linkError, setLinkError] = useState<string>();
+  const [showUploadPanel, setShowUploadPanel] = useState(false);
+  const [documentShelfExpanded, setDocumentShelfExpanded] = useState(false);
   const toast = useToast();
   const sessionQuery = useAuthSessionQuery();
 
@@ -84,6 +91,7 @@ export function DocumentsWorkspacePage() {
       queryClient.setQueryData(documentQueryKeys.detail(data.document.id), data);
       await queryClient.invalidateQueries({ queryKey: documentQueryKeys.lists() });
       toast.success("Document uploaded", data.document.title);
+      setShowUploadPanel(false);
       navigate({
         pathname: `/documents/${data.document.id}`,
         search: buildDocumentSearchParams(searchState).toString()
@@ -219,6 +227,12 @@ export function DocumentsWorkspacePage() {
   const search = buildDocumentSearchParams(searchState).toString();
   const documents = documentsQuery.data?.documents ?? [];
 
+  useEffect(() => {
+    if (!selectedDocumentId) {
+      setDocumentShelfExpanded(false);
+    }
+  }, [selectedDocumentId]);
+
   function prefetchDocument(documentId: string) {
     void queryClient.prefetchQuery({
       queryKey: documentQueryKeys.detail(documentId),
@@ -228,152 +242,167 @@ export function DocumentsWorkspacePage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[2rem] border border-border bg-white/85 p-6 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.4)] backdrop-blur">
-        <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Documents v2</p>
-        <h2 className="mt-2 text-3xl font-semibold">Protected document flow</h2>
-        <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-          Query-driven document search, authenticated open/download, and task linking on the new
-          SPA/API stack.
-        </p>
-      </section>
-
-      <DocumentUploadPanel
-        budgetItems={documentsQuery.data?.budgetItems ?? []}
-        error={uploadError}
-        isUploading={uploadMutation.isPending}
-        onSubmit={async (payload) => {
-          await uploadMutation.mutateAsync(payload);
-        }}
-        tasks={documentsQuery.data?.tasks ?? []}
+      <WorkspacePageHeader
+        actions={
+          <button
+            className="rounded-full border border-border bg-white px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
+            onClick={() => setShowUploadPanel((current) => !current)}
+            type="button"
+          >
+            {showUploadPanel ? "Hide upload" : "Upload document"}
+          </button>
+        }
+        description="Keep document discovery, upload, and task linking inside one vault surface. Opening a file slides the same document shelf over the workspace."
+        eyebrow="Documents"
+        title="Document workspace"
       />
 
-      <section className="rounded-[1.75rem] border border-border bg-white/85 p-5 shadow-sm backdrop-blur">
-        <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_14rem]">
-          <label className="space-y-2">
-            <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-              Search
-            </span>
-            <input
-              className="w-full rounded-2xl border border-border bg-card px-4 py-3"
-              onChange={(event) =>
-                setSearchParams(updateDocumentsSearchState(searchParams, { q: event.target.value }), {
-                  replace: true
-                })
-              }
-              placeholder="Search title, notes, or original file name"
-              type="search"
-              value={searchState.q}
-            />
-          </label>
+      <WorkspaceSurface
+        actions={
+          <span className="rounded-full bg-muted px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+            {documents.length} visible
+          </span>
+        }
+        bodyClassName="space-y-4"
+        description="Choose a file first, then confirm metadata and links. Search and category filters stay attached to the vault list they control."
+        title="Document vault"
+        toolbar={
+          <div className="space-y-4">
+            {showUploadPanel ? (
+              <DocumentUploadPanel
+                budgetItems={documentsQuery.data?.budgetItems ?? []}
+                error={uploadError}
+                isUploading={uploadMutation.isPending}
+                onClose={() => setShowUploadPanel(false)}
+                onSubmit={async (payload) => {
+                  await uploadMutation.mutateAsync(payload);
+                }}
+                tasks={documentsQuery.data?.tasks ?? []}
+              />
+            ) : null}
 
-          <label className="space-y-2">
-            <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-              Category
-            </span>
-            <select
-              className="w-full rounded-2xl border border-border bg-card px-4 py-3"
-              onChange={(event) =>
-                setSearchParams(
-                  updateDocumentsSearchState(searchParams, {
-                    category: event.target.value as any
-                  })
-                )
-              }
-              value={searchState.category}
-            >
-              <option value="">All categories</option>
-              {[
-                "PERMIT",
-                "CONTRACT",
-                "INSURANCE",
-                "VENDOR_QUOTE",
-                "EQUIPMENT_SPEC",
-                "FLOOR_PLAN",
-                "INSPECTION_RECORD",
-                "POLICY_MANUAL",
-                "COMPLIANCE_DOCUMENT",
-                "INVOICE",
-                "PHOTO",
-                "OTHER"
-              ].map((category) => (
-                <option key={category} value={category}>
-                  {category.replaceAll("_", " ")}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-      </section>
+            <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_14rem]">
+              <label className="space-y-2">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                  Search
+                </span>
+                <input
+                  className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
+                  onChange={(event) =>
+                    setSearchParams(
+                      updateDocumentsSearchState(searchParams, { q: event.target.value }),
+                      {
+                        replace: true
+                      }
+                    )
+                  }
+                  placeholder="Search title, notes, or original file name"
+                  type="search"
+                  value={searchState.q}
+                />
+              </label>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,28rem)_minmax(0,1fr)] xl:items-start">
-        <div className="space-y-4">
-          {documentsQuery.error instanceof ApiClientError ? (
-            <div className="rounded-[1.75rem] border border-red-200 bg-red-50 p-5 text-sm text-red-700">
-              {documentsQuery.error.message}
+              <label className="space-y-2">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                  Category
+                </span>
+                <select
+                  className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
+                  onChange={(event) =>
+                    setSearchParams(
+                      updateDocumentsSearchState(searchParams, {
+                        category: event.target.value as any
+                      })
+                    )
+                  }
+                  value={searchState.category}
+                >
+                  <option value="">All categories</option>
+                  {[
+                    "PERMIT",
+                    "CONTRACT",
+                    "INSURANCE",
+                    "VENDOR_QUOTE",
+                    "EQUIPMENT_SPEC",
+                    "FLOOR_PLAN",
+                    "INSPECTION_RECORD",
+                    "POLICY_MANUAL",
+                    "COMPLIANCE_DOCUMENT",
+                    "INVOICE",
+                    "PHOTO",
+                    "OTHER"
+                  ].map((category) => (
+                    <option key={category} value={category}>
+                      {category.replaceAll("_", " ")}
+                    </option>
+                  ))}
+                </select>
+              </label>
             </div>
-          ) : null}
-
+          </div>
+        }
+      >
+        {documentsQuery.isLoading ? (
+          <div className="rounded-[1.25rem] border border-border bg-muted/20 px-4 py-8 text-sm text-muted-foreground">
+            Loading document vault...
+          </div>
+        ) : documentsQuery.error instanceof ApiClientError ? (
+          <div className="rounded-[1.25rem] border border-red-200 bg-red-50 px-4 py-4 text-sm text-red-700">
+            {documentsQuery.error.message}
+          </div>
+        ) : (
           <DocumentListPanel
             activeDocumentId={selectedDocumentId}
             documents={documents}
             onPrefetchDocument={prefetchDocument}
             search={search ? `?${search}` : ""}
           />
-        </div>
+        )}
+      </WorkspaceSurface>
 
-        <div className="min-w-0">
-          {selectedDocumentId ? (
-            documentQuery.isLoading ? (
-              <section className="rounded-[1.75rem] border border-border bg-card/90 p-5 text-sm text-muted-foreground shadow-sm xl:sticky xl:top-6">
-                Loading document…
-              </section>
-            ) : documentQuery.data && currentUser ? (
-              <DocumentShelf
-                currentUser={currentUser}
-                data={documentQuery.data}
-                error={linkError}
-                isSaving={linkMutation.isPending || unlinkMutation.isPending}
-                onClose={() =>
-                  navigate({
-                    pathname: "/documents",
-                    search
-                  })
-                }
-                onLinkTask={async (payload) => {
-                  await linkMutation.mutateAsync(payload);
-                }}
-                onUnlinkTask={async (payload) => {
-                  await unlinkMutation.mutateAsync(payload);
-                }}
-              />
-            ) : (
-              <section className="rounded-[1.75rem] border border-border bg-card/90 p-5 text-sm text-muted-foreground shadow-sm">
-                Document unavailable.
-              </section>
-            )
+      <SlideOverPanel
+        expanded={documentShelfExpanded}
+        onClose={() =>
+          navigate({
+            pathname: "/documents",
+            search
+          })
+        }
+        open={Boolean(selectedDocumentId)}
+      >
+        {selectedDocumentId ? (
+          documentQuery.isLoading ? (
+            <div className="flex h-full items-center justify-center px-6 py-8 text-sm text-muted-foreground">
+              Loading document...
+            </div>
+          ) : documentQuery.data && currentUser ? (
+            <DocumentShelf
+              currentUser={currentUser}
+              data={documentQuery.data}
+              error={linkError}
+              isExpanded={documentShelfExpanded}
+              isSaving={linkMutation.isPending || unlinkMutation.isPending}
+              onClose={() =>
+                navigate({
+                  pathname: "/documents",
+                  search
+                })
+              }
+              onLinkTask={async (payload) => {
+                await linkMutation.mutateAsync(payload);
+              }}
+              onToggleExpanded={() => setDocumentShelfExpanded((current) => !current)}
+              onUnlinkTask={async (payload) => {
+                await unlinkMutation.mutateAsync(payload);
+              }}
+            />
           ) : (
-            <section className="flex min-h-[24rem] items-center justify-center rounded-[1.75rem] border border-dashed border-border bg-card/80 p-8 text-center shadow-sm xl:sticky xl:top-6">
-              <div>
-                <p className="font-medium">Select a document to review protected access and links.</p>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  The left list stays stable while the right shelf handles downloads and task links.
-                </p>
-                {documents[0] ? (
-                  <Link
-                    className="mt-4 inline-flex rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
-                    to={{
-                      pathname: `/documents/${documents[0].id}`,
-                      search
-                    }}
-                  >
-                    Open first visible document
-                  </Link>
-                ) : null}
-              </div>
-            </section>
-          )}
-        </div>
-      </div>
+            <div className="flex h-full items-center justify-center px-6 py-8 text-sm text-muted-foreground">
+              Document unavailable.
+            </div>
+          )
+        ) : null}
+      </SlideOverPanel>
     </div>
   );
 }

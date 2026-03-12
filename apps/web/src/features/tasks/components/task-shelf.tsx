@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { Link } from "react-router-dom";
 import type {
   SessionPayload,
   TaskArchiveInput,
@@ -20,7 +21,9 @@ import { z } from "zod";
 type TaskShelfProps = {
   currentUser: SessionPayload["user"];
   data: TaskWorkspaceData;
+  isExpanded: boolean;
   onClose: () => void;
+  onToggleExpanded: () => void;
   onNext?: () => void;
   onPrevious?: () => void;
   onSubmitTaskUpdate: (payload: TaskWorkspaceUpdateInput) => Promise<void>;
@@ -153,7 +156,7 @@ function SubtaskCard({
     <form
       className={[
         "rounded-[1.25rem] border p-4",
-        subtask.archivedAt ? "border-border bg-muted/35" : "border-border bg-card"
+        subtask.archivedAt ? "border-border bg-muted/35" : "border-border bg-white"
       ].join(" ")}
       onSubmit={form.handleSubmit(async (values) => {
         await onSubmit({
@@ -170,8 +173,12 @@ function SubtaskCard({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-sm font-medium">{subtask.title}</p>
-          <p className="text-xs text-muted-foreground">
-            Due {formatDate(subtask.dueDate)} • {subtask.assignedTo?.name ?? "Unassigned"}
+          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+            Checklist item
+          </p>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Due {formatDate(subtask.dueDate)} • {subtask.assignedTo?.name ?? "Unassigned"} • Task
+            assignee {taskAssignedToId === currentUser.id ? "you" : "visible in parent context"}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -246,6 +253,17 @@ function SubtaskCard({
             ))}
           </select>
         </label>
+
+        <label className="space-y-2 md:col-span-2">
+          <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+            Notes
+          </span>
+          <textarea
+            className="min-h-24 w-full rounded-2xl border border-border bg-white px-4 py-3 disabled:bg-muted"
+            disabled={!canEdit}
+            {...form.register("notes")}
+          />
+        </label>
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
@@ -295,7 +313,9 @@ function SubtaskCard({
 export function TaskShelf({
   currentUser,
   data,
+  isExpanded,
   onClose,
+  onToggleExpanded,
   onNext,
   onPrevious,
   onSubmitTaskUpdate,
@@ -378,7 +398,7 @@ export function TaskShelf({
 
   if (!task) {
     return (
-      <section className="rounded-[1.75rem] border border-border bg-card/90 p-5 shadow-sm">
+      <section className="rounded-[1.5rem] border border-border bg-white p-5 shadow-sm">
         <p className="font-medium">Task unavailable.</p>
         <p className="mt-2 text-sm text-muted-foreground">
           This task may have been removed or is outside the current workspace context.
@@ -398,8 +418,8 @@ export function TaskShelf({
   );
 
   return (
-    <section className="rounded-[1.75rem] border border-border bg-card/95 shadow-[0_24px_70px_-36px_rgba(15,23,42,0.45)] xl:sticky xl:top-6">
-      <div className="border-b border-border px-5 py-4">
+    <div className="flex h-full flex-col">
+      <div className="border-b border-border/80 px-5 py-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
@@ -417,6 +437,13 @@ export function TaskShelf({
                 Archived
               </span>
             ) : null}
+            <button
+              className="rounded-full border border-border px-3 py-2 text-sm text-muted-foreground hover:bg-muted"
+              onClick={onToggleExpanded}
+              type="button"
+            >
+              {isExpanded ? "Standard width" : "Expand"}
+            </button>
             <button
               className="rounded-full border border-border px-3 py-2 text-sm text-muted-foreground hover:bg-muted"
               onClick={onClose}
@@ -444,7 +471,7 @@ export function TaskShelf({
         </div>
       </div>
 
-      <div className="space-y-6 p-5">
+      <div className="flex-1 space-y-6 overflow-y-auto p-5">
         <form
           className="space-y-4 rounded-[1.5rem] border border-border bg-white p-4"
           onSubmit={taskForm.handleSubmit(async (values) => {
@@ -704,7 +731,8 @@ export function TaskShelf({
             <div>
               <p className="font-semibold">Checklist</p>
               <p className="text-sm text-muted-foreground">
-                Create, update, archive, and restore checklist items inside the same workspace.
+                Create, update, archive, and restore checklist items while staying inside the same
+                task context.
               </p>
             </div>
             <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
@@ -734,6 +762,17 @@ export function TaskShelf({
                   className="w-full rounded-2xl border border-border bg-white px-4 py-3"
                   placeholder="Add a checklist item"
                   {...createSubtaskForm.register("title")}
+                />
+              </label>
+
+              <label className="space-y-2 md:col-span-2">
+                <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                  Notes
+                </span>
+                <textarea
+                  className="min-h-24 w-full rounded-2xl border border-border bg-white px-4 py-3"
+                  placeholder="Add completion criteria, install notes, or handoff context"
+                  {...createSubtaskForm.register("notes")}
                 />
               </label>
 
@@ -832,6 +871,48 @@ export function TaskShelf({
         </section>
 
         <section className="rounded-[1.5rem] border border-border bg-white p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="font-semibold">Documents</p>
+              <p className="text-sm text-muted-foreground">
+                Supporting files linked to this task open in the shared document shelf.
+              </p>
+            </div>
+            <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
+              {task.attachments.length} linked
+            </span>
+          </div>
+
+          <div className="mt-4 space-y-3">
+            {task.attachments.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-border bg-muted/35 p-4 text-sm text-muted-foreground">
+                No documents linked to this task yet.
+              </div>
+            ) : (
+              task.attachments.map((document) => (
+                <Link
+                  key={document.id}
+                  className="block rounded-2xl border border-border p-4 transition hover:bg-muted/40"
+                  to={`/documents/${document.id}`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-medium text-foreground">{document.title}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {document.category.replaceAll("_", " ")} • {document.originalName}
+                      </p>
+                    </div>
+                    <span className="rounded-full border border-border px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+                      Open
+                    </span>
+                  </div>
+                </Link>
+              ))
+            )}
+          </div>
+        </section>
+
+        <section className="rounded-[1.5rem] border border-border bg-white p-4">
           <p className="font-semibold">Comments</p>
           <form
             className="mt-4 space-y-3"
@@ -885,6 +966,6 @@ export function TaskShelf({
           </div>
         </section>
       </div>
-    </section>
+    </div>
   );
 }

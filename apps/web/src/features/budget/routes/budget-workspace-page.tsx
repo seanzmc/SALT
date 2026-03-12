@@ -8,6 +8,10 @@ import type {
 import { useSearchParams } from "react-router-dom";
 
 import { ApiClientError } from "../../../lib/api-client";
+import {
+  WorkspacePageHeader,
+  WorkspaceSurface
+} from "../../../app/components/workspace-page";
 import { useToast } from "../../../app/providers/toast-provider";
 import { useAuthSessionQuery } from "../../auth/hooks/use-auth-session-query";
 import { budgetQueryKeys } from "../lib/query-keys";
@@ -136,76 +140,87 @@ export function BudgetWorkspacePage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[2rem] border border-border bg-white/85 p-6 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.4)] backdrop-blur">
-        <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Budget v2</p>
-        <h2 className="mt-2 text-3xl font-semibold">Operational spending workspace</h2>
-        <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-          Category-filtered budget tracking with inline actuals, payment status updates, and the
-          same budget formulas as the legacy SALT control surface.
-        </p>
-      </section>
-
-      {budgetQuery.data ? <BudgetSummaryCards totals={budgetQuery.data.totals} /> : null}
-
-      <section className="rounded-[1.75rem] border border-border bg-white/85 p-5 shadow-sm backdrop-blur">
-        <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto]">
-          <label className="space-y-2">
-            <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-              Category
-            </span>
-            <select
-              className="w-full rounded-2xl border border-border bg-card px-4 py-3"
-              onChange={(event) =>
-                setSearchParams(
-                  updateBudgetSearchState(searchParams, {
-                    category: event.target.value
-                  })
-                )
-              }
-              value={searchState.category}
-            >
-              <option value="">All categories</option>
-              {(budgetQuery.data?.categories ?? []).map((category) => (
-                <option key={category.id} value={category.slug}>
-                  {category.title}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-      </section>
+      <WorkspacePageHeader
+        description="Budget lines are grouped into structured financial records instead of unlabeled edit cells. Category filtering stays attached to the spend list, and row updates clearly separate context from editable fields."
+        eyebrow="Budget"
+        title="Budget workspace"
+      />
 
       {saveError ? (
-        <section className="rounded-[1.5rem] border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+        <section className="rounded-[1.25rem] border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
           {saveError}
         </section>
       ) : null}
 
       {budgetQuery.isLoading ? (
-        <section className="rounded-[1.75rem] border border-border bg-white/85 p-6 text-sm text-muted-foreground shadow-sm backdrop-blur">
-          Loading budget workspace…
-        </section>
+        <WorkspaceSurface bodyClassName="text-sm text-muted-foreground" title="Budget lines">
+          Loading budget workspace...
+        </WorkspaceSurface>
       ) : budgetQuery.error instanceof ApiClientError ? (
-        <section className="rounded-[1.75rem] border border-rose-200 bg-rose-50 p-6 text-sm text-rose-700">
-          {budgetQuery.error.message}
-        </section>
+        <WorkspaceSurface bodyClassName="p-0" title="Budget lines">
+          <div className="rounded-[1.25rem] border border-rose-200 bg-rose-50 px-4 py-4 text-sm text-rose-700">
+            {budgetQuery.error.message}
+          </div>
+        </WorkspaceSurface>
       ) : budgetQuery.data ? (
         budgetQuery.data.items.length === 0 ? (
-          <section className="rounded-[1.75rem] border border-dashed border-border bg-card/80 p-8 text-center shadow-sm">
-            <p className="font-medium">No budget items match this filter.</p>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Try a different category or clear the filter to see the full budget.
-            </p>
-          </section>
+          <WorkspaceSurface
+            bodyClassName="text-center"
+            description="Try a different category or clear the filter to see the full budget."
+            title="Budget lines"
+          >
+            <div className="rounded-[1.25rem] border border-dashed border-border bg-muted/20 px-4 py-8">
+              <p className="font-medium text-foreground">No budget items match this filter.</p>
+            </div>
+          </WorkspaceSurface>
         ) : (
-          <BudgetTable
-            items={budgetQuery.data.items}
-            onSave={async (payload: BudgetItemUpdateInput) => {
-              await updateMutation.mutateAsync(payload);
-            }}
-            role={sessionQuery.data?.user.role}
-            savingItemId={updateMutation.variables?.itemId}
-          />
+          <WorkspaceSurface
+            actions={
+              <span className="rounded-full bg-muted px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+                {budgetQuery.data.items.length} lines
+              </span>
+            }
+            bodyClassName="space-y-6"
+            description="Each line shows its current financial signal on the left and a structured update form on the right."
+            title="Budget lines"
+            toolbar={
+              <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto]">
+                <label className="space-y-2">
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                    Category
+                  </span>
+                  <select
+                    className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
+                    onChange={(event) =>
+                      setSearchParams(
+                        updateBudgetSearchState(searchParams, {
+                          category: event.target.value
+                        })
+                      )
+                    }
+                    value={searchState.category}
+                  >
+                    <option value="">All categories</option>
+                    {(budgetQuery.data.categories ?? []).map((category) => (
+                      <option key={category.id} value={category.slug}>
+                        {category.title}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            }
+          >
+            <BudgetSummaryCards totals={budgetQuery.data.totals} />
+            <BudgetTable
+              items={budgetQuery.data.items}
+              onSave={async (payload: BudgetItemUpdateInput) => {
+                await updateMutation.mutateAsync(payload);
+              }}
+              role={sessionQuery.data?.user.role}
+              savingItemId={updateMutation.variables?.itemId}
+            />
+          </WorkspaceSurface>
         )
       ) : null}
     </div>

@@ -17,9 +17,14 @@ import type {
   TaskWorkspaceSubtask,
   TaskWorkspaceUpdateInput
 } from "@salt/types";
-import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import { ApiClientError } from "../../../lib/api-client";
+import { SlideOverPanel } from "../../../app/components/slide-over-panel";
+import {
+  WorkspacePageHeader,
+  WorkspaceSurface
+} from "../../../app/components/workspace-page";
 import { useToast } from "../../../app/providers/toast-provider";
 import { useAuthSessionQuery } from "../../auth/hooks/use-auth-session-query";
 import {
@@ -314,6 +319,7 @@ export function TasksWorkspacePage() {
   const [dependencyError, setDependencyError] = useState<string>();
   const [archiveError, setArchiveError] = useState<string>();
   const [bulkError, setBulkError] = useState<string>();
+  const [taskShelfExpanded, setTaskShelfExpanded] = useState(false);
   const toast = useToast();
   const sessionQuery = useAuthSessionQuery();
 
@@ -349,8 +355,22 @@ export function TasksWorkspacePage() {
   const showBoardView = searchState.view === "board" && searchState.archived === "active";
 
   useEffect(() => {
-    setSelectedTaskIds((current) => current.filter((taskId) => visibleTaskIdSet.has(taskId)));
+    setSelectedTaskIds((current) => {
+      const next = current.filter((taskId) => visibleTaskIdSet.has(taskId));
+
+      if (next.length === current.length && next.every((taskId, index) => taskId === current[index])) {
+        return current;
+      }
+
+      return next;
+    });
   }, [visibleTaskIdSet]);
+
+  useEffect(() => {
+    if (!selectedTaskId) {
+      setTaskShelfExpanded(false);
+    }
+  }, [selectedTaskId]);
 
   function replaceCurrentListTask(task: TaskSummary) {
     queryClient.setQueryData<TaskListResponse>(currentListKey, (current) =>
@@ -1239,213 +1259,204 @@ export function TasksWorkspacePage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[2rem] border border-border bg-white/85 p-6 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.4)] backdrop-blur">
-        <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-          Tasks Workspace v2
-        </p>
-        <h2 className="mt-2 text-3xl font-semibold">Fast, stable task flow</h2>
-        <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-          The queue stays anchored while subtasks, dependencies, archive state, comments, and
-          owner-only bulk actions all stay inside the SPA workspace.
-        </p>
-      </section>
-
-      <WorkspaceFilters
-        archived={searchState.archived}
-        assignee={searchState.assignee}
-        currentUserId={currentUser?.id ?? ""}
-        onChange={setSearchStatePatch}
-        onReset={handleReset}
-        priority={searchState.priority}
-        q={searchState.q}
-        queue={searchState.queue}
-        queueCounts={
-          taskListQuery.data?.queueCounts ?? {
-            all: 0,
-            myWork: 0,
-            overdue: 0,
-            upcoming: 0,
-            blocked: 0,
-            unassigned: 0,
-            stale: 0
-          }
-        }
-        sections={taskListQuery.data?.sections ?? []}
-        section={searchState.section}
-        sort={searchState.sort}
-        status={searchState.status}
-        users={taskListQuery.data?.users ?? []}
-        view={searchState.view}
+      <WorkspacePageHeader
+        description="Keep the task queue anchored while search, filters, bulk actions, dependencies, checklist work, comments, and documents all stay connected to one universal shelf."
+        eyebrow="Tasks"
+        title="Task workspace"
       />
 
-      {currentUser?.role === "OWNER_ADMIN" ? (
-        <BulkActionsPanel
-          archiveView={searchState.archived}
-          error={bulkError}
-          isPending={bulkMutation.isPending}
-          onClearSelection={() => setSelectedTaskIds([])}
-          onSubmit={async (values) => {
-            await bulkMutation.mutateAsync({
-              taskIds: selectedTaskIds,
-              action: values.action,
-              assignedToId: values.assignedToId || null,
-              status: values.status,
-              priority: values.priority,
-              dueDate: values.dueDate || null,
-              blockedReason: values.blockedReason || null
-            } satisfies TaskBulkActionInput);
-          }}
-          selectedCount={selectedTaskIds.length}
-          users={taskListQuery.data?.users ?? []}
-          visibleCount={visibleTasks.length}
-        />
-      ) : null}
-
-      {searchState.view === "board" && searchState.archived !== "active" ? (
-        <div className="rounded-[1.5rem] border border-border bg-card/90 p-4 text-sm text-muted-foreground shadow-sm">
-          Board view stays focused on active work. Switch the archive filter back to Active to use
-          the board.
-        </div>
-      ) : null}
-
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,28rem)_minmax(0,1fr)] xl:items-start">
-        <div className="space-y-4">
-          {taskListQuery.isLoading ? (
-            <div className="rounded-[1.75rem] border border-border bg-card/90 p-5 text-sm text-muted-foreground shadow-sm">
-              Loading task queue…
-            </div>
-          ) : null}
-
-          {taskListQuery.error instanceof ApiClientError ? (
-            <div className="rounded-[1.75rem] border border-red-200 bg-red-50 p-5 text-sm text-red-700">
-              {taskListQuery.error.message}
-            </div>
-          ) : null}
-
-          {showBoardView ? (
-            <TaskBoardPanel
-              activeTaskId={selectedTaskId}
-              canSelectTasks={currentUser?.role === "OWNER_ADMIN"}
-              onPrefetchTask={prefetchTask}
-              onToggleTaskSelection={toggleTaskSelection}
-              search={search ? `?${search}` : ""}
-              selectedTaskIds={selectedTaskIds}
-              tasks={visibleTasks}
+      <WorkspaceSurface
+        actions={
+          <span className="rounded-full bg-muted px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+            {visibleTasks.length} visible
+          </span>
+        }
+        bodyClassName="space-y-4"
+        description="Controls stay attached to the queue they affect. Opening a task slides the shelf over the workspace without changing the main surface."
+        title="Task queue"
+        toolbar={
+          <div className="space-y-4">
+            <WorkspaceFilters
+              archived={searchState.archived}
+              assignee={searchState.assignee}
+              currentUserId={currentUser?.id ?? ""}
+              onChange={setSearchStatePatch}
+              onReset={handleReset}
+              priority={searchState.priority}
+              q={searchState.q}
+              queue={searchState.queue}
+              queueCounts={
+                taskListQuery.data?.queueCounts ?? {
+                  all: 0,
+                  myWork: 0,
+                  overdue: 0,
+                  upcoming: 0,
+                  blocked: 0,
+                  unassigned: 0,
+                  stale: 0
+                }
+              }
+              sections={taskListQuery.data?.sections ?? []}
+              section={searchState.section}
+              sort={searchState.sort}
+              status={searchState.status}
+              users={taskListQuery.data?.users ?? []}
+              view={searchState.view}
             />
-          ) : (
-            <TaskListPanel
-              activeTaskId={selectedTaskId}
-              allVisibleSelected={allVisibleSelected}
-              canSelectTasks={currentUser?.role === "OWNER_ADMIN"}
-              onPrefetchTask={prefetchTask}
-              onToggleSelectAllVisible={toggleSelectAllVisible}
-              onToggleTaskSelection={toggleTaskSelection}
-              search={search ? `?${search}` : ""}
-              selectedTaskIds={selectedTaskIds}
-              tasks={visibleTasks}
-            />
-          )}
-        </div>
 
-        <div className="min-w-0">
-          {selectedTaskId ? (
-            taskWorkspaceQuery.isLoading ? (
-              <section className="rounded-[1.75rem] border border-border bg-card/90 p-5 text-sm text-muted-foreground shadow-sm xl:sticky xl:top-6">
-                Loading task workspace…
-              </section>
-            ) : taskWorkspaceQuery.data && currentUser ? (
-              <TaskShelf
-                archiveError={archiveError}
-                commentError={commentError}
-                currentUser={currentUser as SessionPayload["user"]}
-                data={taskWorkspaceQuery.data}
-                dependencyError={dependencyError}
-                isArchivingTask={archiveTaskMutation.isPending || restoreTaskMutation.isPending}
-                isPostingComment={createCommentMutation.isPending}
-                isSavingDependency={
-                  createDependencyMutation.isPending || deleteDependencyMutation.isPending
-                }
-                isSavingSubtask={
-                  createSubtaskMutation.isPending ||
-                  updateSubtaskMutation.isPending ||
-                  deleteSubtaskMutation.isPending ||
-                  archiveSubtaskMutation.isPending ||
-                  restoreSubtaskMutation.isPending
-                }
-                isSavingTask={updateTaskMutation.isPending}
-                onAddDependency={async (payload) => {
-                  await createDependencyMutation.mutateAsync(payload);
+            {currentUser?.role === "OWNER_ADMIN" ? (
+              <BulkActionsPanel
+                archiveView={searchState.archived}
+                error={bulkError}
+                isPending={bulkMutation.isPending}
+                onClearSelection={() => setSelectedTaskIds([])}
+                onSubmit={async (values) => {
+                  await bulkMutation.mutateAsync({
+                    taskIds: selectedTaskIds,
+                    action: values.action,
+                    assignedToId: values.assignedToId || null,
+                    status: values.status,
+                    priority: values.priority,
+                    dueDate: values.dueDate || null,
+                    blockedReason: values.blockedReason || null
+                  } satisfies TaskBulkActionInput);
                 }}
-                onArchiveSubtask={async (payload) => {
-                  await archiveSubtaskMutation.mutateAsync(payload);
-                }}
-                onArchiveTask={async (payload) => {
-                  await archiveTaskMutation.mutateAsync(payload);
-                }}
-                onClose={() =>
-                  navigate({
-                    pathname: "/tasks",
-                    search
-                  })
-                }
-                onCreateSubtask={async (payload) => {
-                  await createSubtaskMutation.mutateAsync(payload);
-                }}
-                onDeleteSubtask={async (payload) => {
-                  await deleteSubtaskMutation.mutateAsync(payload);
-                }}
-                onNext={nextTaskId ? () => navigateToTask(nextTaskId) : undefined}
-                onPrevious={previousTaskId ? () => navigateToTask(previousTaskId) : undefined}
-                onRemoveDependency={async (payload) => {
-                  await deleteDependencyMutation.mutateAsync(payload as TaskDependencyDeleteInput);
-                }}
-                onRestoreSubtask={async (payload) => {
-                  await restoreSubtaskMutation.mutateAsync(payload);
-                }}
-                onRestoreTask={async (payload) => {
-                  await restoreTaskMutation.mutateAsync(payload as TaskArchiveInput);
-                }}
-                onSubmitComment={async (payload) => {
-                  await createCommentMutation.mutateAsync(payload);
-                }}
-                onSubmitTaskUpdate={async (payload) => {
-                  await updateTaskMutation.mutateAsync(payload);
-                }}
-                onUpdateSubtask={async (payload) => {
-                  await updateSubtaskMutation.mutateAsync(payload);
-                }}
-                subtaskError={subtaskError}
-                taskError={taskError}
+                selectedCount={selectedTaskIds.length}
+                users={taskListQuery.data?.users ?? []}
+                visibleCount={visibleTasks.length}
               />
-            ) : (
-              <section className="rounded-[1.75rem] border border-border bg-card/90 p-5 text-sm text-muted-foreground shadow-sm">
-                Task unavailable.
-              </section>
-            )
+            ) : null}
+          </div>
+        }
+      >
+        {searchState.view === "board" && searchState.archived !== "active" ? (
+          <div className="rounded-[1.25rem] border border-border bg-muted/20 px-4 py-4 text-sm text-muted-foreground">
+            Board view stays focused on active work. Switch the archive filter back to Active to use
+            the board.
+          </div>
+        ) : null}
+
+        {taskListQuery.isLoading ? (
+          <div className="rounded-[1.25rem] border border-border bg-muted/20 px-4 py-8 text-sm text-muted-foreground">
+            Loading task queue...
+          </div>
+        ) : taskListQuery.error instanceof ApiClientError ? (
+          <div className="rounded-[1.25rem] border border-red-200 bg-red-50 px-4 py-4 text-sm text-red-700">
+            {taskListQuery.error.message}
+          </div>
+        ) : showBoardView ? (
+          <TaskBoardPanel
+            activeTaskId={selectedTaskId}
+            canSelectTasks={currentUser?.role === "OWNER_ADMIN"}
+            onPrefetchTask={prefetchTask}
+            onToggleTaskSelection={toggleTaskSelection}
+            search={search ? `?${search}` : ""}
+            selectedTaskIds={selectedTaskIds}
+            tasks={visibleTasks}
+          />
+        ) : (
+          <TaskListPanel
+            activeTaskId={selectedTaskId}
+            allVisibleSelected={allVisibleSelected}
+            canSelectTasks={currentUser?.role === "OWNER_ADMIN"}
+            onPrefetchTask={prefetchTask}
+            onToggleSelectAllVisible={toggleSelectAllVisible}
+            onToggleTaskSelection={toggleTaskSelection}
+            search={search ? `?${search}` : ""}
+            selectedTaskIds={selectedTaskIds}
+            tasks={visibleTasks}
+          />
+        )}
+      </WorkspaceSurface>
+
+      <SlideOverPanel
+        expanded={taskShelfExpanded}
+        onClose={() =>
+          navigate({
+            pathname: "/tasks",
+            search
+          })
+        }
+        open={Boolean(selectedTaskId)}
+      >
+        {selectedTaskId ? (
+          taskWorkspaceQuery.isLoading ? (
+            <div className="flex h-full items-center justify-center px-6 py-8 text-sm text-muted-foreground">
+              Loading task workspace...
+            </div>
+          ) : taskWorkspaceQuery.data && currentUser ? (
+            <TaskShelf
+              archiveError={archiveError}
+              commentError={commentError}
+              currentUser={currentUser as SessionPayload["user"]}
+              data={taskWorkspaceQuery.data}
+              dependencyError={dependencyError}
+              isArchivingTask={archiveTaskMutation.isPending || restoreTaskMutation.isPending}
+              isExpanded={taskShelfExpanded}
+              isPostingComment={createCommentMutation.isPending}
+              isSavingDependency={
+                createDependencyMutation.isPending || deleteDependencyMutation.isPending
+              }
+              isSavingSubtask={
+                createSubtaskMutation.isPending ||
+                updateSubtaskMutation.isPending ||
+                deleteSubtaskMutation.isPending ||
+                archiveSubtaskMutation.isPending ||
+                restoreSubtaskMutation.isPending
+              }
+              isSavingTask={updateTaskMutation.isPending}
+              onAddDependency={async (payload) => {
+                await createDependencyMutation.mutateAsync(payload);
+              }}
+              onArchiveSubtask={async (payload) => {
+                await archiveSubtaskMutation.mutateAsync(payload);
+              }}
+              onArchiveTask={async (payload) => {
+                await archiveTaskMutation.mutateAsync(payload);
+              }}
+              onClose={() =>
+                navigate({
+                  pathname: "/tasks",
+                  search
+                })
+              }
+              onCreateSubtask={async (payload) => {
+                await createSubtaskMutation.mutateAsync(payload);
+              }}
+              onDeleteSubtask={async (payload) => {
+                await deleteSubtaskMutation.mutateAsync(payload);
+              }}
+              onNext={nextTaskId ? () => navigateToTask(nextTaskId) : undefined}
+              onPrevious={previousTaskId ? () => navigateToTask(previousTaskId) : undefined}
+              onRemoveDependency={async (payload) => {
+                await deleteDependencyMutation.mutateAsync(payload as TaskDependencyDeleteInput);
+              }}
+              onRestoreSubtask={async (payload) => {
+                await restoreSubtaskMutation.mutateAsync(payload);
+              }}
+              onRestoreTask={async (payload) => {
+                await restoreTaskMutation.mutateAsync(payload as TaskArchiveInput);
+              }}
+              onSubmitComment={async (payload) => {
+                await createCommentMutation.mutateAsync(payload);
+              }}
+              onSubmitTaskUpdate={async (payload) => {
+                await updateTaskMutation.mutateAsync(payload);
+              }}
+              onToggleExpanded={() => setTaskShelfExpanded((current) => !current)}
+              onUpdateSubtask={async (payload) => {
+                await updateSubtaskMutation.mutateAsync(payload);
+              }}
+              subtaskError={subtaskError}
+              taskError={taskError}
+            />
           ) : (
-            <section className="flex min-h-[24rem] items-center justify-center rounded-[1.75rem] border border-dashed border-border bg-card/80 p-8 text-center shadow-sm xl:sticky xl:top-6">
-              <div>
-                <p className="font-medium">Select a task to keep working in context.</p>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  The left queue remains stable while task details, updates, dependencies, and
-                  checklist work stay in the right-side shelf.
-                </p>
-                {visibleTasks[0] ? (
-                  <Link
-                    className="mt-4 inline-flex rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
-                    to={{
-                      pathname: `/tasks/${visibleTasks[0].id}`,
-                      search
-                    }}
-                  >
-                    Open first visible task
-                  </Link>
-                ) : null}
-              </div>
-            </section>
-          )}
-        </div>
-      </div>
+            <div className="flex h-full items-center justify-center px-6 py-8 text-sm text-muted-foreground">
+              Task unavailable.
+            </div>
+          )
+        ) : null}
+      </SlideOverPanel>
     </div>
   );
 }

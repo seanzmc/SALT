@@ -1,4 +1,4 @@
-import { compare, hash } from "bcryptjs";
+import bcrypt from "bcryptjs";
 import { createHash, randomBytes } from "node:crypto";
 
 import { prisma } from "@salt/db";
@@ -111,7 +111,7 @@ export async function resetPasswordWithTokenCommand(input: {
     );
   }
 
-  const newPasswordMatchesCurrent = await compare(
+  const newPasswordMatchesCurrent = await bcrypt.compare(
     input.newPassword,
     tokenRecord.user.passwordHash
   );
@@ -127,7 +127,7 @@ export async function resetPasswordWithTokenCommand(input: {
     );
   }
 
-  const nextPasswordHash = await hash(input.newPassword, 10);
+  const nextPasswordHash = await bcrypt.hash(input.newPassword, 10);
 
   await prisma.$transaction([
     prisma.user.update({

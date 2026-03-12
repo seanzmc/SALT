@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { Link } from "react-router-dom";
 import { z } from "zod";
 
 import type { DocumentWorkspaceData, SessionPayload } from "@salt/types";
@@ -12,7 +13,9 @@ const taskLinkSchema = z.object({
 type DocumentShelfProps = {
   currentUser: SessionPayload["user"];
   data: DocumentWorkspaceData;
+  isExpanded: boolean;
   onClose: () => void;
+  onToggleExpanded: () => void;
   onLinkTask: (payload: { documentId: string; taskId: string }) => Promise<void>;
   onUnlinkTask: (payload: { documentId: string; taskId: string }) => Promise<void>;
   isSaving: boolean;
@@ -30,7 +33,9 @@ function formatDate(value: string) {
 export function DocumentShelf({
   currentUser,
   data,
+  isExpanded,
   onClose,
+  onToggleExpanded,
   onLinkTask,
   onUnlinkTask,
   isSaving,
@@ -50,7 +55,7 @@ export function DocumentShelf({
 
   if (!document) {
     return (
-      <section className="rounded-[1.75rem] border border-border bg-card/90 p-5 shadow-sm">
+      <section className="rounded-[1.5rem] border border-border bg-white p-5 shadow-sm">
         <p className="font-medium">Document unavailable.</p>
       </section>
     );
@@ -60,30 +65,39 @@ export function DocumentShelf({
   const availableTasks = data.tasks.filter((task) => !attachedTaskIds.has(task.id));
 
   return (
-    <section className="rounded-[1.75rem] border border-border bg-card/95 shadow-[0_24px_70px_-36px_rgba(15,23,42,0.45)] xl:sticky xl:top-6">
-      <div className="border-b border-border px-5 py-4">
+    <div className="flex h-full flex-col">
+      <div className="border-b border-border/80 px-5 py-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
               Document shelf
             </p>
-            <h3 className="mt-2 text-2xl font-semibold">{document.title}</h3>
+            <h3 className="mt-2 text-2xl font-semibold text-foreground">{document.title}</h3>
             <p className="mt-2 text-sm text-muted-foreground">
               {document.category.replaceAll("_", " ")} • Added {formatDate(document.createdAt)} by{" "}
               {document.uploadedBy.name}
             </p>
           </div>
-          <button
-            className="rounded-full border border-border px-3 py-2 text-sm text-muted-foreground hover:bg-muted"
-            onClick={onClose}
-            type="button"
-          >
-            Close
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button
+              className="rounded-full border border-border px-3 py-2 text-sm text-muted-foreground hover:bg-muted"
+              onClick={onToggleExpanded}
+              type="button"
+            >
+              {isExpanded ? "Standard width" : "Expand"}
+            </button>
+            <button
+              className="rounded-full border border-border px-3 py-2 text-sm text-muted-foreground hover:bg-muted"
+              onClick={onClose}
+              type="button"
+            >
+              Close
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="space-y-6 p-5">
+      <div className="flex-1 space-y-6 overflow-y-auto p-5">
         <section className="rounded-[1.5rem] border border-border bg-white p-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -111,32 +125,31 @@ export function DocumentShelf({
           </div>
 
           <div className="mt-4 grid gap-3 md:grid-cols-2">
-            <div className="rounded-2xl bg-muted/60 p-4">
-              <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+            <div className="rounded-2xl bg-muted/50 p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                 Original file
               </p>
-              <p className="mt-2 font-medium">{document.originalName}</p>
+              <p className="mt-2 font-medium text-foreground">{document.originalName}</p>
             </div>
-            <div className="rounded-2xl bg-muted/60 p-4">
-              <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+            <div className="rounded-2xl bg-muted/50 p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                 Primary link
               </p>
-              <p className="mt-2 font-medium">
+              <p className="mt-2 font-medium text-foreground">
                 {document.linkedTask?.title ?? document.linkedBudgetItem?.lineItem ?? "Unlinked"}
               </p>
             </div>
           </div>
 
           {document.notes ? (
-            <p className="mt-4 text-sm text-muted-foreground">{document.notes}</p>
+            <p className="mt-4 text-sm leading-6 text-muted-foreground">{document.notes}</p>
           ) : null}
         </section>
 
         <section className="rounded-[1.5rem] border border-border bg-white p-4">
           <p className="font-semibold">Task links</p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Attach this document to task workflows. Collaborator access follows task assignment
-            rules.
+            Link this document into task execution. Every task link opens the shared task shelf.
           </p>
 
           <form
@@ -166,7 +179,7 @@ export function DocumentShelf({
               disabled={isSaving || availableTasks.length === 0}
               type="submit"
             >
-              {isSaving ? "Saving…" : "Link to task"}
+              {isSaving ? "Saving..." : "Link to task"}
             </button>
           </form>
 
@@ -183,9 +196,14 @@ export function DocumentShelf({
 
                 return (
                   <div key={task.id} className="rounded-2xl border border-border p-4">
-                    <div className="flex items-center justify-between gap-3">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
-                        <p className="font-medium">{task.title}</p>
+                        <Link
+                          className="font-medium text-foreground hover:text-primary"
+                          to={`/tasks/${task.id}`}
+                        >
+                          {task.title}
+                        </Link>
                         <p className="mt-1 text-sm text-muted-foreground">
                           {task.archivedAt ? "Archived task" : "Active task"}
                         </p>
@@ -216,6 +234,6 @@ export function DocumentShelf({
           {error ? <p className="mt-3 text-sm text-red-700">{error}</p> : null}
         </section>
       </div>
-    </section>
+    </div>
   );
 }

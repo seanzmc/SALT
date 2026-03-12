@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type {
   TaskArchiveView,
   TaskListResponse,
@@ -38,7 +39,11 @@ type WorkspaceFiltersProps = {
   onReset: () => void;
 };
 
-const queueOptions: Array<{ value: TaskQueue; label: string; countKey: keyof TaskListResponse["queueCounts"] }> = [
+const queueOptions: Array<{
+  value: TaskQueue;
+  label: string;
+  countKey: keyof TaskListResponse["queueCounts"];
+}> = [
   { value: "all", label: "All", countKey: "all" },
   { value: "my-work", label: "My work", countKey: "myWork" },
   { value: "overdue", label: "Overdue", countKey: "overdue" },
@@ -47,6 +52,29 @@ const queueOptions: Array<{ value: TaskQueue; label: string; countKey: keyof Tas
   { value: "unassigned", label: "Unassigned", countKey: "unassigned" },
   { value: "stale", label: "Stale", countKey: "stale" }
 ];
+
+function joinClasses(...values: Array<string | false | null | undefined>) {
+  return values.filter(Boolean).join(" ");
+}
+
+function FilterField({
+  label,
+  children,
+  className
+}: {
+  label: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <label className={joinClasses("space-y-2", className)}>
+      <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+        {label}
+      </span>
+      {children}
+    </label>
+  );
+}
 
 export function WorkspaceFilters({
   currentUserId,
@@ -66,129 +94,96 @@ export function WorkspaceFilters({
   onReset
 }: WorkspaceFiltersProps) {
   return (
-    <section className="rounded-[1.75rem] border border-border bg-white/85 p-5 shadow-sm backdrop-blur">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <p className="text-sm font-semibold">Task flow</p>
-          <p className="text-sm text-muted-foreground">
-            Search, filter, and stay anchored in the queue while the shelf remains open.
-          </p>
-        </div>
-        <button
-          className="rounded-full border border-border px-3 py-2 text-sm text-muted-foreground hover:bg-muted"
-          onClick={onReset}
-          type="button"
-        >
-          Reset filters
-        </button>
-      </div>
-
-      <div className="mt-5 flex flex-wrap gap-2">
-        {queueOptions.map((option) => (
-          <button
-            key={option.value}
-            className={[
-              "rounded-full px-4 py-2 text-sm transition-colors",
-              option.value === queue
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted text-foreground hover:bg-accent"
-            ].join(" ")}
-            onClick={() => onChange({ queue: option.value })}
-            type="button"
-          >
-            {option.label} {queueCounts[option.countKey]}
-          </button>
-        ))}
-      </div>
-
-      <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2">
-          <button
-            className={[
-              "rounded-full px-4 py-2 text-sm transition-colors",
-              view === "list"
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted text-foreground hover:bg-accent"
-            ].join(" ")}
-            onClick={() => onChange({ view: "list" })}
-            type="button"
-          >
-            List view
-          </button>
-          <button
-            className={[
-              "rounded-full px-4 py-2 text-sm transition-colors",
-              view === "board"
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted text-foreground hover:bg-accent"
-            ].join(" ")}
-            onClick={() => onChange({ view: "board" })}
-            type="button"
-          >
-            Board view
-          </button>
+          {queueOptions.map((option) => (
+            <button
+              key={option.value}
+              className={joinClasses(
+                "rounded-full px-3.5 py-2 text-sm font-medium transition",
+                option.value === queue
+                  ? "bg-primary text-primary-foreground shadow-[0_10px_25px_-16px_rgba(33,95,84,0.8)]"
+                  : "bg-muted text-foreground hover:bg-accent"
+              )}
+              onClick={() => onChange({ queue: option.value })}
+              type="button"
+            >
+              {option.label} {queueCounts[option.countKey]}
+            </button>
+          ))}
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap gap-2">
+            <button
+              className={joinClasses(
+                "rounded-full px-3.5 py-2 text-sm font-medium transition",
+                view === "list"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-foreground hover:bg-accent"
+              )}
+              onClick={() => onChange({ view: "list" })}
+              type="button"
+            >
+              List
+            </button>
+            <button
+              className={joinClasses(
+                "rounded-full px-3.5 py-2 text-sm font-medium transition",
+                view === "board"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-foreground hover:bg-accent"
+              )}
+              onClick={() => onChange({ view: "board" })}
+              type="button"
+            >
+              Board
+            </button>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {(["active", "archived", "all"] as const).map((value) => (
+              <button
+                key={value}
+                className={joinClasses(
+                  "rounded-full px-3.5 py-2 text-sm font-medium capitalize transition",
+                  archived === value
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-foreground hover:bg-accent"
+                )}
+                onClick={() => onChange({ archived: value })}
+                type="button"
+              >
+                {value}
+              </button>
+            ))}
+          </div>
+
           <button
-            className={[
-              "rounded-full px-4 py-2 text-sm transition-colors",
-              archived === "active"
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted text-foreground hover:bg-accent"
-            ].join(" ")}
-            onClick={() => onChange({ archived: "active" })}
+            className="rounded-full border border-border bg-white px-3.5 py-2 text-sm font-medium text-muted-foreground hover:bg-muted"
+            onClick={onReset}
             type="button"
           >
-            Active
-          </button>
-          <button
-            className={[
-              "rounded-full px-4 py-2 text-sm transition-colors",
-              archived === "archived"
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted text-foreground hover:bg-accent"
-            ].join(" ")}
-            onClick={() => onChange({ archived: "archived" })}
-            type="button"
-          >
-            Archived
-          </button>
-          <button
-            className={[
-              "rounded-full px-4 py-2 text-sm transition-colors",
-              archived === "all"
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted text-foreground hover:bg-accent"
-            ].join(" ")}
-            onClick={() => onChange({ archived: "all" })}
-            type="button"
-          >
-            All
+            Reset
           </button>
         </div>
       </div>
 
-      <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-        <label className="space-y-2 xl:col-span-2">
-          <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-            Search
-          </span>
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
+        <FilterField className="xl:col-span-2" label="Search">
           <input
-            className="w-full rounded-2xl border border-border bg-card px-4 py-3"
+            className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
             onChange={(event) => onChange({ q: event.target.value })}
             placeholder="Search tasks, descriptions, or notes"
             type="search"
             value={q}
           />
-        </label>
+        </FilterField>
 
-        <label className="space-y-2">
-          <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-            Status
-          </span>
+        <FilterField label="Status">
           <select
-            className="w-full rounded-2xl border border-border bg-card px-4 py-3"
+            className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
             onChange={(event) => onChange({ status: event.target.value as TaskStatus | "ALL" })}
             value={status}
           >
@@ -198,14 +193,11 @@ export function WorkspaceFilters({
             <option value="BLOCKED">Blocked</option>
             <option value="COMPLETE">Complete</option>
           </select>
-        </label>
+        </FilterField>
 
-        <label className="space-y-2">
-          <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-            Section
-          </span>
+        <FilterField label="Section">
           <select
-            className="w-full rounded-2xl border border-border bg-card px-4 py-3"
+            className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
             onChange={(event) => onChange({ section: event.target.value })}
             value={section}
           >
@@ -216,14 +208,11 @@ export function WorkspaceFilters({
               </option>
             ))}
           </select>
-        </label>
+        </FilterField>
 
-        <label className="space-y-2">
-          <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-            Assignee
-          </span>
+        <FilterField label="Assignee">
           <select
-            className="w-full rounded-2xl border border-border bg-card px-4 py-3"
+            className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
             onChange={(event) => onChange({ assignee: event.target.value })}
             value={assignee}
           >
@@ -237,14 +226,11 @@ export function WorkspaceFilters({
               </option>
             ))}
           </select>
-        </label>
+        </FilterField>
 
-        <label className="space-y-2">
-          <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-            Priority
-          </span>
+        <FilterField label="Priority">
           <select
-            className="w-full rounded-2xl border border-border bg-card px-4 py-3"
+            className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
             onChange={(event) => onChange({ priority: event.target.value as TaskPriority | "" })}
             value={priority}
           >
@@ -254,14 +240,11 @@ export function WorkspaceFilters({
             <option value="HIGH">High</option>
             <option value="CRITICAL">Critical</option>
           </select>
-        </label>
+        </FilterField>
 
-        <label className="space-y-2">
-          <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-            Sort
-          </span>
+        <FilterField label="Sort">
           <select
-            className="w-full rounded-2xl border border-border bg-card px-4 py-3"
+            className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
             onChange={(event) => onChange({ sort: event.target.value as TaskSort })}
             value={sort}
           >
@@ -270,8 +253,8 @@ export function WorkspaceFilters({
             <option value="title">Title</option>
             <option value="status">Status</option>
           </select>
-        </label>
+        </FilterField>
       </div>
-    </section>
+    </div>
   );
 }

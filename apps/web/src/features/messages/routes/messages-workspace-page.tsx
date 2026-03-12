@@ -1,9 +1,14 @@
-import { useDeferredValue, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { MessageRecord, MessageThreadData, MessageThreadListResponse } from "@salt/types";
-import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import { ApiClientError } from "../../../lib/api-client";
+import { SlideOverPanel } from "../../../app/components/slide-over-panel";
+import {
+  WorkspacePageHeader,
+  WorkspaceSurface
+} from "../../../app/components/workspace-page";
 import { useToast } from "../../../app/providers/toast-provider";
 import {
   createMessage,
@@ -51,6 +56,7 @@ export function MessagesWorkspacePage() {
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const [messageError, setMessageError] = useState<string>();
+  const [threadShelfExpanded, setThreadShelfExpanded] = useState(false);
   const toast = useToast();
 
   const selectedThreadId = params.threadId;
@@ -130,6 +136,12 @@ export function MessagesWorkspacePage() {
   const search = buildMessageSearchParams(searchState).toString();
   const threads = threadsQuery.data?.threads ?? [];
 
+  useEffect(() => {
+    if (!selectedThreadId) {
+      setThreadShelfExpanded(false);
+    }
+  }, [selectedThreadId]);
+
   function prefetchThread(threadId: string) {
     void queryClient.prefetchQuery({
       queryKey: messageQueryKeys.detail(threadId),
@@ -139,148 +151,148 @@ export function MessagesWorkspacePage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[2rem] border border-border bg-white/85 p-6 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.4)] backdrop-blur">
-        <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Messages v2</p>
-        <h2 className="mt-2 text-3xl font-semibold">In-app communication flow</h2>
-        <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-          Query-driven thread navigation, focused message view, optimistic posting, and direct task
-          context from the new SPA/API stack.
-        </p>
-      </section>
+      <WorkspacePageHeader
+        description="Keep conversation browsing and reply work on one screen. Filters stay attached to the thread list, and opening a thread slides the same message shelf over the workspace."
+        eyebrow="Messages"
+        title="Message workspace"
+      />
 
-      <section className="rounded-[1.75rem] border border-border bg-white/85 p-5 shadow-sm backdrop-blur">
-        <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_12rem_14rem]">
-          <label className="space-y-2">
-            <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-              Search
-            </span>
-            <input
-              className="w-full rounded-2xl border border-border bg-card px-4 py-3"
-              onChange={(event) =>
-                setSearchParams(updateMessagesSearchState(searchParams, { q: event.target.value }), {
-                  replace: true
-                })
-              }
-              placeholder="Search threads or messages"
-              type="search"
-              value={searchState.q}
-            />
-          </label>
+      <WorkspaceSurface
+        actions={
+          <span className="rounded-full bg-muted px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+            {threads.length} visible
+          </span>
+        }
+        bodyClassName="space-y-4"
+        description="Thread filters control the list directly. Replies, task context, and linked documents all stay inside the shared shelf."
+        title="Thread list"
+        toolbar={
+          <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_12rem_14rem]">
+            <label className="space-y-2">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Search
+              </span>
+              <input
+                className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
+                onChange={(event) =>
+                  setSearchParams(
+                    updateMessagesSearchState(searchParams, { q: event.target.value }),
+                    {
+                      replace: true
+                    }
+                  )
+                }
+                placeholder="Search threads or messages"
+                type="search"
+                value={searchState.q}
+              />
+            </label>
 
-          <label className="space-y-2">
-            <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-              Scope
-            </span>
-            <select
-              className="w-full rounded-2xl border border-border bg-card px-4 py-3"
-              onChange={(event) =>
-                setSearchParams(
-                  updateMessagesSearchState(searchParams, {
-                    scope: event.target.value as any
-                  })
-                )
-              }
-              value={searchState.scope}
-            >
-              <option value="ALL">All scopes</option>
-              <option value="GENERAL">General</option>
-              <option value="TASK">Task</option>
-            </select>
-          </label>
+            <label className="space-y-2">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Scope
+              </span>
+              <select
+                className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
+                onChange={(event) =>
+                  setSearchParams(
+                    updateMessagesSearchState(searchParams, {
+                      scope: event.target.value as any
+                    })
+                  )
+                }
+                value={searchState.scope}
+              >
+                <option value="ALL">All scopes</option>
+                <option value="GENERAL">General</option>
+                <option value="TASK">Task</option>
+              </select>
+            </label>
 
-          <label className="space-y-2">
-            <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-              Category
-            </span>
-            <select
-              className="w-full rounded-2xl border border-border bg-card px-4 py-3"
-              onChange={(event) =>
-                setSearchParams(
-                  updateMessagesSearchState(searchParams, {
-                    category: event.target.value as any
-                  })
-                )
-              }
-              value={searchState.category}
-            >
-              <option value="ALL">All categories</option>
-              <option value="GENERAL">General</option>
-              <option value="OPERATIONS">Operations</option>
-              <option value="PROCUREMENT">Procurement</option>
-              <option value="COMPLIANCE">Compliance</option>
-              <option value="MARKETING">Marketing</option>
-              <option value="LAUNCH">Launch</option>
-            </select>
-          </label>
-        </div>
-      </section>
-
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,28rem)_minmax(0,1fr)] xl:items-start">
-        <div className="space-y-4">
-          {threadsQuery.error instanceof ApiClientError ? (
-            <div className="rounded-[1.75rem] border border-red-200 bg-red-50 p-5 text-sm text-red-700">
-              {threadsQuery.error.message}
-            </div>
-          ) : null}
-
+            <label className="space-y-2">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Category
+              </span>
+              <select
+                className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
+                onChange={(event) =>
+                  setSearchParams(
+                    updateMessagesSearchState(searchParams, {
+                      category: event.target.value as any
+                    })
+                  )
+                }
+                value={searchState.category}
+              >
+                <option value="ALL">All categories</option>
+                <option value="GENERAL">General</option>
+                <option value="OPERATIONS">Operations</option>
+                <option value="PROCUREMENT">Procurement</option>
+                <option value="COMPLIANCE">Compliance</option>
+                <option value="MARKETING">Marketing</option>
+                <option value="LAUNCH">Launch</option>
+              </select>
+            </label>
+          </div>
+        }
+      >
+        {threadsQuery.isLoading ? (
+          <div className="rounded-[1.25rem] border border-border bg-muted/20 px-4 py-8 text-sm text-muted-foreground">
+            Loading message threads...
+          </div>
+        ) : threadsQuery.error instanceof ApiClientError ? (
+          <div className="rounded-[1.25rem] border border-red-200 bg-red-50 px-4 py-4 text-sm text-red-700">
+            {threadsQuery.error.message}
+          </div>
+        ) : (
           <ThreadListPanel
             activeThreadId={selectedThreadId}
             onPrefetchThread={prefetchThread}
             search={search ? `?${search}` : ""}
             threads={threads}
           />
-        </div>
+        )}
+      </WorkspaceSurface>
 
-        <div className="min-w-0">
-          {selectedThreadId ? (
-            threadQuery.isLoading ? (
-              <section className="rounded-[1.75rem] border border-border bg-card/90 p-5 text-sm text-muted-foreground shadow-sm xl:sticky xl:top-6">
-                Loading thread…
-              </section>
-            ) : threadQuery.data ? (
-              <ThreadShelf
-                data={threadQuery.data}
-                error={messageError}
-                isPosting={createMessageMutation.isPending}
-                onClose={() =>
-                  navigate({
-                    pathname: "/messages",
-                    search
-                  })
-                }
-                onSubmitMessage={async (payload) => {
-                  await createMessageMutation.mutateAsync(payload);
-                }}
-              />
-            ) : (
-              <section className="rounded-[1.75rem] border border-border bg-card/90 p-5 text-sm text-muted-foreground shadow-sm">
-                Thread unavailable.
-              </section>
-            )
+      <SlideOverPanel
+        expanded={threadShelfExpanded}
+        onClose={() =>
+          navigate({
+            pathname: "/messages",
+            search
+          })
+        }
+        open={Boolean(selectedThreadId)}
+      >
+        {selectedThreadId ? (
+          threadQuery.isLoading ? (
+            <div className="flex h-full items-center justify-center px-6 py-8 text-sm text-muted-foreground">
+              Loading thread...
+            </div>
+          ) : threadQuery.data ? (
+            <ThreadShelf
+              data={threadQuery.data}
+              error={messageError}
+              isExpanded={threadShelfExpanded}
+              isPosting={createMessageMutation.isPending}
+              onClose={() =>
+                navigate({
+                  pathname: "/messages",
+                  search
+                })
+              }
+              onSubmitMessage={async (payload) => {
+                await createMessageMutation.mutateAsync(payload);
+              }}
+              onToggleExpanded={() => setThreadShelfExpanded((current) => !current)}
+            />
           ) : (
-            <section className="flex min-h-[24rem] items-center justify-center rounded-[1.75rem] border border-dashed border-border bg-card/80 p-8 text-center shadow-sm xl:sticky xl:top-6">
-              <div>
-                <p className="font-medium">Select a thread to keep discussion in context.</p>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  The left list stays stable while the right shelf handles message history and
-                  posting.
-                </p>
-                {threads[0] ? (
-                  <Link
-                    className="mt-4 inline-flex rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
-                    to={{
-                      pathname: `/messages/${threads[0].id}`,
-                      search
-                    }}
-                  >
-                    Open first visible thread
-                  </Link>
-                ) : null}
-              </div>
-            </section>
-          )}
-        </div>
-      </div>
+            <div className="flex h-full items-center justify-center px-6 py-8 text-sm text-muted-foreground">
+              Thread unavailable.
+            </div>
+          )
+        ) : null}
+      </SlideOverPanel>
     </div>
   );
 }

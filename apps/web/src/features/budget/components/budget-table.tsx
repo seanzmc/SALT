@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { BudgetItemRecord, BudgetItemUpdateInput, PaymentStatus, UserRole } from "@salt/types";
 
 function formatCurrency(value: number) {
@@ -25,7 +25,37 @@ function labelize(value: string) {
   return value.replaceAll("_", " ");
 }
 
-function BudgetRow({
+function SummaryBlock({
+  label,
+  value,
+  tone = "default"
+}: {
+  label: string;
+  value: string;
+  tone?: "default" | "positive" | "negative";
+}) {
+  return (
+    <div className="rounded-[0.9rem] border border-border/70 bg-white px-3 py-3">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+        {label}
+      </p>
+      <p
+        className={[
+          "mt-2 font-medium",
+          tone === "negative"
+            ? "text-rose-600"
+            : tone === "positive"
+              ? "text-emerald-600"
+              : "text-foreground"
+        ].join(" ")}
+      >
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function BudgetRowCard({
   item,
   canEdit,
   isSaving,
@@ -49,53 +79,85 @@ function BudgetRow({
   }, [item.actual, item.notes, item.paidStatus, item.vendor]);
 
   return (
-    <tr className="border-t border-border align-top">
-      <td className="min-w-[18rem] px-4 py-4">
-        <p className="font-medium">{item.lineItem}</p>
-        <p className="mt-1 text-sm text-muted-foreground">{item.category.title}</p>
-        <div className="mt-3 flex flex-wrap gap-2 text-xs">
-          <span className="rounded-full bg-muted px-3 py-1">{labelize(item.priority)}</span>
-          <span className="rounded-full bg-slate-100 px-3 py-1">
-            {labelize(item.openingPriority)}
-          </span>
-          {item.isPdfPlaceholder ? (
-            <span className="rounded-full bg-amber-100 px-3 py-1 text-amber-800">
-              Quote placeholder
+    <article className="grid gap-5 rounded-[1.25rem] border border-border/70 bg-white p-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
+      <div className="space-y-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="font-medium text-foreground">{item.lineItem}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{item.category.title}</p>
+          </div>
+          <div className="flex flex-wrap gap-2 text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+            <span className="rounded-full border border-border px-2.5 py-1">
+              {labelize(item.priority)}
             </span>
-          ) : null}
+            <span className="rounded-full border border-border px-2.5 py-1">
+              {labelize(item.openingPriority)}
+            </span>
+            {item.isPdfPlaceholder ? (
+              <span className="rounded-full bg-amber-100 px-2.5 py-1 text-amber-800">
+                Quote placeholder
+              </span>
+            ) : null}
+          </div>
         </div>
-      </td>
-      <td className="px-4 py-4 text-sm">{formatCurrency(item.estimate)}</td>
-      <td className="px-4 py-4 text-sm">{formatCurrency(item.actual)}</td>
-      <td
-        className={[
-          "px-4 py-4 text-sm font-medium",
-          item.variance > 0 ? "text-rose-600" : "text-emerald-600"
-        ].join(" ")}
+
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <SummaryBlock label="Estimate" value={formatCurrency(item.estimate)} />
+          <SummaryBlock label="Actual" value={formatCurrency(item.actual)} />
+          <SummaryBlock
+            label="Variance"
+            tone={item.variance > 0 ? "negative" : "positive"}
+            value={formatCurrency(item.variance)}
+          />
+          <SummaryBlock label="Paid status" value={labelize(item.paidStatus)} />
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <SummaryBlock label="Deposit due" value={formatDate(item.depositDue)} />
+          <SummaryBlock
+            label="Lead time"
+            value={item.leadTimeDays ? `${item.leadTimeDays} days` : "N/A"}
+          />
+          <SummaryBlock
+            label="Responsible owner"
+            value={item.responsibleOwner?.name ?? "Unassigned"}
+          />
+        </div>
+
+        {item.isPdfPlaceholder ? (
+          <div className="rounded-[1rem] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            This line is still carrying a quote placeholder signal. Use actual spend, vendor, and
+            linked documents as the authoritative record once procurement moves.
+          </div>
+        ) : null}
+      </div>
+
+      <form
+        className="space-y-3 rounded-[1rem] border border-border/70 bg-muted/18 p-4"
+        onSubmit={async (event) => {
+          event.preventDefault();
+          await onSave({
+            itemId: item.id,
+            actual: Number(actual) || 0,
+            vendor: vendor.trim() || null,
+            paidStatus,
+            notes: notes.trim() || null
+          });
+        }}
       >
-        {formatCurrency(item.variance)}
-      </td>
-      <td className="px-4 py-4 text-sm">{formatDate(item.depositDue)}</td>
-      <td className="px-4 py-4 text-sm">
-        {item.leadTimeDays ? `${item.leadTimeDays} days` : "N/A"}
-      </td>
-      <td className="px-4 py-4 text-sm">{item.responsibleOwner?.name ?? "Unassigned"}</td>
-      <td className="min-w-[20rem] px-4 py-4">
-        <form
-          className="grid gap-2"
-          onSubmit={async (event) => {
-            event.preventDefault();
-            await onSave({
-              itemId: item.id,
-              actual: Number(actual) || 0,
-              vendor: vendor.trim() || null,
-              paidStatus,
-              notes: notes.trim() || null
-            });
-          }}
-        >
+        <div>
+          <p className="font-medium text-foreground">Update spend</p>
+          <p className="text-sm text-muted-foreground">
+            Keep this row’s actuals, payment state, and sourcing notes current.
+          </p>
+        </div>
+
+        <label className="space-y-2">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            Actual spend
+          </span>
           <input
-            className="rounded-xl border border-border bg-card px-3 py-2"
+            className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
             disabled={!canEdit || isSaving}
             min={0}
             onChange={(event) => setActual(event.target.value)}
@@ -103,15 +165,27 @@ function BudgetRow({
             type="number"
             value={actual}
           />
+        </label>
+
+        <label className="space-y-2">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            Vendor
+          </span>
           <input
-            className="rounded-xl border border-border bg-card px-3 py-2"
+            className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
             disabled={!canEdit || isSaving}
             onChange={(event) => setVendor(event.target.value)}
-            placeholder="Vendor"
+            placeholder="Vendor name"
             value={vendor}
           />
+        </label>
+
+        <label className="space-y-2">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            Payment status
+          </span>
           <select
-            className="rounded-xl border border-border bg-card px-3 py-2"
+            className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
             disabled={!canEdit || isSaving}
             onChange={(event) => setPaidStatus(event.target.value as PaymentStatus)}
             value={paidStatus}
@@ -121,23 +195,37 @@ function BudgetRow({
             <option value="PARTIALLY_PAID">Partially paid</option>
             <option value="PAID">Paid</option>
           </select>
-          <input
-            className="rounded-xl border border-border bg-card px-3 py-2"
+        </label>
+
+        <label className="space-y-2">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            Notes
+          </span>
+          <textarea
+            className="min-h-28 w-full rounded-[1rem] border border-border bg-white px-4 py-3"
             disabled={!canEdit || isSaving}
             onChange={(event) => setNotes(event.target.value)}
-            placeholder="Notes"
+            placeholder="Quote status, approval notes, or payment context"
             value={notes}
           />
-          <button
-            className="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
-            disabled={!canEdit || isSaving}
-            type="submit"
-          >
-            {isSaving ? "Saving…" : "Save"}
-          </button>
-        </form>
-      </td>
-    </tr>
+        </label>
+
+        <button
+          className="w-full rounded-[1rem] bg-primary px-4 py-3 text-sm font-medium text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
+          disabled={!canEdit || isSaving}
+          type="submit"
+        >
+          {isSaving ? "Saving..." : "Save budget line"}
+        </button>
+
+        {!canEdit ? (
+          <p className="text-sm text-muted-foreground">
+            Collaborators can review budget lines, but actuals and payment status remain owner-admin
+            actions.
+          </p>
+        ) : null}
+      </form>
+    </article>
   );
 }
 
@@ -153,42 +241,71 @@ export function BudgetTable({
   onSave: (payload: BudgetItemUpdateInput) => Promise<void>;
 }) {
   const canEdit = role === "OWNER_ADMIN";
+  const groupedItems = useMemo(() => {
+    const groups = new Map<
+      string,
+      {
+        title: string;
+        items: BudgetItemRecord[];
+      }
+    >();
+
+    items.forEach((item) => {
+      const group = groups.get(item.category.id);
+
+      if (group) {
+        group.items.push(item);
+        return;
+      }
+
+      groups.set(item.category.id, {
+        title: item.category.title,
+        items: [item]
+      });
+    });
+
+    return Array.from(groups.values());
+  }, [items]);
 
   return (
-    <section className="overflow-hidden rounded-[1.75rem] border border-border bg-white/85 shadow-sm backdrop-blur">
-      <div className="overflow-x-auto">
-        <table className="min-w-full border-collapse">
-          <thead className="bg-muted/50 text-left text-xs uppercase tracking-[0.14em] text-muted-foreground">
-            <tr>
-              <th className="px-4 py-4">Category / line item</th>
-              <th className="px-4 py-4">Estimate</th>
-              <th className="px-4 py-4">Actual</th>
-              <th className="px-4 py-4">Variance</th>
-              <th className="px-4 py-4">Deposit due</th>
-              <th className="px-4 py-4">Lead time</th>
-              <th className="px-4 py-4">Owner</th>
-              <th className="px-4 py-4">Update</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white/70">
-            {items.map((item) => (
-              <BudgetRow
-                key={item.id}
-                canEdit={canEdit}
-                isSaving={savingItemId === item.id}
-                item={item}
-                onSave={onSave}
-              />
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {!canEdit ? (
-        <div className="border-t border-border px-5 py-4 text-sm text-muted-foreground">
-          Collaborators can review budget lines, but actuals and payment status remain owner-admin
-          actions.
-        </div>
-      ) : null}
-    </section>
+    <div className="space-y-6">
+      {groupedItems.map((group) => {
+        const estimated = group.items.reduce((sum, item) => sum + item.estimate, 0);
+        const actual = group.items.reduce((sum, item) => sum + item.actual, 0);
+
+        return (
+          <section key={group.title} className="space-y-3">
+            <div className="flex flex-wrap items-end justify-between gap-3 border-b border-border/70 pb-3">
+              <div>
+                <h3 className="font-medium text-foreground">{group.title}</h3>
+                <p className="text-sm text-muted-foreground">
+                  {group.items.length} budget line{group.items.length === 1 ? "" : "s"}
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2 text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+                <span className="rounded-full border border-border px-2.5 py-1">
+                  Estimate {formatCurrency(estimated)}
+                </span>
+                <span className="rounded-full border border-border px-2.5 py-1">
+                  Actual {formatCurrency(actual)}
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              {group.items.map((item) => (
+                <BudgetRowCard
+                  key={item.id}
+                  canEdit={canEdit}
+                  isSaving={savingItemId === item.id}
+                  item={item}
+                  onSave={onSave}
+                />
+              ))}
+            </div>
+          </section>
+        );
+      })}
+    </div>
   );
 }

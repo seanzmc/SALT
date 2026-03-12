@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 
+import { WorkspacePageHeader } from "../../../app/components/workspace-page";
 import { useDashboardActivityQuery } from "../hooks/use-dashboard-activity-query";
 import { useDashboardSummaryQuery } from "../hooks/use-dashboard-summary-query";
 import { AttentionQueueCard } from "../components/attention-queue-card";
@@ -53,20 +54,10 @@ function taskDetailHref(
 }
 
 function messageHref(message: {
-  linkedTaskId: string | null;
   thread: {
     id: string;
-    task: {
-      id: string;
-    } | null;
   };
 }) {
-  const taskId = message.linkedTaskId ?? message.thread.task?.id;
-
-  if (taskId) {
-    return `/tasks/${taskId}`;
-  }
-
   return `/messages/${message.thread.id}`;
 }
 
@@ -102,16 +93,11 @@ export function DashboardWorkspacePage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[2rem] border border-border bg-white/85 p-6 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.4)] backdrop-blur">
-        <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-          Dashboard v2
-        </p>
-        <h2 className="mt-2 text-3xl font-semibold">Launch control surface</h2>
-        <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-          Active-work queues, recent operational movement, and direct deep links into the rebuilt
-          tasks, documents, and messages workspaces.
-        </p>
-      </section>
+      <WorkspacePageHeader
+        description="Active-work queues, recent operational movement, and direct deep links into the rebuilt task, document, message, budget, and timeline workspaces."
+        eyebrow="Dashboard"
+        title="Launch control surface"
+      />
 
       {summaryQuery.isLoading ? (
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">

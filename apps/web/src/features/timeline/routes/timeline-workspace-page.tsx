@@ -1,8 +1,13 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { TimelinePhaseRecord, TimelinePhaseUpdateInput, TimelineWorkspaceData } from "@salt/types";
+import { useSearchParams } from "react-router-dom";
 
 import { ApiClientError } from "../../../lib/api-client";
+import {
+  WorkspacePageHeader,
+  WorkspaceSurface
+} from "../../../app/components/workspace-page";
 import { useToast } from "../../../app/providers/toast-provider";
 import { getTimelineWorkspace, updateTimelinePhase } from "../api/timeline-client";
 import { TimelineOverview } from "../components/timeline-overview";
@@ -34,6 +39,7 @@ function patchTimelineWorkspace(
 
 export function TimelineWorkspacePage() {
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [saveError, setSaveError] = useState<string>();
   const toast = useToast();
 
@@ -87,56 +93,109 @@ export function TimelineWorkspacePage() {
     }
   });
 
+  const phases = timelineQuery.data?.phases ?? [];
+  const activePhase = useMemo(() => {
+    const selectedPhaseId = searchParams.get("phase");
+
+    return phases.find((phase) => phase.id === selectedPhaseId) ?? phases[0] ?? null;
+  }, [phases, searchParams]);
+  const activePhaseIndex = activePhase
+    ? phases.findIndex((phase) => phase.id === activePhase.id)
+    : -1;
+
   return (
     <div className="space-y-6">
-      <section className="rounded-[2rem] border border-border bg-white/85 p-6 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.4)] backdrop-blur">
-        <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Timeline v2</p>
-        <h2 className="mt-2 text-3xl font-semibold">Opening sequence workspace</h2>
-        <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-          Phase-level operational planning with status, blockers, notes, dates, and direct links
-          back into the task workspace.
-        </p>
-      </section>
+      <WorkspacePageHeader
+        description="Treat phases as opening stages, not isolated cards. Select one stage at a time, edit it in a dedicated panel, and keep linked tasks connected to the task shelf."
+        eyebrow="Timeline"
+        title="Opening timeline"
+      />
 
       {saveError ? (
-        <section className="rounded-[1.5rem] border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+        <section className="rounded-[1.25rem] border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
           {saveError}
         </section>
       ) : null}
 
       {timelineQuery.isLoading ? (
-        <section className="rounded-[1.75rem] border border-border bg-white/85 p-6 text-sm text-muted-foreground shadow-sm backdrop-blur">
-          Loading timeline workspace…
-        </section>
+        <WorkspaceSurface bodyClassName="text-sm text-muted-foreground" title="Opening phases">
+          Loading timeline workspace...
+        </WorkspaceSurface>
       ) : timelineQuery.error instanceof ApiClientError ? (
-        <section className="rounded-[1.75rem] border border-rose-200 bg-rose-50 p-6 text-sm text-rose-700">
-          {timelineQuery.error.message}
-        </section>
+        <WorkspaceSurface bodyClassName="p-0" title="Opening phases">
+          <div className="rounded-[1.25rem] border border-rose-200 bg-rose-50 px-4 py-4 text-sm text-rose-700">
+            {timelineQuery.error.message}
+          </div>
+        </WorkspaceSurface>
       ) : timelineQuery.data ? (
         timelineQuery.data.phases.length === 0 ? (
-          <section className="rounded-[1.75rem] border border-dashed border-border bg-card/80 p-8 text-center shadow-sm">
-            <p className="font-medium">No timeline phases are available.</p>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Seed or create phases before using the timeline workspace.
-            </p>
-          </section>
+          <WorkspaceSurface
+            bodyClassName="text-center"
+            description="Seed or create phases before using the timeline workspace."
+            title="Opening phases"
+          >
+            <div className="rounded-[1.25rem] border border-dashed border-border bg-muted/20 px-4 py-8">
+              <p className="font-medium text-foreground">No timeline phases are available.</p>
+            </div>
+          </WorkspaceSurface>
         ) : (
-          <>
-          <TimelineOverview phases={timelineQuery.data.phases} />
+          <WorkspaceSurface
+            bodyClassName="space-y-6"
+            description="A phase groups the milestones, task links, dates, notes, and blockers for one opening stage."
+            title="Opening phases"
+          >
+            <TimelineOverview phases={timelineQuery.data.phases} />
 
-          <div className="space-y-4">
-            {timelineQuery.data.phases.map((phase) => (
-              <TimelinePhaseCard
-                key={phase.id}
-                isSaving={updateMutation.isPending && updateMutation.variables?.phaseId === phase.id}
-                onSave={async (payload: TimelinePhaseUpdateInput) => {
-                  await updateMutation.mutateAsync(payload);
-                }}
-                phase={phase}
-              />
-            ))}
-          </div>
-          </>
+            <div className="grid gap-6 lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start">
+              <aside className="rounded-[1.25rem] border border-border/70 bg-white">
+                <div className="border-b border-border/70 px-4 py-3">
+                  <p className="font-medium text-foreground">Phase navigator</p>
+                  <p className="text-sm text-muted-foreground">
+                    Select the stage you want to review or update.
+                  </p>
+                </div>
+                <div className="divide-y divide-border/70">
+                  {phases.map((phase, index) => (
+                    <button
+                      key={phase.id}
+                      className={[
+                        "flex w-full items-start gap-3 px-4 py-4 text-left transition",
+                        activePhase?.id === phase.id ? "bg-primary/5" : "hover:bg-muted/35"
+                      ].join(" ")}
+                      onClick={() => {
+                        const next = new URLSearchParams(searchParams);
+                        next.set("phase", phase.id);
+                        setSearchParams(next, { replace: true });
+                      }}
+                      type="button"
+                    >
+                      <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-muted text-sm font-medium text-foreground">
+                        {index + 1}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="font-medium text-foreground">{phase.title}</p>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {phase.tasks.length} tasks • {phase.milestones.length} milestones
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </aside>
+
+              {activePhase ? (
+                <TimelinePhaseCard
+                  isSaving={updateMutation.isPending && updateMutation.variables?.phaseId === activePhase.id}
+                  onSave={async (payload: TimelinePhaseUpdateInput) => {
+                    await updateMutation.mutateAsync(payload);
+                  }}
+                  phase={activePhase}
+                  phaseCount={phases.length}
+                  phaseNumber={activePhaseIndex + 1}
+                />
+              ) : null}
+            </div>
+          </WorkspaceSurface>
         )
       ) : null}
     </div>

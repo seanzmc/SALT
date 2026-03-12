@@ -1,4 +1,4 @@
-import { hash } from "bcryptjs";
+import bcrypt from "bcryptjs";
 import { Role, TaskStatus } from "@prisma/client";
 
 import { prisma } from "@salt/db";
@@ -195,7 +195,7 @@ export async function createAdminUserCommand(input: {
     data: {
       name: input.payload.name.trim(),
       email,
-      passwordHash: await hash(input.payload.password, 10),
+      passwordHash: await bcrypt.hash(input.payload.password, 10),
       role: input.payload.role
     },
     select: {
@@ -270,7 +270,7 @@ export async function updateAdminUserCommand(input: {
       role: input.payload.role,
       ...(input.payload.password
         ? {
-            passwordHash: await hash(input.payload.password, 10)
+            passwordHash: await bcrypt.hash(input.payload.password, 10)
           }
         : {})
     },

@@ -8,6 +8,10 @@ type DocumentListPanelProps = {
   onPrefetchDocument: (documentId: string) => void;
 };
 
+function joinClasses(...values: Array<string | false | null | undefined>) {
+  return values.filter(Boolean).join(" ");
+}
+
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("en-US", {
     month: "short",
@@ -22,72 +26,71 @@ export function DocumentListPanel({
   search,
   onPrefetchDocument
 }: DocumentListPanelProps) {
+  if (documents.length === 0) {
+    return (
+      <div className="rounded-[1.25rem] border border-dashed border-border bg-muted/25 px-4 py-8 text-center text-sm text-muted-foreground">
+        No documents match the current filters.
+      </div>
+    );
+  }
+
   return (
-    <section className="rounded-[1.75rem] border border-border bg-card/90 p-5 shadow-sm">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <p className="text-sm font-semibold">Document vault</p>
-          <p className="text-sm text-muted-foreground">
-            Search the protected file set without losing selection context.
-          </p>
-        </div>
-        <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
-          {documents.length} shown
-        </span>
+    <div className="overflow-hidden rounded-[1.25rem] border border-border/70 bg-white">
+      <div className="flex items-center justify-between border-b border-border/70 px-4 py-3">
+        <p className="text-sm text-muted-foreground">
+          {documents.length} visible document{documents.length === 1 ? "" : "s"}
+        </p>
       </div>
 
-      <div className="mt-4 space-y-3">
-        {documents.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-border bg-muted/35 p-6 text-sm text-muted-foreground">
-            No documents match the current filters.
-          </div>
-        ) : null}
-
+      <div className="divide-y divide-border/70">
         {documents.map((document) => {
           const isActive = document.id === activeDocumentId;
 
           return (
             <Link
               key={document.id}
-              className={[
-                "block rounded-[1.4rem] border px-4 py-4 transition-colors",
-                isActive
-                  ? "border-primary bg-primary/5 shadow-[inset_3px_0_0_0_hsl(var(--primary))]"
-                  : "border-border hover:bg-muted/70"
-              ].join(" ")}
+              className={joinClasses(
+                "block px-4 py-4 transition",
+                isActive ? "bg-primary/5" : "hover:bg-muted/35"
+              )}
               onMouseEnter={() => onPrefetchDocument(document.id)}
               to={{
                 pathname: `/documents/${document.id}`,
                 search
               }}
             >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="font-medium">{document.title}</p>
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="font-medium text-foreground">{document.title}</p>
+                    <span className="rounded-full bg-muted px-2.5 py-1 text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+                      {document.category.replaceAll("_", " ")}
+                    </span>
+                  </div>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    {document.linkedTask?.title ?? document.linkedBudgetItem?.lineItem ?? "Unlinked"}
+                    {document.linkedTask?.title ??
+                      document.linkedBudgetItem?.lineItem ??
+                      "Unlinked document"}
                   </p>
                 </div>
-                <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
-                  {document.category.replaceAll("_", " ")}
-                </span>
+                <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                  {formatDate(document.createdAt)}
+                </p>
               </div>
 
-              <div className="mt-4 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                <span className="rounded-full border border-border px-2 py-1">
+              <div className="mt-3 flex flex-wrap gap-2 text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+                <span className="rounded-full border border-border px-2.5 py-1">
                   {document.originalName}
                 </span>
-                <span className="rounded-full border border-border px-2 py-1">
-                  Added {formatDate(document.createdAt)}
-                </span>
-                <span className="rounded-full border border-border px-2 py-1">
-                  {document.attachedTasks.length} task link{document.attachedTasks.length === 1 ? "" : "s"}
+                <span className="rounded-full border border-border px-2.5 py-1">
+                  {document.attachedTasks.length} task link
+                  {document.attachedTasks.length === 1 ? "" : "s"}
                 </span>
               </div>
             </Link>
           );
         })}
       </div>
-    </section>
+    </div>
   );
 }

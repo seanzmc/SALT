@@ -18,11 +18,13 @@ function SummaryCard({
   tone?: "default" | "positive" | "negative";
 }) {
   return (
-    <section className="rounded-[1.5rem] border border-border bg-white/85 p-5 shadow-sm backdrop-blur">
-      <p className="text-sm text-muted-foreground">{title}</p>
+    <div className="rounded-[1rem] border border-border/70 bg-white px-4 py-4">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+        {title}
+      </p>
       <p
         className={[
-          "mt-3 text-3xl font-semibold",
+          "mt-2 text-2xl font-semibold",
           tone === "negative"
             ? "text-rose-600"
             : tone === "positive"
@@ -32,13 +34,13 @@ function SummaryCard({
       >
         {value}
       </p>
-    </section>
+    </div>
   );
 }
 
 export function BudgetSummaryCards({ totals }: { totals: BudgetTotals }) {
   return (
-    <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
       <SummaryCard title="Estimated total" value={formatCurrency(totals.estimated)} />
       <SummaryCard title="Actual total" value={formatCurrency(totals.actual)} />
       <SummaryCard
@@ -47,7 +49,7 @@ export function BudgetSummaryCards({ totals }: { totals: BudgetTotals }) {
         value={formatCurrency(totals.variance)}
       />
       <SummaryCard title="Must-have" value={formatCurrency(totals.mustHave)} />
-      <SummaryCard title="Can phase in / optional" value={formatCurrency(totals.optional)} />
-    </section>
+      <SummaryCard title="Optional" value={formatCurrency(totals.optional)} />
+    </div>
   );
 }

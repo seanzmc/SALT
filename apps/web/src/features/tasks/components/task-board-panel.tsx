@@ -18,6 +18,10 @@ const columns: Array<{ status: TaskStatus; label: string }> = [
   { status: "COMPLETE", label: "Complete" }
 ];
 
+function joinClasses(...values: Array<string | false | null | undefined>) {
+  return values.filter(Boolean).join(" ");
+}
+
 function formatDate(value: string | null) {
   if (!value) {
     return "No due date";
@@ -39,112 +43,93 @@ export function TaskBoardPanel({
   onToggleTaskSelection
 }: TaskBoardPanelProps) {
   return (
-    <section className="rounded-[1.75rem] border border-border bg-card/90 p-5 shadow-sm">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <p className="text-sm font-semibold">Board view</p>
-          <p className="text-sm text-muted-foreground">
-            Open the same right-side shelf from status columns.
-          </p>
-        </div>
-        <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
-          {tasks.length} shown
-        </span>
-      </div>
+    <div className="grid gap-4 xl:grid-cols-4">
+      {columns.map((column) => {
+        const columnTasks = tasks.filter((task) => task.status === column.status);
 
-      <div className="mt-5 grid gap-4 xl:grid-cols-4">
-        {columns.map((column) => {
-          const columnTasks = tasks.filter((task) => task.status === column.status);
+        return (
+          <section
+            key={column.status}
+            className="rounded-[1.25rem] border border-border/70 bg-muted/15"
+          >
+            <div className="flex items-center justify-between border-b border-border/70 px-4 py-3">
+              <p className="font-medium text-foreground">{column.label}</p>
+              <span className="rounded-full bg-white px-2.5 py-1 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                {columnTasks.length}
+              </span>
+            </div>
 
-          return (
-            <div
-              key={column.status}
-              className="rounded-[1.5rem] border border-border bg-white/80 p-4"
-            >
-              <div className="flex items-center justify-between gap-2">
-                <p className="font-medium">{column.label}</p>
-                <span className="rounded-full bg-muted px-2 py-1 text-xs text-muted-foreground">
-                  {columnTasks.length}
-                </span>
-              </div>
+            <div className="space-y-3 p-3">
+              {columnTasks.length === 0 ? (
+                <div className="rounded-[1rem] border border-dashed border-border bg-white/50 px-3 py-4 text-sm text-muted-foreground">
+                  No tasks in this column.
+                </div>
+              ) : null}
 
-              <div className="mt-4 space-y-3">
-                {columnTasks.length === 0 ? (
-                  <div className="rounded-2xl border border-dashed border-border bg-muted/35 p-4 text-sm text-muted-foreground">
-                    No tasks in this column.
-                  </div>
-                ) : null}
+              {columnTasks.map((task) => {
+                const isActive = task.id === activeTaskId;
+                const isSelected = selectedTaskIds.includes(task.id);
+                const dependencyBlocked = task.dependencyStatuses.some(
+                  (status) => status !== "COMPLETE"
+                );
 
-                {columnTasks.map((task) => {
-                  const isActive = task.id === activeTaskId;
-                  const isSelected = selectedTaskIds.includes(task.id);
-                  const dependencyBlocked = task.dependencyStatuses.some(
-                    (status) => status !== "COMPLETE"
-                  );
+                return (
+                  <article
+                    key={task.id}
+                    className={joinClasses(
+                      "rounded-[1rem] border border-border/70 bg-white px-3 py-3 transition",
+                      isActive && "border-primary/40 bg-primary/5",
+                      !isActive && "hover:bg-muted/40"
+                    )}
+                  >
+                    <div className="flex items-start gap-3">
+                      {canSelectTasks ? (
+                        <input
+                          checked={isSelected}
+                          className="mt-1 h-4 w-4 rounded border-border"
+                          onChange={() => onToggleTaskSelection(task.id)}
+                          type="checkbox"
+                        />
+                      ) : null}
 
-                  return (
-                    <article
-                      key={task.id}
-                      className={[
-                        "rounded-[1.25rem] border bg-card px-3 py-3 transition-colors",
-                        isActive
-                          ? "border-primary bg-primary/5 shadow-[inset_3px_0_0_0_hsl(var(--primary))]"
-                          : "border-border hover:bg-muted/60"
-                      ].join(" ")}
-                    >
-                      <div className="flex items-start gap-2">
-                        {canSelectTasks ? (
-                          <input
-                            checked={isSelected}
-                            className="mt-1 h-4 w-4 rounded border-border"
-                            onChange={() => onToggleTaskSelection(task.id)}
-                            type="checkbox"
-                          />
-                        ) : null}
-
-                        <div className="min-w-0 flex-1">
-                          <Link
-                            className="font-medium hover:text-primary"
-                            onMouseEnter={() => onPrefetchTask(task.id)}
-                            to={{
-                              pathname: `/tasks/${task.id}`,
-                              search
-                            }}
+                      <div className="min-w-0 flex-1">
+                        <Link
+                          className="font-medium text-foreground hover:text-primary"
+                          onMouseEnter={() => onPrefetchTask(task.id)}
+                          to={{
+                            pathname: `/tasks/${task.id}`,
+                            search
+                          }}
+                        >
+                          {task.title}
+                        </Link>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {task.assignedTo?.name ?? "Unassigned"} · {formatDate(task.dueDate)}
+                        </p>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          <span className="rounded-full border border-border px-2.5 py-1 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                            {task.priority}
+                          </span>
+                          <span
+                            className={joinClasses(
+                              "rounded-full px-2.5 py-1 text-[11px] uppercase tracking-[0.14em]",
+                              dependencyBlocked
+                                ? "bg-amber-100 text-amber-800"
+                                : "bg-emerald-100 text-emerald-700"
+                            )}
                           >
-                            {task.title}
-                          </Link>
-                          <p className="mt-1 text-sm text-muted-foreground">
-                            {task.assignedTo?.name ?? "Unassigned"}
-                          </p>
+                            {dependencyBlocked ? "Blocked" : "Ready"}
+                          </span>
                         </div>
                       </div>
-
-                      <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                        <span className="rounded-full border border-border px-2 py-1">
-                          {task.priority}
-                        </span>
-                        <span className="rounded-full border border-border px-2 py-1">
-                          Due {formatDate(task.dueDate)}
-                        </span>
-                        <span
-                          className={[
-                            "rounded-full border px-2 py-1",
-                            dependencyBlocked
-                              ? "border-amber-300 bg-amber-50 text-amber-800"
-                              : "border-emerald-200 bg-emerald-50 text-emerald-700"
-                          ].join(" ")}
-                        >
-                          {dependencyBlocked ? "Dependency blocked" : "Ready"}
-                        </span>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
+                    </div>
+                  </article>
+                );
+              })}
             </div>
-          );
-        })}
-      </div>
-    </section>
+          </section>
+        );
+      })}
+    </div>
   );
 }

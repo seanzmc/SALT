@@ -1,4 +1,4 @@
-import { compare, hash } from "bcryptjs";
+import bcrypt from "bcryptjs";
 
 import { prisma } from "@salt/db";
 import type {
@@ -65,7 +65,7 @@ export async function updateAccountPasswordCommand(input: {
     throw new DomainError(404, "NOT_FOUND", "User account not found.");
   }
 
-  const currentPasswordMatches = await compare(
+  const currentPasswordMatches = await bcrypt.compare(
     input.payload.currentPassword,
     user.passwordHash
   );
@@ -76,7 +76,7 @@ export async function updateAccountPasswordCommand(input: {
     });
   }
 
-  const newPasswordMatchesCurrent = await compare(
+  const newPasswordMatchesCurrent = await bcrypt.compare(
     input.payload.newPassword,
     user.passwordHash
   );
@@ -95,7 +95,7 @@ export async function updateAccountPasswordCommand(input: {
   await prisma.user.update({
     where: { id: input.actor.id },
     data: {
-      passwordHash: await hash(input.payload.newPassword, 10)
+      passwordHash: await bcrypt.hash(input.payload.newPassword, 10)
     }
   });
 
