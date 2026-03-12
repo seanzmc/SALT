@@ -7,3 +7,7 @@ export type ApiErrorResponse = {
     fieldErrors?: Record<string, string[] | undefined>;
   };
 };
+
+export type MessageResponse = {
+  message: string;
+};

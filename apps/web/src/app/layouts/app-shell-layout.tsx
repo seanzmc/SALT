@@ -1,10 +1,22 @@
 import type { PropsWithChildren } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { NavLink } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
+import { logout } from "../../features/auth/api/auth-client";
 import { useAuthSessionQuery } from "../../features/auth/hooks/use-auth-session-query";
 
 export function AppShellLayout({ children }: PropsWithChildren) {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { data } = useAuthSessionQuery();
+  const logoutMutation = useMutation({
+    mutationFn: logout,
+    onSuccess: () => {
+      queryClient.clear();
+      navigate("/login", { replace: true });
+    }
+  });
 
   return (
     <div className="min-h-screen xl:grid xl:grid-cols-[18rem_minmax(0,1fr)]">
@@ -98,12 +110,51 @@ export function AppShellLayout({ children }: PropsWithChildren) {
           >
             Timeline
           </NavLink>
+          {data?.user.role === "OWNER_ADMIN" ? (
+            <NavLink
+              className={({ isActive }) =>
+                [
+                  "block rounded-2xl px-4 py-3 text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-card text-foreground hover:bg-muted"
+                ].join(" ")
+              }
+              to="/settings/setup"
+            >
+              Setup
+            </NavLink>
+          ) : null}
+          <NavLink
+            className={({ isActive }) =>
+              [
+                "block rounded-2xl px-4 py-3 text-sm font-medium transition-colors",
+                isActive
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-card text-foreground hover:bg-muted"
+              ].join(" ")
+            }
+            to="/settings/account"
+          >
+            Account
+          </NavLink>
         </nav>
 
         <div className="mt-8 rounded-2xl border border-border bg-card/80 p-4">
           <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Signed in</p>
           <p className="mt-2 font-medium">{data?.user.name}</p>
+          <p className="text-sm text-muted-foreground">{data?.user.email}</p>
           <p className="text-sm text-muted-foreground">{data?.user.role}</p>
+          <button
+            className="mt-4 w-full rounded-2xl border border-border bg-white px-4 py-3 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-70"
+            disabled={logoutMutation.isPending}
+            onClick={async () => {
+              await logoutMutation.mutateAsync();
+            }}
+            type="button"
+          >
+            {logoutMutation.isPending ? "Signing out…" : "Sign out"}
+          </button>
         </div>
       </aside>
 

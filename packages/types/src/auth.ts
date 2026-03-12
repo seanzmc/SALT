@@ -20,3 +20,27 @@ export type AuthErrorCode =
   | "INACTIVE_USER"
   | "NOT_FOUND"
   | "VALIDATION_ERROR";
+
+export type AccountEmailUpdateInput = {
+  email: string;
+};
+
+export type AccountPasswordUpdateInput = {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+};
+
+export type ForgotPasswordInput = {
+  email: string;
+};
+
+export type ResetPasswordInput = {
+  token: string;
+  newPassword: string;
+  confirmPassword: string;
+};
+
+export type PasswordResetTokenValidation = {
+  valid: boolean;
+};

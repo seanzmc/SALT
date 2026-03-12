@@ -25,7 +25,7 @@ export function RequireAuth({ children }: PropsWithChildren) {
     return (
       <Navigate
         replace
-        to={`/login?redirectTo=${encodeURIComponent(location.pathname)}`}
+        to={`/login?redirectTo=${encodeURIComponent(`${location.pathname}${location.search}`)}`}
       />
     );
   }

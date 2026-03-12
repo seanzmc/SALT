@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 
 import { loginSchema } from "@salt/validation";
@@ -15,7 +15,7 @@ export function LoginPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
-  const redirectTo = searchParams.get("redirectTo") || "/tasks";
+  const redirectTo = searchParams.get("redirectTo") || "/dashboard";
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -41,7 +41,7 @@ export function LoginPage() {
         </p>
         <h1 className="mt-3 text-3xl font-semibold">Sign in to Workspace v2</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          This scaffold is focused on the Tasks Workspace milestone.
+          The rebuilt SALT workspace now covers operations, documents, messaging, planning, and setup.
         </p>
 
         <form
@@ -88,6 +88,12 @@ export function LoginPage() {
             {loginMutation.isPending ? "Signing in…" : "Sign in"}
           </button>
         </form>
+
+        <div className="mt-6 text-center text-sm text-muted-foreground">
+          <Link className="font-medium transition hover:text-foreground" to="/forgot-password">
+            Forgot password?
+          </Link>
+        </div>
       </div>
     </div>
   );

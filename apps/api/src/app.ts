@@ -1,3 +1,5 @@
+import { accountRouter } from "./modules/account/router";
+import { adminRouter } from "./modules/admin/router";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import express from "express";
@@ -30,6 +32,8 @@ export function createApp() {
     response.status(200).json({ ok: true, service: "salt-api" });
   });
 
+  app.use("/api/account", accountRouter);
+  app.use("/api/admin", adminRouter);
   app.use("/api/auth", authRouter);
   app.use("/api/budget", budgetRouter);
   app.use("/api/dashboard", dashboardRouter);

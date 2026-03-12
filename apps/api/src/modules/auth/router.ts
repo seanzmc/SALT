@@ -3,13 +3,21 @@ import { Router } from "express";
 import {
   SESSION_COOKIE_NAME,
   authenticateWithCredentials,
-  createSessionToken
+  createSessionToken,
+  isPasswordResetTokenValid,
+  requestPasswordResetCommand,
+  resetPasswordWithTokenCommand
 } from "@salt/domain";
-import { loginSchema } from "@salt/validation";
+import {
+  forgotPasswordSchema,
+  loginSchema,
+  resetPasswordSchema
+} from "@salt/validation";
 
 import { apiEnv } from "../../config/env";
 import { AppError } from "../../lib/app-error";
 import { asyncHandler } from "../../lib/async-handler";
+import { sendPasswordResetEmail } from "../../lib/password-reset-email";
 import { requireSession } from "../../middleware/auth-session";
 
 export const authRouter = Router();
@@ -60,5 +68,70 @@ authRouter.get(
   requireSession,
   asyncHandler(async (request, response) => {
     response.status(200).json(request.authSession);
+  })
+);
+
+authRouter.post(
+  "/password/forgot",
+  asyncHandler(async (request, response) => {
+    const parsed = forgotPasswordSchema.safeParse(request.body);
+
+    if (!parsed.success) {
+      throw new AppError(
+        400,
+        "VALIDATION_ERROR",
+        "Please enter a valid email address.",
+        parsed.error.flatten().fieldErrors
+      );
+    }
+
+    const result = await requestPasswordResetCommand({
+      email: parsed.data.email,
+      baseUrl: apiEnv.WEB_ORIGIN
+    });
+
+    if (result.delivery) {
+      try {
+        await sendPasswordResetEmail(result.delivery);
+      } catch (error) {
+        console.error("[password-reset] Failed to send reset email", error);
+      }
+    }
+
+    response.status(200).json({ message: result.message });
+  })
+);
+
+authRouter.get(
+  "/password/reset/validate",
+  asyncHandler(async (request, response) => {
+    const token = typeof request.query.token === "string" ? request.query.token : "";
+
+    response.status(200).json({
+      valid: token ? await isPasswordResetTokenValid(token) : false
+    });
+  })
+);
+
+authRouter.post(
+  "/password/reset",
+  asyncHandler(async (request, response) => {
+    const parsed = resetPasswordSchema.safeParse(request.body);
+
+    if (!parsed.success) {
+      throw new AppError(
+        400,
+        "VALIDATION_ERROR",
+        "Please correct the highlighted password fields.",
+        parsed.error.flatten().fieldErrors
+      );
+    }
+
+    response.status(200).json(
+      await resetPasswordWithTokenCommand({
+        token: parsed.data.token,
+        newPassword: parsed.data.newPassword
+      })
+    );
   })
 );
