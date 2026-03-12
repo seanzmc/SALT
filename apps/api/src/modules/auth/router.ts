@@ -86,7 +86,9 @@ authRouter.post(
       );
     }
 
-    const payload: ForgotPasswordInput = parsed.data;
+    const payload: ForgotPasswordInput = {
+      email: parsed.data.email
+    };
 
     const result = await requestPasswordResetCommand({
       email: payload.email,
@@ -130,7 +132,11 @@ authRouter.post(
       );
     }
 
-    const payload: ResetPasswordInput = parsed.data;
+    const payload: ResetPasswordInput = {
+      token: parsed.data.token,
+      newPassword: parsed.data.newPassword,
+      confirmPassword: parsed.data.confirmPassword
+    };
 
     response.status(200).json(
       await resetPasswordWithTokenCommand({
