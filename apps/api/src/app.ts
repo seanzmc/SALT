@@ -6,6 +6,9 @@ import { apiEnv } from "./config/env";
 import { attachSession } from "./middleware/auth-session";
 import { errorHandler, notFoundHandler } from "./middleware/error-handler";
 import { authRouter } from "./modules/auth/router";
+import { dashboardRouter } from "./modules/dashboard/router";
+import { documentsRouter } from "./modules/documents/router";
+import { messagesRouter } from "./modules/messages/router";
 import { tasksRouter } from "./modules/tasks/router";
 
 export function createApp() {
@@ -26,6 +29,9 @@ export function createApp() {
   });
 
   app.use("/api/auth", authRouter);
+  app.use("/api/dashboard", dashboardRouter);
+  app.use("/api/documents", documentsRouter);
+  app.use("/api/messages", messagesRouter);
   app.use("/api/tasks", tasksRouter);
 
   app.use(notFoundHandler);

@@ -3,6 +3,8 @@ import { createBrowserRouter, Navigate, Outlet, RouterProvider } from "react-rou
 import { AppShellLayout } from "./layouts/app-shell-layout";
 import { RequireAuth } from "../features/auth/components/require-auth";
 import { LoginPage } from "../features/auth/routes/login-page";
+import { DocumentsWorkspacePage } from "../features/documents/routes/documents-workspace-page";
+import { MessagesWorkspacePage } from "../features/messages/routes/messages-workspace-page";
 import { TasksWorkspacePage } from "../features/tasks/routes/tasks-workspace-page";
 
 const router = createBrowserRouter([
@@ -30,6 +32,22 @@ const router = createBrowserRouter([
       {
         path: "/tasks/:taskId",
         element: <TasksWorkspacePage />
+      },
+      {
+        path: "/documents",
+        element: <DocumentsWorkspacePage />
+      },
+      {
+        path: "/documents/:documentId",
+        element: <DocumentsWorkspacePage />
+      },
+      {
+        path: "/messages",
+        element: <MessagesWorkspacePage />
+      },
+      {
+        path: "/messages/:threadId",
+        element: <MessagesWorkspacePage />
       }
     ]
   }
