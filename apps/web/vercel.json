@@ -3,7 +3,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://REPLACE_WITH_API_PROJECT_DOMAIN/api/:path*"
+      "destination": "https://salt-api-sand.vercel.app/api/:path*"
     },
     {
       "source": "/(.*)",
