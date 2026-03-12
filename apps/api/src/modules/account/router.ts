@@ -28,7 +28,9 @@ accountRouter.patch(
       );
     }
 
-    const payload: AccountEmailUpdateInput = parsed.data;
+    const payload: AccountEmailUpdateInput = {
+      email: parsed.data.email
+    };
 
     response.status(200).json(
       await updateAccountEmailCommand({
@@ -51,7 +53,11 @@ accountRouter.patch(
       );
     }
 
-    const payload: AccountPasswordUpdateInput = parsed.data;
+    const payload: AccountPasswordUpdateInput = {
+      currentPassword: parsed.data.currentPassword,
+      newPassword: parsed.data.newPassword,
+      confirmPassword: parsed.data.confirmPassword
+    };
 
     response.status(200).json(
       await updateAccountPasswordCommand({
