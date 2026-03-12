@@ -2,16 +2,27 @@
   "name": "clinic-buildout-tracker",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "dev": "next dev",
+    "dev:api": "npm run dev -w @salt/api",
+    "dev:web": "npm run dev -w @salt/web",
     "build": "next build",
+    "build:api": "npm run build -w @salt/api",
+    "build:web": "npm run build -w @salt/web",
     "start": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "typecheck:api": "npm run typecheck -w @salt/api",
+    "typecheck:web": "npm run typecheck -w @salt/web",
+    "typecheck:v2": "npm run typecheck:api && npm run typecheck:web"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
