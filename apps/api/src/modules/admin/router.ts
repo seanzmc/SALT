@@ -1,4 +1,9 @@
 import { Router } from "express";
+import type {
+  AdminCreateUserInput,
+  AdminReactivateUserInput,
+  AdminStatusResetInput
+} from "@salt/types";
 
 import {
   createAdminUserCommand,
@@ -48,10 +53,14 @@ adminRouter.post(
       throw validationError("Invalid reset request.");
     }
 
+    const payload: AdminStatusResetInput = {
+      target: parsed.data.target
+    };
+
     response.status(200).json(
       await resetSetupStatusesCommand({
         actor: request.authSession!.user,
-        payload: parsed.data
+        payload
       })
     );
   })
@@ -125,10 +134,17 @@ adminRouter.post(
       );
     }
 
+    const payload: AdminCreateUserInput = {
+      name: parsed.data.name,
+      email: parsed.data.email,
+      password: parsed.data.password,
+      role: parsed.data.role
+    };
+
     response.status(201).json(
       await createAdminUserCommand({
         actor: request.authSession!.user,
-        payload: parsed.data
+        payload
       })
     );
   })
@@ -206,10 +222,14 @@ adminRouter.post(
       throw validationError("Invalid user id.");
     }
 
+    const payload: AdminReactivateUserInput = {
+      userId: parsed.data.userId
+    };
+
     response.status(200).json(
       await reactivateAdminUserCommand({
         actor: request.authSession!.user,
-        payload: parsed.data
+        payload
       })
     );
   })
