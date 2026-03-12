@@ -109,7 +109,15 @@ export function TimelineWorkspacePage() {
           {timelineQuery.error.message}
         </section>
       ) : timelineQuery.data ? (
-        <>
+        timelineQuery.data.phases.length === 0 ? (
+          <section className="rounded-[1.75rem] border border-dashed border-border bg-card/80 p-8 text-center shadow-sm">
+            <p className="font-medium">No timeline phases are available.</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Seed or create phases before using the timeline workspace.
+            </p>
+          </section>
+        ) : (
+          <>
           <TimelineOverview phases={timelineQuery.data.phases} />
 
           <div className="space-y-4">
@@ -124,7 +132,8 @@ export function TimelineWorkspacePage() {
               />
             ))}
           </div>
-        </>
+          </>
+        )
       ) : null}
     </div>
   );

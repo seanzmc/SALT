@@ -186,14 +186,23 @@ export function BudgetWorkspacePage() {
           {budgetQuery.error.message}
         </section>
       ) : budgetQuery.data ? (
-        <BudgetTable
-          items={budgetQuery.data.items}
-          onSave={async (payload: BudgetItemUpdateInput) => {
-            await updateMutation.mutateAsync(payload);
-          }}
-          role={sessionQuery.data?.user.role}
-          savingItemId={updateMutation.variables?.itemId}
-        />
+        budgetQuery.data.items.length === 0 ? (
+          <section className="rounded-[1.75rem] border border-dashed border-border bg-card/80 p-8 text-center shadow-sm">
+            <p className="font-medium">No budget items match this filter.</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Try a different category or clear the filter to see the full budget.
+            </p>
+          </section>
+        ) : (
+          <BudgetTable
+            items={budgetQuery.data.items}
+            onSave={async (payload: BudgetItemUpdateInput) => {
+              await updateMutation.mutateAsync(payload);
+            }}
+            role={sessionQuery.data?.user.role}
+            savingItemId={updateMutation.variables?.itemId}
+          />
+        )
       ) : null}
     </div>
   );

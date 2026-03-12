@@ -15,20 +15,32 @@ export async function apiClient<T>(
   input: RequestInfo,
   init?: RequestInit
 ): Promise<T> {
-  const response = await fetch(input, {
-    ...init,
-    credentials: "include",
-    headers: {
-      "content-type": "application/json",
-      ...(init?.headers ?? {})
-    }
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(input, {
+      ...init,
+      credentials: "include",
+      headers: {
+        ...(init?.body ? { "content-type": "application/json" } : {}),
+        ...(init?.headers ?? {})
+      }
+    });
+  } catch (error) {
+    throw new ApiClientError(
+      error instanceof Error ? error.message : "Network request failed.",
+      0
+    );
+  }
 
   if (response.status === 204) {
     return undefined as T;
   }
 
-  const payload = (await response.json()) as T | ApiErrorResponse;
+  const contentType = response.headers.get("content-type") ?? "";
+  const payload = contentType.includes("application/json")
+    ? ((await response.json()) as T | ApiErrorResponse)
+    : ({ error: { code: "INTERNAL_ERROR", message: await response.text() } } satisfies ApiErrorResponse);
 
   if (!response.ok) {
     throw new ApiClientError(

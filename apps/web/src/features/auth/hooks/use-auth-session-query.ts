@@ -7,6 +7,9 @@ export function useAuthSessionQuery() {
   return useQuery({
     queryKey: ["auth", "session"],
     queryFn: getCurrentSession,
+    staleTime: 30_000,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
     retry(failureCount, error) {
       if (error instanceof ApiClientError && error.status === 401) {
         return false;

@@ -766,18 +766,24 @@ export function AdminSetupPage() {
             description="Update names, emails, roles, and passwords without editing the database directly."
             title="Manage users"
           >
-            <div className="space-y-4">
-              {sortedUsers.map((user) => (
-                <UserRowForm
-                  currentUserId={currentUserId}
-                  key={user.id}
-                  onSaved={async () => {
-                    await refreshAdminAfterMutation();
-                  }}
-                  user={user}
-                />
-              ))}
-            </div>
+            {sortedUsers.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-border bg-muted/35 p-4 text-sm text-muted-foreground">
+                No users are available yet.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {sortedUsers.map((user) => (
+                  <UserRowForm
+                    currentUserId={currentUserId}
+                    key={user.id}
+                    onSaved={async () => {
+                      await refreshAdminAfterMutation();
+                    }}
+                    user={user}
+                  />
+                ))}
+              </div>
+            )}
           </SectionCard>
 
           <SectionCard
@@ -821,36 +827,48 @@ export function AdminSetupPage() {
             description="Assign task owners and due dates in one place. Full task editing stays in the tasks workspace."
             title="Task setup"
           >
-            <div className="space-y-4">
-              {setupData.tasks.map((task) => (
-                <TaskSetupRow
-                  key={task.id}
-                  onSaved={async () => {
-                    await refreshAdminAfterMutation();
-                  }}
-                  task={task}
-                  users={activeAssignmentUsers}
-                />
-              ))}
-            </div>
+            {setupData.tasks.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-border bg-muted/35 p-4 text-sm text-muted-foreground">
+                No active tasks are available for setup.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {setupData.tasks.map((task) => (
+                  <TaskSetupRow
+                    key={task.id}
+                    onSaved={async () => {
+                      await refreshAdminAfterMutation();
+                    }}
+                    task={task}
+                    users={activeAssignmentUsers}
+                  />
+                ))}
+              </div>
+            )}
           </SectionCard>
 
           <SectionCard
             description="Checklist items support direct assignment and due dates for operational handoff."
             title="Checklist item setup"
           >
-            <div className="space-y-4">
-              {setupData.subtasks.map((subtask) => (
-                <SubtaskSetupRow
-                  key={subtask.id}
-                  onSaved={async () => {
-                    await refreshAdminAfterMutation();
-                  }}
-                  subtask={subtask}
-                  users={activeAssignmentUsers}
-                />
-              ))}
-            </div>
+            {setupData.subtasks.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-border bg-muted/35 p-4 text-sm text-muted-foreground">
+                No active checklist items are available for setup.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {setupData.subtasks.map((subtask) => (
+                  <SubtaskSetupRow
+                    key={subtask.id}
+                    onSaved={async () => {
+                      await refreshAdminAfterMutation();
+                    }}
+                    subtask={subtask}
+                    users={activeAssignmentUsers}
+                  />
+                ))}
+              </div>
+            )}
           </SectionCard>
         </>
       ) : null}
