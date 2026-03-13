@@ -36,6 +36,10 @@ export const taskCommentSchema = z.object({
 export const taskWorkspaceUpdateSchema = z
   .object({
     taskId: z.string().cuid(),
+    title: z.string().trim().min(2).max(180),
+    description: z.string().max(4000).optional().or(z.literal("")),
+    notes: z.string().max(4000).optional().or(z.literal("")),
+    dueDate: z.string().optional().or(z.literal("")),
     status: z.enum(TASK_STATUS_VALUES),
     priority: z.enum(PRIORITY_VALUES),
     assignedToId: z.string().cuid().optional().or(z.literal("")),

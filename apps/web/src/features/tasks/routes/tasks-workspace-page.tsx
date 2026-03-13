@@ -1,6 +1,7 @@
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
+  DocumentWorkspaceData,
   SessionPayload,
   TaskArchiveInput,
   TaskBulkActionInput,
@@ -27,6 +28,7 @@ import {
 } from "../../../app/components/workspace-page";
 import { useToast } from "../../../app/providers/toast-provider";
 import { useAuthSessionQuery } from "../../auth/hooks/use-auth-session-query";
+import { uploadDocument } from "../../documents/api/documents-client";
 import {
   archiveSubtask,
   archiveTask,
@@ -181,6 +183,9 @@ function patchTaskSummary(
       TaskSummary,
       | "status"
       | "priority"
+      | "title"
+      | "description"
+      | "notes"
       | "assignedTo"
       | "blockedReason"
       | "archivedAt"
@@ -203,12 +208,16 @@ function patchTaskDetail(
       NonNullable<TaskWorkspaceData["task"]>,
       | "status"
       | "priority"
+      | "title"
+      | "description"
+      | "notes"
       | "assignedTo"
       | "assignedToId"
       | "blockedReason"
       | "archivedAt"
       | "dueDate"
       | "dependencyStatuses"
+      | "attachments"
       | "subtasks"
       | "dependencies"
       | "dependencyCandidates"
@@ -319,6 +328,7 @@ export function TasksWorkspacePage() {
   const [dependencyError, setDependencyError] = useState<string>();
   const [archiveError, setArchiveError] = useState<string>();
   const [bulkError, setBulkError] = useState<string>();
+  const [documentError, setDocumentError] = useState<string>();
   const [taskShelfExpanded, setTaskShelfExpanded] = useState(false);
   const toast = useToast();
   const sessionQuery = useAuthSessionQuery();
@@ -429,6 +439,10 @@ export function TasksWorkspacePage() {
         : undefined;
 
       patchCurrentListTask(payload.taskId, {
+        title: payload.title,
+        description: payload.description,
+        notes: payload.notes,
+        dueDate: payload.dueDate,
         status: payload.status,
         priority: payload.priority,
         assignedTo,
@@ -440,6 +454,10 @@ export function TasksWorkspacePage() {
           taskQueryKeys.detail(selectedTaskId),
           (current) =>
             patchTaskDetail(current, {
+              title: payload.title,
+              description: payload.description,
+              notes: payload.notes,
+              dueDate: payload.dueDate,
               status: payload.status,
               priority: payload.priority,
               assignedTo,
@@ -475,6 +493,57 @@ export function TasksWorkspacePage() {
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: taskQueryKeys.lists() });
+    }
+  });
+
+  const uploadDocumentMutation = useMutation({
+    mutationFn: uploadDocument,
+    onMutate: async () => {
+      setDocumentError(undefined);
+      if (selectedTaskId) {
+        await queryClient.cancelQueries({ queryKey: taskQueryKeys.detail(selectedTaskId) });
+      }
+    },
+    onError: (error) => {
+      const message =
+        error instanceof ApiClientError ? error.message : "Unable to upload document.";
+      setDocumentError(message);
+      toast.error("Document upload failed", message);
+    },
+    onSuccess: (data: DocumentWorkspaceData) => {
+      setDocumentError(undefined);
+      const document = data.document;
+
+      if (selectedTaskId && document && document.linkedTask?.id === selectedTaskId) {
+        queryClient.setQueryData<TaskWorkspaceData>(
+          taskQueryKeys.detail(selectedTaskId),
+          (current) =>
+            current?.task
+              ? patchTaskDetail(current, {
+                  attachments: [
+                    {
+                      id: document.id,
+                      title: document.title,
+                      category: document.category,
+                      originalName: document.originalName,
+                      storagePath: document.storagePath,
+                      createdAt: document.createdAt
+                    },
+                    ...current.task.attachments.filter(
+                      (attachment) => attachment.id !== document.id
+                    )
+                  ]
+                })
+              : current
+        );
+      }
+
+      toast.success("Document uploaded", document?.title);
+    },
+    onSettled: () => {
+      if (selectedTaskId) {
+        void queryClient.invalidateQueries({ queryKey: taskQueryKeys.detail(selectedTaskId) });
+      }
     }
   });
 
@@ -1391,9 +1460,11 @@ export function TasksWorkspacePage() {
               currentUser={currentUser as SessionPayload["user"]}
               data={taskWorkspaceQuery.data}
               dependencyError={dependencyError}
+              documentError={documentError}
               isArchivingTask={archiveTaskMutation.isPending || restoreTaskMutation.isPending}
               isExpanded={taskShelfExpanded}
               isPostingComment={createCommentMutation.isPending}
+              isUploadingDocument={uploadDocumentMutation.isPending}
               isSavingDependency={
                 createDependencyMutation.isPending || deleteDependencyMutation.isPending
               }
@@ -1439,6 +1510,9 @@ export function TasksWorkspacePage() {
               }}
               onSubmitComment={async (payload) => {
                 await createCommentMutation.mutateAsync(payload);
+              }}
+              onSubmitDocumentUpload={async (payload) => {
+                await uploadDocumentMutation.mutateAsync(payload);
               }}
               onSubmitTaskUpdate={async (payload) => {
                 await updateTaskMutation.mutateAsync(payload);

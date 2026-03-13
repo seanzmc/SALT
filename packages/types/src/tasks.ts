@@ -214,6 +214,10 @@ export type TaskListResponse = {
 
 export type TaskWorkspaceUpdateInput = {
   taskId: string;
+  title: string;
+  description: string | null;
+  notes: string | null;
+  dueDate: string | null;
   status: TaskStatus;
   priority: TaskPriority;
   assignedToId: string | null;

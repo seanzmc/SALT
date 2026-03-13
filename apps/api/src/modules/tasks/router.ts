@@ -154,6 +154,10 @@ tasksRouter.patch(
 
     const payload: TaskWorkspaceUpdateInput = {
       taskId: parsed.data.taskId,
+      title: parsed.data.title,
+      description: parsed.data.description || null,
+      notes: parsed.data.notes || null,
+      dueDate: parsed.data.dueDate || null,
       status: parsed.data.status,
       priority: parsed.data.priority,
       assignedToId: parsed.data.assignedToId || null,

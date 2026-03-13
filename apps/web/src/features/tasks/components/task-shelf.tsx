@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
+import { DOCUMENT_CATEGORY_VALUES, type DocumentCategory } from "@salt/types";
+import { useEffect, useId, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
 import type {
@@ -28,6 +29,14 @@ type TaskShelfProps = {
   onPrevious?: () => void;
   onSubmitTaskUpdate: (payload: TaskWorkspaceUpdateInput) => Promise<void>;
   onSubmitComment: (payload: TaskCommentCreateInput) => Promise<void>;
+  onSubmitDocumentUpload: (payload: {
+    title: string;
+    category: DocumentCategory;
+    notes: string | null;
+    linkedTaskId: string | null;
+    linkedBudgetItemId: string | null;
+    file: File;
+  }) => Promise<void>;
   onCreateSubtask: (payload: TaskSubtaskCreateInput) => Promise<void>;
   onUpdateSubtask: (payload: TaskSubtaskUpdateInput) => Promise<void>;
   onDeleteSubtask: (payload: TaskSubtaskDeleteInput) => Promise<void>;
@@ -39,17 +48,23 @@ type TaskShelfProps = {
   onRestoreTask: (payload: TaskArchiveInput) => Promise<void>;
   isSavingTask: boolean;
   isPostingComment: boolean;
+  isUploadingDocument: boolean;
   isSavingSubtask: boolean;
   isSavingDependency: boolean;
   isArchivingTask: boolean;
   taskError?: string;
   commentError?: string;
+  documentError?: string;
   subtaskError?: string;
   dependencyError?: string;
   archiveError?: string;
 };
 
 type TaskFormValues = {
+  title: string;
+  description: string;
+  notes: string;
+  dueDate: string;
   status: "NOT_STARTED" | "IN_PROGRESS" | "BLOCKED" | "COMPLETE";
   priority: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
   assignedToId: string;
@@ -64,8 +79,18 @@ type SubtaskFormValues = {
   isComplete: boolean;
 };
 
+type DocumentUploadFormValues = {
+  title: string;
+  category: DocumentCategory;
+  notes: string;
+};
+
 const taskWorkspaceFormSchema = z
   .object({
+    title: z.string().trim().min(2).max(180),
+    description: z.string().max(4000).optional().or(z.literal("")),
+    notes: z.string().max(4000).optional().or(z.literal("")),
+    dueDate: z.string().optional().or(z.literal("")),
     status: z.enum(["NOT_STARTED", "IN_PROGRESS", "BLOCKED", "COMPLETE"]),
     priority: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]),
     assignedToId: z.string().optional().or(z.literal("")),
@@ -91,11 +116,50 @@ const subtaskFormSchema = z.object({
   isComplete: z.boolean()
 });
 
-const createSubtaskFormSchema = subtaskFormSchema;
+const createSubtaskFormSchema = subtaskFormSchema.omit({ isComplete: true });
 
 const dependencyFormSchema = z.object({
   dependsOnTaskId: z.string().cuid()
 });
+
+const documentUploadFormSchema = z.object({
+  title: z.string().trim().min(3).max(180),
+  category: z.enum(DOCUMENT_CATEGORY_VALUES),
+  notes: z.string().max(2000).optional().or(z.literal(""))
+});
+
+const statusOptions = [
+  { value: "NOT_STARTED", label: "Not started" },
+  { value: "IN_PROGRESS", label: "In progress" },
+  { value: "BLOCKED", label: "Blocked" },
+  { value: "COMPLETE", label: "Complete" }
+] as const;
+
+const priorityOptions = [
+  { value: "LOW", label: "Low" },
+  { value: "MEDIUM", label: "Medium" },
+  { value: "HIGH", label: "High" },
+  { value: "CRITICAL", label: "Critical" }
+] as const;
+
+const documentCategoryLabels: Record<DocumentCategory, string> = {
+  PERMIT: "Permit",
+  CONTRACT: "Contract",
+  INSURANCE: "Insurance",
+  VENDOR_QUOTE: "Vendor quote",
+  EQUIPMENT_SPEC: "Equipment spec",
+  FLOOR_PLAN: "Floor plan",
+  INSPECTION_RECORD: "Inspection record",
+  POLICY_MANUAL: "Policy/manual",
+  COMPLIANCE_DOCUMENT: "Compliance document",
+  INVOICE: "Invoice",
+  PHOTO: "Photo",
+  OTHER: "Other"
+};
+
+function joinClasses(...values: Array<string | false | null | undefined>) {
+  return values.filter(Boolean).join(" ");
+}
 
 function formatDate(value: string | null) {
   if (!value) {
@@ -111,6 +175,18 @@ function formatDate(value: string | null) {
 
 function toDateInputValue(value: string | null) {
   return value ? value.slice(0, 10) : "";
+}
+
+function toSuggestedTitle(fileName: string) {
+  return fileName.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").trim();
+}
+
+function formatFileSize(size: number) {
+  if (size >= 1024 * 1024) {
+    return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  return `${Math.max(1, Math.round(size / 1024))} KB`;
 }
 
 function SubtaskCard({
@@ -134,6 +210,7 @@ function SubtaskCard({
   onArchive: (payload: TaskSubtaskArchiveInput) => Promise<void>;
   onRestore: (payload: TaskSubtaskArchiveInput) => Promise<void>;
 }) {
+  const [isExpanded, setIsExpanded] = useState(false);
   const canEdit =
     currentUser.role === "OWNER_ADMIN" ||
     subtask.assignedToId === currentUser.id ||
@@ -152,159 +229,191 @@ function SubtaskCard({
     }
   });
 
+  const isComplete = form.watch("isComplete");
+
+  async function submitCurrentValues(values: SubtaskFormValues) {
+    await onSubmit({
+      subtaskId: subtask.id,
+      title: values.title,
+      notes: values.notes || null,
+      dueDate: values.dueDate || null,
+      assignedToId: canChangeAssignee ? values.assignedToId || null : subtask.assignedToId,
+      isComplete: values.isComplete,
+      sortOrder: subtask.sortOrder
+    });
+  }
+
   return (
     <form
-      className={[
-        "rounded-[1.25rem] border p-4",
-        subtask.archivedAt ? "border-border bg-muted/35" : "border-border bg-white"
-      ].join(" ")}
-      onSubmit={form.handleSubmit(async (values) => {
-        await onSubmit({
-          subtaskId: subtask.id,
-          title: values.title,
-          notes: values.notes || null,
-          dueDate: values.dueDate || null,
-          assignedToId: canChangeAssignee ? values.assignedToId || null : subtask.assignedToId,
-          isComplete: values.isComplete,
-          sortOrder: subtask.sortOrder
-        });
-      })}
+      className={joinClasses(
+        "rounded-[1.15rem] border px-4 py-3 transition",
+        subtask.archivedAt ? "border-border bg-muted/35" : "border-border/80 bg-white"
+      )}
+      onSubmit={form.handleSubmit(submitCurrentValues)}
     >
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="text-sm font-medium">{subtask.title}</p>
-          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-            Checklist item
-          </p>
-          <p className="mt-2 text-xs text-muted-foreground">
-            Due {formatDate(subtask.dueDate)} • {subtask.assignedTo?.name ?? "Unassigned"} • Task
-            assignee {taskAssignedToId === currentUser.id ? "you" : "visible in parent context"}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {subtask.archivedAt ? (
-            <span className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground">
-              Archived
-            </span>
-          ) : null}
-          <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
-            {subtask.isComplete ? "Complete" : "Pending"}
-          </span>
-        </div>
-      </div>
+      <div className="flex items-start gap-3">
+        <input
+          checked={isComplete}
+          className="mt-1 h-4 w-4 rounded border-border"
+          disabled={!canEdit || Boolean(subtask.archivedAt) || isPending}
+          onChange={async (event) => {
+            const nextValues = {
+              ...form.getValues(),
+              isComplete: event.target.checked
+            };
 
-      <div className="mt-4 grid gap-3 md:grid-cols-2">
-        <label className="space-y-2 md:col-span-2">
-          <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-            Title
-          </span>
-          <input
-            className="w-full rounded-2xl border border-border bg-white px-4 py-3 disabled:bg-muted"
-            disabled={!canEdit}
-            {...form.register("title")}
-          />
-        </label>
-
-        <label className="space-y-2">
-          <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-            Status
-          </span>
-          <select
-            className="w-full rounded-2xl border border-border bg-white px-4 py-3 disabled:bg-muted"
-            disabled={!canEdit}
-            onChange={(event) =>
-              form.setValue("isComplete", event.target.value === "true", {
-                shouldDirty: true
-              })
-            }
-            value={form.watch("isComplete") ? "true" : "false"}
-          >
-            <option value="false">Pending</option>
-            <option value="true">Complete</option>
-          </select>
-        </label>
-
-        <label className="space-y-2">
-          <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-            Due date
-          </span>
-          <input
-            className="w-full rounded-2xl border border-border bg-white px-4 py-3 disabled:bg-muted"
-            disabled={!canEdit}
-            type="date"
-            {...form.register("dueDate")}
-          />
-        </label>
-
-        <label className="space-y-2">
-          <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-            Assignee
-          </span>
-          <select
-            className="w-full rounded-2xl border border-border bg-white px-4 py-3 disabled:bg-muted"
-            disabled={!canChangeAssignee}
-            {...form.register("assignedToId")}
-          >
-            <option value="">Unassigned</option>
-            {users.map((user) => (
-              <option key={user.id} value={user.id}>
-                {user.name}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="space-y-2 md:col-span-2">
-          <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-            Notes
-          </span>
-          <textarea
-            className="min-h-24 w-full rounded-2xl border border-border bg-white px-4 py-3 disabled:bg-muted"
-            disabled={!canEdit}
-            {...form.register("notes")}
-          />
-        </label>
-      </div>
-
-      <div className="mt-4 flex flex-wrap gap-2">
-        <button
-          className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-60"
-          disabled={!canEdit || isPending}
-          type="submit"
-        >
-          {isPending ? "Saving…" : "Save item"}
-        </button>
-        <button
-          className="rounded-full border border-border px-4 py-2 text-sm text-muted-foreground disabled:opacity-60"
-          disabled={!canEdit || isPending}
-          onClick={async () => {
-            if (!window.confirm("Delete this checklist item?")) {
-              return;
-            }
-
-            await onDelete({ subtaskId: subtask.id });
+            form.setValue("isComplete", event.target.checked, {
+              shouldDirty: true
+            });
+            await submitCurrentValues(nextValues);
           }}
-          type="button"
-        >
-          Delete
-        </button>
-        {canArchive ? (
-          <button
-            className="rounded-full border border-border px-4 py-2 text-sm text-muted-foreground disabled:opacity-60"
-            disabled={isPending}
-            onClick={async () => {
-              if (subtask.archivedAt) {
-                await onRestore({ subtaskId: subtask.id });
-                return;
-              }
+          type="checkbox"
+        />
 
-              await onArchive({ subtaskId: subtask.id });
-            }}
-            type="button"
-          >
-            {subtask.archivedAt ? "Restore item" : "Archive item"}
-          </button>
-        ) : null}
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0">
+              <button
+                className="text-left"
+                onClick={() => setIsExpanded((current) => !current)}
+                type="button"
+              >
+                <p
+                  className={joinClasses(
+                    "font-medium text-foreground",
+                    isComplete && "text-muted-foreground line-through"
+                  )}
+                >
+                  {subtask.title}
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {subtask.assignedTo?.name ?? "Unassigned"} • {formatDate(subtask.dueDate)}
+                  {subtask.archivedAt ? " • Archived" : ""}
+                </p>
+              </button>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <span
+                className={joinClasses(
+                  "rounded-full px-2.5 py-1 text-[11px] uppercase tracking-[0.14em]",
+                  isComplete
+                    ? "bg-emerald-100 text-emerald-700"
+                    : "bg-muted text-muted-foreground"
+                )}
+              >
+                {isComplete ? "Complete" : "Pending"}
+              </span>
+              <button
+                className="min-w-[5.5rem] rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted"
+                onClick={() => setIsExpanded((current) => !current)}
+                type="button"
+              >
+                {isExpanded ? "Hide" : "Details"}
+              </button>
+            </div>
+          </div>
+
+          {isExpanded ? (
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              <label className="space-y-2 md:col-span-2">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                  Title
+                </span>
+                <input
+                  className="w-full rounded-[1rem] border border-border bg-white px-4 py-3 disabled:bg-muted"
+                  disabled={!canEdit}
+                  {...form.register("title")}
+                />
+              </label>
+
+              <label className="space-y-2">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                  Due date
+                </span>
+                <input
+                  className="w-full rounded-[1rem] border border-border bg-white px-4 py-3 disabled:bg-muted"
+                  disabled={!canEdit}
+                  type="date"
+                  {...form.register("dueDate")}
+                />
+              </label>
+
+              <label className="space-y-2">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                  Assignee
+                </span>
+                <select
+                  className="w-full rounded-[1rem] border border-border bg-white px-4 py-3 disabled:bg-muted"
+                  disabled={!canChangeAssignee}
+                  {...form.register("assignedToId")}
+                >
+                  <option value="">Unassigned</option>
+                  {users.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="space-y-2 md:col-span-2">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                  Notes
+                </span>
+                <textarea
+                  className="min-h-24 w-full rounded-[1rem] border border-border bg-white px-4 py-3 disabled:bg-muted"
+                  disabled={!canEdit}
+                  {...form.register("notes")}
+                />
+              </label>
+
+              <div className="md:col-span-2 flex flex-wrap justify-between gap-2">
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    className="min-w-[6.5rem] rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-60"
+                    disabled={!canEdit || isPending}
+                    type="submit"
+                  >
+                    {isPending ? "Saving..." : "Save"}
+                  </button>
+                  <button
+                    className="min-w-[6.5rem] rounded-full border border-border px-4 py-2 text-sm text-muted-foreground disabled:opacity-60"
+                    disabled={!canEdit || isPending}
+                    onClick={async () => {
+                      if (!window.confirm("Delete this checklist item?")) {
+                        return;
+                      }
+
+                      await onDelete({ subtaskId: subtask.id });
+                    }}
+                    type="button"
+                  >
+                    Delete
+                  </button>
+                </div>
+
+                {canArchive ? (
+                  <button
+                    className="min-w-[7.5rem] rounded-full border border-border px-4 py-2 text-sm text-muted-foreground disabled:opacity-60"
+                    disabled={isPending}
+                    onClick={async () => {
+                      if (subtask.archivedAt) {
+                        await onRestore({ subtaskId: subtask.id });
+                        return;
+                      }
+
+                      await onArchive({ subtaskId: subtask.id });
+                    }}
+                    type="button"
+                  >
+                    {subtask.archivedAt ? "Restore" : "Archive"}
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+        </div>
       </div>
     </form>
   );
@@ -320,6 +429,7 @@ export function TaskShelf({
   onPrevious,
   onSubmitTaskUpdate,
   onSubmitComment,
+  onSubmitDocumentUpload,
   onCreateSubtask,
   onUpdateSubtask,
   onDeleteSubtask,
@@ -331,27 +441,42 @@ export function TaskShelf({
   onRestoreTask,
   isSavingTask,
   isPostingComment,
+  isUploadingDocument,
   isSavingSubtask,
   isSavingDependency,
   isArchivingTask,
   taskError,
   commentError,
+  documentError,
   subtaskError,
   dependencyError,
   archiveError
 }: TaskShelfProps) {
   const task = data.task;
+  const documentInputId = useId();
+  const [documentFile, setDocumentFile] = useState<File | null>(null);
+  const [documentFileError, setDocumentFileError] = useState<string>();
+  const [showUploadForm, setShowUploadForm] = useState(false);
+  const [showArchivedSubtasks, setShowArchivedSubtasks] = useState(false);
 
   const taskForm = useForm<TaskFormValues>({
     resolver: zodResolver(taskWorkspaceFormSchema),
     values: task
       ? {
+          title: task.title,
+          description: task.description ?? "",
+          notes: task.notes ?? "",
+          dueDate: toDateInputValue(task.dueDate),
           status: task.status,
           priority: task.priority,
           assignedToId: task.assignedToId ?? "",
           blockedReason: task.blockedReason ?? ""
         }
       : {
+          title: "",
+          description: "",
+          notes: "",
+          dueDate: "",
           status: "NOT_STARTED",
           priority: "MEDIUM",
           assignedToId: "",
@@ -372,8 +497,7 @@ export function TaskShelf({
       title: "",
       notes: "",
       dueDate: "",
-      assignedToId: "",
-      isComplete: false
+      assignedToId: ""
     }
   });
 
@@ -384,17 +508,44 @@ export function TaskShelf({
     }
   });
 
+  const documentForm = useForm<DocumentUploadFormValues>({
+    resolver: zodResolver(documentUploadFormSchema),
+    defaultValues: {
+      title: "",
+      category: "OTHER",
+      notes: ""
+    }
+  });
+
   useEffect(() => {
     commentForm.reset({ content: "" });
     createSubtaskForm.reset({
       title: "",
       notes: "",
       dueDate: "",
-      assignedToId: "",
-      isComplete: false
+      assignedToId: ""
     });
     dependencyForm.reset({ dependsOnTaskId: "" });
-  }, [commentForm, createSubtaskForm, dependencyForm, task?.id]);
+    documentForm.reset({
+      title: "",
+      category: "OTHER",
+      notes: ""
+    });
+    setDocumentFile(null);
+    setDocumentFileError(undefined);
+    setShowUploadForm(false);
+    setShowArchivedSubtasks(false);
+  }, [commentForm, createSubtaskForm, dependencyForm, documentForm, task?.id]);
+
+  useEffect(() => {
+    if (documentFile && !documentForm.getValues("title")) {
+      documentForm.setValue("title", toSuggestedTitle(documentFile.name), {
+        shouldDirty: true
+      });
+    }
+  }, [documentFile, documentForm]);
+
+  const taskStatus = taskForm.watch("status");
 
   if (!task) {
     return (
@@ -410,49 +561,58 @@ export function TaskShelf({
   const canChangeAssignee = currentUser.role === "OWNER_ADMIN";
   const canEditTask =
     currentUser.role === "OWNER_ADMIN" || task.assignedToId === currentUser.id;
+  const taskId = task.id;
+  const taskAssignedToId = task.assignedToId;
+  const canManageChecklist = canEditTask && !task.archivedAt;
+  const canUploadDocuments = canEditTask && !task.archivedAt;
   const activeSubtasks = task.subtasks.filter((subtask) => !subtask.archivedAt);
   const archivedSubtasks = task.subtasks.filter((subtask) => subtask.archivedAt);
+  const completeActiveSubtasks = activeSubtasks.filter((subtask) => subtask.isComplete).length;
   const existingDependencyIds = new Set(task.dependencies.map((dependency) => dependency.id));
   const availableDependencyCandidates = task.dependencyCandidates.filter(
     (candidate) => !existingDependencyIds.has(candidate.id)
   );
+  const shelfMeta = useMemo(
+    () => `${task.section.title} • Due ${formatDate(task.dueDate)} • ${task.assignedTo?.name ?? "Unassigned"}`,
+    [task.assignedTo?.name, task.dueDate, task.section.title]
+  );
+
+  async function submitTaskValues(values: TaskFormValues) {
+    await onSubmitTaskUpdate({
+      taskId,
+      title: values.title,
+      description: values.description || null,
+      notes: values.notes || null,
+      dueDate: values.dueDate || null,
+      status: values.status,
+      priority: values.priority,
+      assignedToId: canChangeAssignee ? values.assignedToId || null : taskAssignedToId,
+      blockedReason: values.status === "BLOCKED" ? values.blockedReason || null : null
+    });
+  }
 
   return (
     <div className="flex h-full flex-col">
       <div className="border-b border-border/80 px-5 py-5">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="min-w-0">
             <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
               Task shelf
             </p>
-            <h3 className="mt-2 text-2xl font-semibold">{task.title}</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {task.section.title} • Due {formatDate(task.dueDate)} •{" "}
-              {task.assignedTo?.name ?? "Unassigned"}
-            </p>
+            <h3 className="mt-2 truncate text-2xl font-semibold">{task.title}</h3>
+            <p className="mt-2 text-sm text-muted-foreground">{shelfMeta}</p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {task.archivedAt ? (
-              <span className="rounded-full border border-border px-3 py-2 text-sm text-muted-foreground">
-                Archived
-              </span>
-            ) : null}
+
+          <div className="grid w-full grid-cols-2 gap-2 sm:w-auto sm:grid-cols-4">
             <button
-              className="rounded-full border border-border px-3 py-2 text-sm text-muted-foreground hover:bg-muted"
+              className="min-h-[2.75rem] min-w-[7.5rem] rounded-full border border-border px-3 py-2 text-sm text-muted-foreground hover:bg-muted"
               onClick={onToggleExpanded}
               type="button"
             >
-              {isExpanded ? "Standard width" : "Expand"}
+              {isExpanded ? "Standard view" : "Expanded view"}
             </button>
             <button
-              className="rounded-full border border-border px-3 py-2 text-sm text-muted-foreground hover:bg-muted"
-              onClick={onClose}
-              type="button"
-            >
-              Close
-            </button>
-            <button
-              className="rounded-full border border-border px-3 py-2 text-sm text-muted-foreground hover:bg-muted disabled:opacity-50"
+              className="min-h-[2.75rem] min-w-[7.5rem] rounded-full border border-border px-3 py-2 text-sm text-muted-foreground hover:bg-muted disabled:opacity-50"
               disabled={!onPrevious}
               onClick={onPrevious}
               type="button"
@@ -460,12 +620,19 @@ export function TaskShelf({
               Previous
             </button>
             <button
-              className="rounded-full border border-border px-3 py-2 text-sm text-muted-foreground hover:bg-muted disabled:opacity-50"
+              className="min-h-[2.75rem] min-w-[7.5rem] rounded-full border border-border px-3 py-2 text-sm text-muted-foreground hover:bg-muted disabled:opacity-50"
               disabled={!onNext}
               onClick={onNext}
               type="button"
             >
               Next
+            </button>
+            <button
+              className="min-h-[2.75rem] min-w-[7.5rem] rounded-full border border-border px-3 py-2 text-sm text-muted-foreground hover:bg-muted"
+              onClick={onClose}
+              type="button"
+            >
+              Close
             </button>
           </div>
         </div>
@@ -473,28 +640,21 @@ export function TaskShelf({
 
       <div className="flex-1 space-y-6 overflow-y-auto p-5">
         <form
-          className="space-y-4 rounded-[1.5rem] border border-border bg-white p-4"
-          onSubmit={taskForm.handleSubmit(async (values) => {
-            await onSubmitTaskUpdate({
-              taskId: task.id,
-              status: values.status,
-              priority: values.priority,
-              assignedToId: canChangeAssignee ? values.assignedToId || null : task.assignedToId,
-              blockedReason: values.blockedReason || null
-            });
-          })}
+          className="space-y-5 rounded-[1.5rem] border border-border bg-white p-4"
+          onSubmit={taskForm.handleSubmit(submitTaskValues)}
         >
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <p className="font-semibold">Task state</p>
+              <p className="font-semibold">Core details</p>
               <p className="text-sm text-muted-foreground">
-                Update the operational state without leaving the queue.
+                Edit the task directly in the shelf without losing queue context.
               </p>
             </div>
+
             <div className="flex flex-wrap gap-2">
               {currentUser.role === "OWNER_ADMIN" ? (
                 <button
-                  className="rounded-full border border-border px-4 py-2 text-sm text-muted-foreground disabled:opacity-60"
+                  className="min-w-[7.5rem] rounded-full border border-border px-4 py-2 text-sm text-muted-foreground disabled:opacity-60"
                   disabled={isArchivingTask}
                   onClick={async () => {
                     if (task.archivedAt) {
@@ -508,60 +668,111 @@ export function TaskShelf({
                 >
                   {isArchivingTask
                     ? task.archivedAt
-                      ? "Restoring…"
-                      : "Archiving…"
+                      ? "Restoring..."
+                      : "Archiving..."
                     : task.archivedAt
-                      ? "Restore task"
-                      : "Archive task"}
+                      ? "Restore"
+                      : "Archive"}
                 </button>
               ) : null}
+
               <button
-                className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-60"
-                disabled={isSavingTask}
+                className="min-w-[7.5rem] rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-60"
+                disabled={isSavingTask || !taskForm.formState.isDirty}
                 type="submit"
               >
-                {isSavingTask ? "Saving…" : "Save"}
+                {isSavingTask ? "Saving..." : "Save changes"}
               </button>
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <label className="space-y-2">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              Task name
+            </span>
+            <input
+              className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
+              {...taskForm.register("title")}
+            />
+          </label>
+
+          <div className="space-y-2">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              Status
+            </span>
+            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+              {statusOptions.map((option) => {
+                const isActive = taskStatus === option.value;
+
+                return (
+                  <button
+                    key={option.value}
+                    className={joinClasses(
+                      "rounded-full border px-4 py-2.5 text-sm transition",
+                      isActive
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border bg-white text-muted-foreground hover:bg-muted"
+                    )}
+                    onClick={async () => {
+                      if (taskStatus === option.value) {
+                        return;
+                      }
+
+                      taskForm.setValue("status", option.value, {
+                        shouldDirty: true,
+                        shouldValidate: true
+                      });
+
+                      if (option.value === "BLOCKED" && !taskForm.getValues("blockedReason").trim()) {
+                        void taskForm.trigger("blockedReason");
+                        return;
+                      }
+
+                      await taskForm.handleSubmit(submitTaskValues)();
+                    }}
+                    type="button"
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <label className="space-y-2">
-              <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-                Status
+              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Due date
               </span>
-              <select
-                className="w-full rounded-2xl border border-border bg-card px-4 py-3"
-                {...taskForm.register("status")}
-              >
-                <option value="NOT_STARTED">Not started</option>
-                <option value="IN_PROGRESS">In progress</option>
-                <option value="BLOCKED">Blocked</option>
-                <option value="COMPLETE">Complete</option>
-              </select>
+              <input
+                className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
+                type="date"
+                {...taskForm.register("dueDate")}
+              />
             </label>
 
             <label className="space-y-2">
-              <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                 Priority
               </span>
               <select
-                className="w-full rounded-2xl border border-border bg-card px-4 py-3"
+                className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
                 {...taskForm.register("priority")}
               >
-                <option value="LOW">Low</option>
-                <option value="MEDIUM">Medium</option>
-                <option value="HIGH">High</option>
-                <option value="CRITICAL">Critical</option>
+                {priorityOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
             </label>
 
             <label className="space-y-2 md:col-span-2">
-              <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                 Assignee
               </span>
               <select
-                className="w-full rounded-2xl border border-border bg-card px-4 py-3 disabled:bg-muted"
+                className="w-full rounded-[1rem] border border-border bg-white px-4 py-3 disabled:bg-muted"
                 disabled={!canChangeAssignee}
                 {...taskForm.register("assignedToId")}
               >
@@ -578,33 +789,59 @@ export function TaskShelf({
                 </p>
               ) : null}
             </label>
-
-            {taskForm.watch("status") === "BLOCKED" ? (
-              <label className="space-y-2 md:col-span-2">
-                <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-                  Blocked reason
-                </span>
-                <textarea
-                  className="min-h-28 w-full rounded-2xl border border-border bg-card px-4 py-3"
-                  {...taskForm.register("blockedReason")}
-                />
-              </label>
-            ) : null}
           </div>
 
+          {taskStatus === "BLOCKED" ? (
+            <label className="space-y-2">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Blocked reason
+              </span>
+              <textarea
+                className="min-h-24 w-full rounded-[1rem] border border-border bg-white px-4 py-3"
+                placeholder="What is stopping this task?"
+                {...taskForm.register("blockedReason")}
+              />
+            </label>
+          ) : null}
+
+          <div className="grid gap-4 xl:grid-cols-2">
+            <label className="space-y-2">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Description
+              </span>
+              <textarea
+                className="min-h-28 w-full rounded-[1rem] border border-border bg-white px-4 py-3"
+                placeholder="What needs to happen?"
+                {...taskForm.register("description")}
+              />
+            </label>
+
+            <label className="space-y-2">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Working notes
+              </span>
+              <textarea
+                className="min-h-28 w-full rounded-[1rem] border border-border bg-white px-4 py-3"
+                placeholder="Capture handoff context, install notes, or follow-up details"
+                {...taskForm.register("notes")}
+              />
+            </label>
+          </div>
+
+          {taskForm.formState.errors.title?.message ? (
+            <p className="text-sm text-red-700">{taskForm.formState.errors.title.message}</p>
+          ) : null}
           {taskForm.formState.errors.blockedReason?.message ? (
             <p className="text-sm text-red-700">
               {taskForm.formState.errors.blockedReason.message}
             </p>
           ) : null}
-
           {task.archivedAt ? (
             <p className="text-sm text-muted-foreground">
               This task is archived and hidden from normal active queues. Restore it to resume
               active work.
             </p>
           ) : null}
-
           {taskError ? <p className="text-sm text-red-700">{taskError}</p> : null}
           {archiveError ? <p className="text-sm text-red-700">{archiveError}</p> : null}
         </form>
@@ -614,7 +851,7 @@ export function TaskShelf({
             <div>
               <p className="font-semibold">Dependencies</p>
               <p className="text-sm text-muted-foreground">
-                Add blockers and review downstream work without leaving the shelf.
+                Review blockers and downstream work in the same task context.
               </p>
             </div>
           </div>
@@ -627,10 +864,11 @@ export function TaskShelf({
                   taskId: task.id,
                   dependsOnTaskId: values.dependsOnTaskId
                 });
+                dependencyForm.reset({ dependsOnTaskId: "" });
               })}
             >
               <select
-                className="w-full rounded-2xl border border-border bg-card px-4 py-3 md:flex-1"
+                className="w-full rounded-[1rem] border border-border bg-white px-4 py-3 md:flex-1"
                 disabled={!canEditTask || availableDependencyCandidates.length === 0}
                 {...dependencyForm.register("dependsOnTaskId")}
               >
@@ -642,37 +880,40 @@ export function TaskShelf({
                 ))}
               </select>
               <button
-                className="rounded-2xl bg-primary px-4 py-3 text-sm font-medium text-primary-foreground disabled:opacity-60"
-                disabled={!canEditTask || isSavingDependency || availableDependencyCandidates.length === 0}
+                className="min-w-[8rem] rounded-[1rem] bg-primary px-4 py-3 text-sm font-medium text-primary-foreground disabled:opacity-60"
+                disabled={
+                  !canEditTask ||
+                  isSavingDependency ||
+                  availableDependencyCandidates.length === 0
+                }
                 type="submit"
               >
-                {isSavingDependency ? "Adding…" : "Add dependency"}
+                {isSavingDependency ? "Adding..." : "Add"}
               </button>
             </form>
           ) : null}
 
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <div className="space-y-3">
-              <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                 This task depends on
               </p>
               {task.dependencies.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-border bg-muted/35 p-4 text-sm text-muted-foreground">
+                <div className="rounded-[1rem] border border-dashed border-border bg-muted/35 p-4 text-sm text-muted-foreground">
                   No dependencies yet.
                 </div>
               ) : (
                 task.dependencies.map((dependency) => (
-                  <div key={dependency.id} className="rounded-2xl border border-border p-4">
+                  <div key={dependency.id} className="rounded-[1rem] border border-border p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <p className="font-medium">{dependency.title}</p>
                         <p className="mt-1 text-sm text-muted-foreground">
-                          {dependency.assignedTo?.name ?? "Unassigned"} • Due{" "}
-                          {formatDate(dependency.dueDate)}
+                          {dependency.assignedTo?.name ?? "Unassigned"} • {formatDate(dependency.dueDate)}
                         </p>
                       </div>
-                      <div className="flex flex-wrap gap-2">
-                        <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="rounded-full bg-muted px-3 py-1 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
                           {dependency.status.replaceAll("_", " ")}
                         </span>
                         <button
@@ -696,20 +937,20 @@ export function TaskShelf({
             </div>
 
             <div className="space-y-3">
-              <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                 Tasks waiting on this one
               </p>
               {task.dependents.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-border bg-muted/35 p-4 text-sm text-muted-foreground">
+                <div className="rounded-[1rem] border border-dashed border-border bg-muted/35 p-4 text-sm text-muted-foreground">
                   No dependent tasks yet.
                 </div>
               ) : (
                 task.dependents.map((dependency) => (
-                  <div key={dependency.id} className="rounded-2xl border border-border p-4">
+                  <div key={dependency.id} className="rounded-[1rem] border border-border p-4">
                     <p className="font-medium">{dependency.title}</p>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      {dependency.assignedTo?.name ?? "Unassigned"} • Due{" "}
-                      {formatDate(dependency.dueDate)} • {dependency.status.replaceAll("_", " ")}
+                      {dependency.assignedTo?.name ?? "Unassigned"} • {formatDate(dependency.dueDate)} •{" "}
+                      {dependency.status.replaceAll("_", " ")}
                     </p>
                   </div>
                 ))
@@ -722,7 +963,6 @@ export function TaskShelf({
               {dependencyForm.formState.errors.dependsOnTaskId.message}
             </p>
           ) : null}
-
           {dependencyError ? <p className="mt-3 text-sm text-red-700">{dependencyError}</p> : null}
         </section>
 
@@ -731,18 +971,29 @@ export function TaskShelf({
             <div>
               <p className="font-semibold">Checklist</p>
               <p className="text-sm text-muted-foreground">
-                Create, update, archive, and restore checklist items while staying inside the same
-                task context.
+                Keep checklist work compact, scannable, and editable in place.
               </p>
             </div>
-            <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
-              {activeSubtasks.length} active • {archivedSubtasks.length} archived
-            </span>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
+                {completeActiveSubtasks}/{activeSubtasks.length} complete
+              </span>
+              {archivedSubtasks.length > 0 ? (
+                <button
+                  className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground hover:bg-muted"
+                  onClick={() => setShowArchivedSubtasks((current) => !current)}
+                  type="button"
+                >
+                  {showArchivedSubtasks ? "Hide archived" : `Show archived (${archivedSubtasks.length})`}
+                </button>
+              ) : null}
+            </div>
           </div>
 
           {!task.archivedAt ? (
             <form
-              className="mt-4 grid gap-3 rounded-[1.25rem] border border-border bg-card p-4 md:grid-cols-2"
+              className="mt-4 grid gap-3 rounded-[1.15rem] border border-border bg-muted/18 p-4 md:grid-cols-[minmax(0,1fr)_10rem]"
               onSubmit={createSubtaskForm.handleSubmit(async (values) => {
                 await onCreateSubtask({
                   taskId: task.id,
@@ -752,79 +1003,88 @@ export function TaskShelf({
                   assignedToId:
                     currentUser.role === "OWNER_ADMIN" ? values.assignedToId || null : null
                 });
+                createSubtaskForm.reset({
+                  title: "",
+                  notes: "",
+                  dueDate: "",
+                  assignedToId: ""
+                });
               })}
             >
-              <label className="space-y-2 md:col-span-2">
-                <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-                  New checklist item
-                </span>
-                <input
-                  className="w-full rounded-2xl border border-border bg-white px-4 py-3"
-                  placeholder="Add a checklist item"
-                  {...createSubtaskForm.register("title")}
-                />
-              </label>
+              <div className="grid gap-3 md:grid-cols-2">
+                <label className="space-y-2 md:col-span-2">
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                    New checklist item
+                  </span>
+                  <input
+                    className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
+                    placeholder="Add a checklist item"
+                    {...createSubtaskForm.register("title")}
+                  />
+                </label>
 
-              <label className="space-y-2 md:col-span-2">
-                <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-                  Notes
-                </span>
-                <textarea
-                  className="min-h-24 w-full rounded-2xl border border-border bg-white px-4 py-3"
-                  placeholder="Add completion criteria, install notes, or handoff context"
-                  {...createSubtaskForm.register("notes")}
-                />
-              </label>
+                <label className="space-y-2">
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                    Due date
+                  </span>
+                  <input
+                    className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
+                    type="date"
+                    {...createSubtaskForm.register("dueDate")}
+                  />
+                </label>
 
-              <label className="space-y-2">
-                <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-                  Due date
-                </span>
-                <input
-                  className="w-full rounded-2xl border border-border bg-white px-4 py-3"
-                  type="date"
-                  {...createSubtaskForm.register("dueDate")}
-                />
-              </label>
-
-              <label className="space-y-2">
-                <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-                  Assignee
-                </span>
-                <select
-                  className="w-full rounded-2xl border border-border bg-white px-4 py-3 disabled:bg-muted"
-                  disabled={currentUser.role !== "OWNER_ADMIN"}
-                  {...createSubtaskForm.register("assignedToId")}
-                >
-                  <option value="">
-                    {currentUser.role === "OWNER_ADMIN" ? "Unassigned" : currentUser.name}
-                  </option>
-                  {data.users.map((user) => (
-                    <option key={user.id} value={user.id}>
-                      {user.name}
+                <label className="space-y-2">
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                    Assignee
+                  </span>
+                  <select
+                    className="w-full rounded-[1rem] border border-border bg-white px-4 py-3 disabled:bg-muted"
+                    disabled={currentUser.role !== "OWNER_ADMIN"}
+                    {...createSubtaskForm.register("assignedToId")}
+                  >
+                    <option value="">
+                      {currentUser.role === "OWNER_ADMIN" ? "Unassigned" : currentUser.name}
                     </option>
-                  ))}
-                </select>
-              </label>
+                    {data.users.map((user) => (
+                      <option key={user.id} value={user.id}>
+                        {user.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
 
-              <div className="md:col-span-2 flex justify-end">
+                <label className="space-y-2 md:col-span-2">
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                    Notes
+                  </span>
+                  <textarea
+                    className="min-h-20 w-full rounded-[1rem] border border-border bg-white px-4 py-3"
+                    placeholder="Optional completion details"
+                    {...createSubtaskForm.register("notes")}
+                  />
+                </label>
+              </div>
+
+              <div className="flex items-end justify-end">
                 <button
-                  className="rounded-2xl bg-primary px-4 py-3 text-sm font-medium text-primary-foreground disabled:opacity-60"
+                  className="min-w-[8rem] rounded-[1rem] bg-primary px-4 py-3 text-sm font-medium text-primary-foreground disabled:opacity-60"
                   disabled={
                     isSavingSubtask ||
+                    !canManageChecklist ||
                     (currentUser.role !== "OWNER_ADMIN" && task.assignedToId !== currentUser.id)
                   }
                   type="submit"
                 >
-                  {isSavingSubtask ? "Adding…" : "Add checklist item"}
+                  {isSavingSubtask ? "Adding..." : "Add item"}
                 </button>
               </div>
             </form>
           ) : null}
 
-          <div className="mt-4 space-y-4">
+          <div className="mt-4 space-y-3">
             {activeSubtasks.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-border bg-muted/35 p-4 text-sm text-muted-foreground">
+              <div className="rounded-[1rem] border border-dashed border-border bg-muted/35 p-4 text-sm text-muted-foreground">
                 No active checklist items yet.
               </div>
             ) : (
@@ -845,11 +1105,8 @@ export function TaskShelf({
             )}
           </div>
 
-          {archivedSubtasks.length > 0 ? (
-            <div className="mt-6 space-y-4">
-              <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-                Archived items
-              </p>
+          {showArchivedSubtasks && archivedSubtasks.length > 0 ? (
+            <div className="mt-5 space-y-3">
               {archivedSubtasks.map((subtask) => (
                 <SubtaskCard
                   key={subtask.id}
@@ -875,28 +1132,161 @@ export function TaskShelf({
             <div>
               <p className="font-semibold">Documents</p>
               <p className="text-sm text-muted-foreground">
-                Supporting files linked to this task open in the shared document shelf.
+                Upload or open task files without leaving the shelf.
               </p>
             </div>
-            <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
-              {task.attachments.length} linked
-            </span>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
+                {task.attachments.length} linked
+              </span>
+              {canUploadDocuments ? (
+                <button
+                  className="min-w-[8rem] rounded-full border border-border px-3 py-2 text-sm text-muted-foreground hover:bg-muted"
+                  onClick={() => setShowUploadForm((current) => !current)}
+                  type="button"
+                >
+                  {showUploadForm ? "Hide upload" : "Upload file"}
+                </button>
+              ) : null}
+            </div>
           </div>
+
+          {showUploadForm ? (
+            <form
+              className="mt-4 grid gap-4 rounded-[1.15rem] border border-border bg-muted/18 p-4"
+              onSubmit={documentForm.handleSubmit(async (values) => {
+                if (!documentFile) {
+                  setDocumentFileError("Choose a file before uploading.");
+                  return;
+                }
+
+                await onSubmitDocumentUpload({
+                  title: values.title,
+                  category: values.category,
+                  notes: values.notes || null,
+                  linkedTaskId: task.id,
+                  linkedBudgetItemId: null,
+                  file: documentFile
+                });
+
+                documentForm.reset({
+                  title: "",
+                  category: "OTHER",
+                  notes: ""
+                });
+                setDocumentFile(null);
+                setDocumentFileError(undefined);
+                setShowUploadForm(false);
+              })}
+            >
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                    File
+                  </span>
+                  <label
+                    className="flex min-h-[5.5rem] cursor-pointer items-center justify-center rounded-[1rem] border border-dashed border-border bg-white px-4 py-3 text-center text-sm text-muted-foreground hover:bg-muted/30"
+                    htmlFor={documentInputId}
+                  >
+                    {documentFile
+                      ? `${documentFile.name} • ${formatFileSize(documentFile.size)}`
+                      : "Choose a file to attach to this task"}
+                  </label>
+                  <input
+                    className="sr-only"
+                    id={documentInputId}
+                    onChange={(event) => {
+                      setDocumentFile(event.target.files?.item(0) ?? null);
+                      setDocumentFileError(undefined);
+                    }}
+                    type="file"
+                  />
+                </div>
+
+                <label className="space-y-2">
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                    Title
+                  </span>
+                  <input
+                    className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
+                    {...documentForm.register("title")}
+                  />
+                </label>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-[14rem_minmax(0,1fr)]">
+                <label className="space-y-2">
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                    Category
+                  </span>
+                  <select
+                    className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
+                    {...documentForm.register("category")}
+                  >
+                    {DOCUMENT_CATEGORY_VALUES.map((category) => (
+                      <option key={category} value={category}>
+                        {documentCategoryLabels[category]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="space-y-2">
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                    Notes
+                  </span>
+                  <textarea
+                    className="min-h-24 w-full rounded-[1rem] border border-border bg-white px-4 py-3"
+                    placeholder="Optional document context"
+                    {...documentForm.register("notes")}
+                  />
+                </label>
+              </div>
+
+              <div className="flex flex-wrap justify-end gap-2">
+                <button
+                  className="min-w-[7.5rem] rounded-full border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-muted"
+                  onClick={() => {
+                    setShowUploadForm(false);
+                    setDocumentFile(null);
+                    setDocumentFileError(undefined);
+                  }}
+                  type="button"
+                >
+                  Cancel
+                </button>
+                <button
+                  className="min-w-[7.5rem] rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-60"
+                  disabled={isUploadingDocument}
+                  type="submit"
+                >
+                  {isUploadingDocument ? "Uploading..." : "Upload"}
+                </button>
+              </div>
+            </form>
+          ) : null}
+
+          {documentFileError ? <p className="mt-3 text-sm text-red-700">{documentFileError}</p> : null}
+          {documentForm.formState.errors.title?.message ? (
+            <p className="mt-3 text-sm text-red-700">{documentForm.formState.errors.title.message}</p>
+          ) : null}
+          {documentError ? <p className="mt-3 text-sm text-red-700">{documentError}</p> : null}
 
           <div className="mt-4 space-y-3">
             {task.attachments.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-border bg-muted/35 p-4 text-sm text-muted-foreground">
+              <div className="rounded-[1rem] border border-dashed border-border bg-muted/35 p-4 text-sm text-muted-foreground">
                 No documents linked to this task yet.
               </div>
             ) : (
               task.attachments.map((document) => (
                 <Link
                   key={document.id}
-                  className="block rounded-2xl border border-border p-4 transition hover:bg-muted/40"
+                  className="block rounded-[1rem] border border-border p-4 transition hover:bg-muted/40"
                   to={`/documents/${document.id}`}
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <div>
+                    <div className="min-w-0">
                       <p className="font-medium text-foreground">{document.title}</p>
                       <p className="mt-1 text-sm text-muted-foreground">
                         {document.category.replaceAll("_", " ")} • {document.originalName}
@@ -921,10 +1311,11 @@ export function TaskShelf({
                 taskId: task.id,
                 content: values.content
               });
+              commentForm.reset({ content: "" });
             })}
           >
             <textarea
-              className="min-h-28 w-full rounded-2xl border border-border bg-card px-4 py-3"
+              className="min-h-28 w-full rounded-[1rem] border border-border bg-white px-4 py-3"
               placeholder="Capture context, decisions, or blocker notes"
               {...commentForm.register("content")}
             />
@@ -937,11 +1328,11 @@ export function TaskShelf({
                 </p>
               )}
               <button
-                className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-60"
+                className="min-w-[7.5rem] rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-60"
                 disabled={isPostingComment}
                 type="submit"
               >
-                {isPostingComment ? "Posting…" : "Post comment"}
+                {isPostingComment ? "Posting..." : "Post comment"}
               </button>
             </div>
             {commentError ? <p className="text-sm text-red-700">{commentError}</p> : null}
@@ -949,12 +1340,12 @@ export function TaskShelf({
 
           <div className="mt-4 space-y-3">
             {task.comments.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-border bg-muted/35 p-4 text-sm text-muted-foreground">
+              <div className="rounded-[1rem] border border-dashed border-border bg-muted/35 p-4 text-sm text-muted-foreground">
                 No comments yet.
               </div>
             ) : (
               task.comments.map((comment) => (
-                <article key={comment.id} className="rounded-2xl border border-border p-4">
+                <article key={comment.id} className="rounded-[1rem] border border-border p-4">
                   <div className="flex items-center justify-between gap-3">
                     <p className="font-medium">{comment.author.name}</p>
                     <p className="text-xs text-muted-foreground">{formatDate(comment.createdAt)}</p>

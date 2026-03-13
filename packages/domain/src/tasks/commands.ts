@@ -210,6 +210,10 @@ export async function updateTaskCommand(input: {
   await prisma.task.update({
     where: { id: input.payload.taskId },
     data: {
+      title: input.payload.title.trim(),
+      description: input.payload.description?.trim() || null,
+      notes: input.payload.notes?.trim() || null,
+      dueDate: parseOptionalDate(input.payload.dueDate),
       status: input.payload.status,
       priority: input.payload.priority,
       assignedToId:
