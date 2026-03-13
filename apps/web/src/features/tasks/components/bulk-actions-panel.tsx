@@ -79,16 +79,7 @@ export function BulkActionsPanel({
   }, [archiveView]);
 
   if (selectedCount === 0) {
-    return (
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-[1.25rem] border border-dashed border-border bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
-        <p>
-          Owner bulk actions become available after selecting tasks from the visible queue.
-        </p>
-        <span>
-          {visibleCount} visible task{visibleCount === 1 ? "" : "s"}
-        </span>
-      </div>
-    );
+    return null;
   }
 
   return (

@@ -22,6 +22,15 @@ function buildTaskQuery(filters: TaskListFilters) {
   const searchParams = new URLSearchParams();
 
   Object.entries(filters).forEach(([key, value]) => {
+    if (Array.isArray(value)) {
+      value.forEach((item) => {
+        if (item) {
+          searchParams.append(key, item);
+        }
+      });
+      return;
+    }
+
     if (value) {
       searchParams.set(key, value);
     }

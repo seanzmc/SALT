@@ -41,7 +41,7 @@ export function AttentionQueueCard({
           <p className="mt-1 text-sm text-muted-foreground">{detail}</p>
         </div>
         <Link
-          className="rounded-full border border-border px-3 py-2 text-sm text-muted-foreground hover:bg-muted"
+          className="inline-flex min-h-10 items-center justify-center rounded-full border border-border px-3 py-2 text-center text-sm text-muted-foreground hover:bg-muted"
           to={href}
         >
           {linkLabel}

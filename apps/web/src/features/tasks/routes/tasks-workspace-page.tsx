@@ -9,6 +9,8 @@ import type {
   TaskCommentCreateInput,
   TaskDependencyCreateInput,
   TaskDependencyDeleteInput,
+  TaskSort,
+  TaskSortDirection,
   TaskListFilters,
   TaskListResponse,
   TaskSummary,
@@ -47,6 +49,7 @@ import {
 } from "../api/tasks-client";
 import { BulkActionsPanel } from "../components/bulk-actions-panel";
 import { TaskBoardPanel } from "../components/task-board-panel";
+import { TaskChecklistPreviewPanel } from "../components/task-checklist-preview-panel";
 import { TaskListPanel } from "../components/task-list-panel";
 import { TaskShelf } from "../components/task-shelf";
 import { WorkspaceFilters } from "../components/workspace-filters";
@@ -57,6 +60,61 @@ import {
   toTaskListFilters,
   updateTaskSearchState
 } from "../lib/url-state";
+
+function getDefaultSortOrder(sort: TaskSort): TaskSortDirection {
+  return sort === "priority" ? "desc" : "asc";
+}
+
+function compareStrings(left: string, right: string, direction: TaskSortDirection) {
+  return direction === "asc" ? left.localeCompare(right) : right.localeCompare(left);
+}
+
+function sortTasks(tasks: TaskSummary[], sort: TaskSort, order: TaskSortDirection) {
+  return [...tasks].sort((left, right) => {
+    switch (sort) {
+      case "title":
+        return compareStrings(left.title, right.title, order);
+      case "status":
+        return compareStrings(left.status, right.status, order);
+      case "priority":
+        return compareStrings(left.priority, right.priority, order);
+      case "dueDate": {
+        const leftValue = left.dueDate ? new Date(left.dueDate).getTime() : Number.MAX_SAFE_INTEGER;
+        const rightValue = right.dueDate ? new Date(right.dueDate).getTime() : Number.MAX_SAFE_INTEGER;
+
+        if (leftValue === rightValue) {
+          return left.title.localeCompare(right.title);
+        }
+
+        return order === "asc" ? leftValue - rightValue : rightValue - leftValue;
+      }
+      default:
+        return 0;
+    }
+  });
+}
+
+function matchesAssigneeFilters(
+  task: TaskSummary,
+  assigneeFilters: TaskListFilters["assignee"],
+  currentUserId?: string
+) {
+  if (!assigneeFilters || assigneeFilters.length === 0) {
+    return true;
+  }
+
+  return assigneeFilters.some((assignee) => {
+    if (assignee === "unassigned") {
+      return !task.assignedTo;
+    }
+
+    if (assignee === "me") {
+      return task.assignedTo?.id === currentUserId;
+    }
+
+    return task.assignedTo?.id === assignee;
+  });
+}
 
 function matchesTaskFilters(
   task: TaskSummary,
@@ -81,15 +139,15 @@ function matchesTaskFilters(
     }
   }
 
-  if (filters.status && filters.status !== "ALL" && task.status !== filters.status) {
+  if (filters.status && filters.status.length > 0 && !filters.status.includes(task.status)) {
     return false;
   }
 
-  if (filters.section && task.section.slug !== filters.section) {
+  if (filters.section && filters.section.length > 0 && !filters.section.includes(task.section.slug)) {
     return false;
   }
 
-  if (filters.priority && task.priority !== filters.priority) {
+  if (filters.priority && filters.priority.length > 0 && !filters.priority.includes(task.priority)) {
     return false;
   }
 
@@ -101,20 +159,7 @@ function matchesTaskFilters(
     return false;
   }
 
-  if (filters.assignee === "unassigned" && task.assignedTo) {
-    return false;
-  }
-
-  if (filters.assignee === "me" && task.assignedTo?.id !== currentUserId) {
-    return false;
-  }
-
-  if (
-    filters.assignee &&
-    filters.assignee !== "me" &&
-    filters.assignee !== "unassigned" &&
-    task.assignedTo?.id !== filters.assignee
-  ) {
+  if (!matchesAssigneeFilters(task, filters.assignee, currentUserId)) {
     return false;
   }
 
@@ -330,6 +375,7 @@ export function TasksWorkspacePage() {
   const [bulkError, setBulkError] = useState<string>();
   const [documentError, setDocumentError] = useState<string>();
   const [taskShelfExpanded, setTaskShelfExpanded] = useState(false);
+  const [checklistPreviewTaskId, setChecklistPreviewTaskId] = useState<string>();
   const toast = useToast();
   const sessionQuery = useAuthSessionQuery();
 
@@ -355,7 +401,15 @@ export function TasksWorkspacePage() {
   });
 
   const currentUser = sessionQuery.data?.user;
-  const visibleTasks = taskListQuery.data?.tasks ?? [];
+  const visibleTasks = useMemo(
+    () =>
+      sortTasks(
+        taskListQuery.data?.tasks ?? [],
+        searchState.sort,
+        searchState.order
+      ),
+    [taskListQuery.data?.tasks, searchState.order, searchState.sort]
+  );
   const visibleTaskIdSet = useMemo(
     () => new Set(visibleTasks.map((task) => task.id)),
     [visibleTasks]
@@ -363,6 +417,13 @@ export function TasksWorkspacePage() {
   const allVisibleSelected =
     visibleTasks.length > 0 && visibleTasks.every((task) => selectedTaskIds.includes(task.id));
   const showBoardView = searchState.view === "board" && searchState.archived === "active";
+  const checklistPreviewQuery = useQuery({
+    queryKey: checklistPreviewTaskId
+      ? taskQueryKeys.detail(checklistPreviewTaskId)
+      : ["tasks", "detail", "preview-none"],
+    queryFn: () => getTaskWorkspace(checklistPreviewTaskId!),
+    enabled: Boolean(checklistPreviewTaskId)
+  });
 
   useEffect(() => {
     setSelectedTaskIds((current) => {
@@ -381,6 +442,12 @@ export function TasksWorkspacePage() {
       setTaskShelfExpanded(false);
     }
   }, [selectedTaskId]);
+
+  useEffect(() => {
+    if (checklistPreviewTaskId && !visibleTaskIdSet.has(checklistPreviewTaskId)) {
+      setChecklistPreviewTaskId(undefined);
+    }
+  }, [checklistPreviewTaskId, visibleTaskIdSet]);
 
   function replaceCurrentListTask(task: TaskSummary) {
     queryClient.setQueryData<TaskListResponse>(currentListKey, (current) =>
@@ -1267,6 +1334,18 @@ export function TasksWorkspacePage() {
     selectedTaskIndex >= 0 && selectedTaskIndex < visibleTasks.length - 1
       ? visibleTasks[selectedTaskIndex + 1]?.id
       : undefined;
+  const checklistPreviewData =
+    checklistPreviewTaskId && checklistPreviewTaskId === selectedTaskId
+      ? taskWorkspaceQuery.data
+      : checklistPreviewQuery.data;
+  const checklistPreviewError =
+    checklistPreviewTaskId && checklistPreviewTaskId === selectedTaskId
+      ? taskWorkspaceQuery.error instanceof ApiClientError
+        ? taskWorkspaceQuery.error.message
+        : undefined
+      : checklistPreviewQuery.error instanceof ApiClientError
+        ? checklistPreviewQuery.error.message
+        : undefined;
 
   function setSearchStatePatch(patch: Partial<TaskWorkspaceSearchState>) {
     setSearchParams(updateTaskSearchState(searchParams, patch), {
@@ -1278,16 +1357,30 @@ export function TasksWorkspacePage() {
     setSearchParams(
       buildTaskSearchParams({
         q: "",
-        status: "ALL",
-        section: "",
-        priority: "",
-        assignee: "",
+        status: [],
+        section: [],
+        priority: [],
+        assignee: [],
         queue: "all",
         archived: "active",
         sort: "dueDate",
-        view: "list"
+        order: "asc",
+        view: "list",
+        group: "none"
       })
     );
+  }
+
+  function handleSortChange(nextSort: TaskSort) {
+    setSearchStatePatch({
+      sort: nextSort,
+      order:
+        searchState.sort === nextSort
+          ? searchState.order === "asc"
+            ? "desc"
+            : "asc"
+          : getDefaultSortOrder(nextSort)
+    });
   }
 
   function prefetchTask(taskId: string) {
@@ -1326,31 +1419,30 @@ export function TasksWorkspacePage() {
     });
   }
 
+  function toggleChecklistPreview(taskId: string) {
+    setChecklistPreviewTaskId((current) => (current === taskId ? undefined : taskId));
+  }
+
   return (
     <div className="space-y-6">
       <WorkspacePageHeader
-        description="Keep the task queue anchored while search, filters, bulk actions, dependencies, checklist work, comments, and documents all stay connected to one universal shelf."
+        description="Search, sort, and review work from a single queue."
         eyebrow="Tasks"
-        title="Task workspace"
+        title="Work queue"
       />
 
       <WorkspaceSurface
-        actions={
-          <span className="rounded-full bg-muted px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-            {visibleTasks.length} visible
-          </span>
-        }
         bodyClassName="space-y-4"
-        description="Controls stay attached to the queue they affect. Opening a task slides the shelf over the workspace without changing the main surface."
-        title="Task queue"
         toolbar={
-          <div className="space-y-4">
+          <div className="space-y-3">
             <WorkspaceFilters
               archived={searchState.archived}
               assignee={searchState.assignee}
               currentUserId={currentUser?.id ?? ""}
+              group={searchState.group}
               onChange={setSearchStatePatch}
               onReset={handleReset}
+              order={searchState.order}
               priority={searchState.priority}
               q={searchState.q}
               queue={searchState.queue}
@@ -1373,7 +1465,7 @@ export function TasksWorkspacePage() {
               view={searchState.view}
             />
 
-            {currentUser?.role === "OWNER_ADMIN" ? (
+            {currentUser?.role === "OWNER_ADMIN" && selectedTaskIds.length > 0 ? (
               <BulkActionsPanel
                 archiveView={searchState.archived}
                 error={bulkError}
@@ -1413,6 +1505,57 @@ export function TasksWorkspacePage() {
           <div className="rounded-[1.25rem] border border-red-200 bg-red-50 px-4 py-4 text-sm text-red-700">
             {taskListQuery.error.message}
           </div>
+        ) : searchState.view === "list" && checklistPreviewTaskId && currentUser ? (
+          <>
+            <TaskChecklistPreviewPanel
+              currentUser={currentUser as SessionPayload["user"]}
+              data={checklistPreviewData}
+              error={checklistPreviewError}
+              isLoading={
+                checklistPreviewTaskId === selectedTaskId
+                  ? taskWorkspaceQuery.isLoading
+                  : checklistPreviewQuery.isLoading
+              }
+              isSavingSubtask={
+                createSubtaskMutation.isPending ||
+                updateSubtaskMutation.isPending ||
+                deleteSubtaskMutation.isPending ||
+                archiveSubtaskMutation.isPending ||
+                restoreSubtaskMutation.isPending
+              }
+              onClose={() => setChecklistPreviewTaskId(undefined)}
+              onOpenTask={(taskId) => navigateToTask(taskId)}
+              onToggleSubtask={async (subtask) => {
+                await updateSubtaskMutation.mutateAsync({
+                  subtaskId: subtask.id,
+                  title: subtask.title,
+                  notes: subtask.notes,
+                  dueDate: subtask.dueDate,
+                  assignedToId: subtask.assignedToId,
+                  isComplete: !subtask.isComplete,
+                  sortOrder: subtask.sortOrder
+                });
+              }}
+            />
+
+            <TaskListPanel
+              activeChecklistPreviewTaskId={checklistPreviewTaskId}
+              activeTaskId={selectedTaskId}
+              allVisibleSelected={allVisibleSelected}
+              canSelectTasks={currentUser?.role === "OWNER_ADMIN"}
+              group={searchState.group}
+              onPrefetchTask={prefetchTask}
+              onSortChange={handleSortChange}
+              onToggleChecklistPreview={toggleChecklistPreview}
+              onToggleSelectAllVisible={toggleSelectAllVisible}
+              onToggleTaskSelection={toggleTaskSelection}
+              order={searchState.order}
+              search={search ? `?${search}` : ""}
+              selectedTaskIds={selectedTaskIds}
+              sort={searchState.sort}
+              tasks={visibleTasks}
+            />
+          </>
         ) : showBoardView ? (
           <TaskBoardPanel
             activeTaskId={selectedTaskId}
@@ -1425,14 +1568,20 @@ export function TasksWorkspacePage() {
           />
         ) : (
           <TaskListPanel
+            activeChecklistPreviewTaskId={checklistPreviewTaskId}
             activeTaskId={selectedTaskId}
             allVisibleSelected={allVisibleSelected}
             canSelectTasks={currentUser?.role === "OWNER_ADMIN"}
+            group={searchState.group}
             onPrefetchTask={prefetchTask}
+            onSortChange={handleSortChange}
+            onToggleChecklistPreview={toggleChecklistPreview}
             onToggleSelectAllVisible={toggleSelectAllVisible}
             onToggleTaskSelection={toggleTaskSelection}
+            order={searchState.order}
             search={search ? `?${search}` : ""}
             selectedTaskIds={selectedTaskIds}
+            sort={searchState.sort}
             tasks={visibleTasks}
           />
         )}

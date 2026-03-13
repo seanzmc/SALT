@@ -90,6 +90,98 @@ function LoadingBlock({ className }: { className?: string }) {
 export function DashboardWorkspacePage() {
   const summaryQuery = useDashboardSummaryQuery();
   const activityQuery = useDashboardActivityQuery();
+  const primaryAttentionCards = summaryQuery.data
+    ? [
+        {
+          key: "overdue",
+          count: summaryQuery.data.attention.overdue.count,
+          card: (
+            <AttentionQueueCard
+              breakdown={summaryQuery.data.attention.overdue.breakdown}
+              detail="Past-due active work that should be triaged first."
+              href={taskQueueHref("overdue")}
+              itemHref={(taskId) => taskDetailHref(taskId, "overdue")}
+              itemMeta={(task) =>
+                `Due ${formatDate(task.dueDate)} • ${task.assignedTo?.name ?? "Unassigned"}`
+              }
+              items={summaryQuery.data.attention.overdue.items}
+              linkLabel="Open overdue queue"
+              title={`Overdue Tasks (${summaryQuery.data.attention.overdue.count})`}
+              tone="danger"
+            />
+          )
+        },
+        {
+          key: "blocked",
+          count: summaryQuery.data.attention.blocked.count,
+          card: (
+            <AttentionQueueCard
+              detail="Tasks marked blocked and needing owner attention."
+              href={taskQueueHref("blocked")}
+              itemHref={(taskId) => taskDetailHref(taskId, "blocked")}
+              itemMeta={(task) => `${task.section.title} • ${task.blockedReason || "Blocked"}`}
+              items={summaryQuery.data.attention.blocked.items}
+              linkLabel="Open blocked queue"
+              title={`Blocked Tasks (${summaryQuery.data.attention.blocked.count})`}
+              tone="warning"
+            />
+          )
+        },
+        {
+          key: "unassigned",
+          count: summaryQuery.data.attention.unassigned.count,
+          card: (
+            <AttentionQueueCard
+              detail="Open tasks with no owner currently assigned."
+              href={taskQueueHref("unassigned")}
+              itemHref={(taskId) => taskDetailHref(taskId, "unassigned")}
+              itemMeta={(task) => `${task.section.title} • Due ${formatDate(task.dueDate)}`}
+              items={summaryQuery.data.attention.unassigned.items}
+              linkLabel="Open unassigned queue"
+              title={`Unassigned Tasks (${summaryQuery.data.attention.unassigned.count})`}
+            />
+          )
+        }
+      ].filter((item) => item.count > 0)
+    : [];
+  const secondaryAttentionCards = summaryQuery.data
+    ? [
+        {
+          key: "upcoming",
+          count: summaryQuery.data.attention.upcoming.count,
+          card: (
+            <AttentionQueueCard
+              detail="Active tasks due in the next 7 days."
+              href={taskQueueHref("upcoming")}
+              itemHref={(taskId) => taskDetailHref(taskId, "upcoming")}
+              itemMeta={(task) =>
+                `Due ${formatDate(task.dueDate)} • ${task.assignedTo?.name ?? "Unassigned"}`
+              }
+              items={summaryQuery.data.attention.upcoming.items}
+              linkLabel="Open upcoming queue"
+              title={`Due This Week (${summaryQuery.data.attention.upcoming.count})`}
+            />
+          )
+        },
+        {
+          key: "stale",
+          count: summaryQuery.data.attention.stale.count,
+          card: (
+            <AttentionQueueCard
+              detail="Incomplete active tasks not updated in the last 7 days."
+              href={taskQueueHref("stale")}
+              itemHref={(taskId) => taskDetailHref(taskId, "stale")}
+              itemMeta={(task) =>
+                `Last changed ${formatDate(task.updatedAt)} • ${task.assignedTo?.name ?? "Unassigned"}`
+              }
+              items={summaryQuery.data.attention.stale.items}
+              linkLabel="Open stale queue"
+              title={`Needs Update (${summaryQuery.data.attention.stale.count})`}
+            />
+          )
+        }
+      ].filter((item) => item.count > 0)
+    : [];
 
   return (
     <div className="space-y-6">
@@ -113,13 +205,13 @@ export function DashboardWorkspacePage() {
             value={formatPercent(summaryQuery.data.overallCompletion)}
           />
           <SummaryMetricCard
-            detail={`${summaryQuery.data.queueCounts.blocked} blocked items need attention`}
+            detail={`${summaryQuery.data.queueCounts.overdue} overdue items need attention`}
             title="Overdue tasks"
             tone="warning"
             value={String(summaryQuery.data.queueCounts.overdue)}
           />
           <SummaryMetricCard
-            detail={`${summaryQuery.data.queueCounts.stale} tasks need fresh updates`}
+            detail={`${summaryQuery.data.queueCounts.unassigned} tasks need owners`}
             title="Unassigned tasks"
             value={String(summaryQuery.data.queueCounts.unassigned)}
           />
@@ -150,68 +242,25 @@ export function DashboardWorkspacePage() {
         </section>
       ) : summaryQuery.data ? (
         <>
-          <section className="grid gap-6 xl:grid-cols-3">
-            <AttentionQueueCard
-              breakdown={summaryQuery.data.attention.overdue.breakdown}
-              detail="Past-due active work that should be triaged first."
-              href={taskQueueHref("overdue")}
-              itemHref={(taskId) => taskDetailHref(taskId, "overdue")}
-              itemMeta={(task) =>
-                `Due ${formatDate(task.dueDate)} • ${task.assignedTo?.name ?? "Unassigned"}`
-              }
-              items={summaryQuery.data.attention.overdue.items}
-              linkLabel="Open overdue queue"
-              title={`Overdue Tasks (${summaryQuery.data.attention.overdue.count})`}
-              tone="danger"
-            />
+          {primaryAttentionCards.length > 0 ? (
+            <section className="grid gap-6 xl:grid-cols-3">
+              {primaryAttentionCards.map((item) => (
+                <div key={item.key}>{item.card}</div>
+              ))}
+            </section>
+          ) : (
+            <section className="rounded-[1.25rem] border border-dashed border-border bg-muted/18 px-4 py-4 text-sm text-muted-foreground">
+              No overdue, blocked, or unassigned work needs attention right now.
+            </section>
+          )}
 
-            <AttentionQueueCard
-              detail="Tasks marked blocked and needing owner attention."
-              href={taskQueueHref("blocked")}
-              itemHref={(taskId) => taskDetailHref(taskId, "blocked")}
-              itemMeta={(task) => `${task.section.title} • ${task.blockedReason || "Blocked"}`}
-              items={summaryQuery.data.attention.blocked.items}
-              linkLabel="Open blocked queue"
-              title={`Blocked Tasks (${summaryQuery.data.attention.blocked.count})`}
-              tone="warning"
-            />
-
-            <AttentionQueueCard
-              detail="Open tasks with no owner currently assigned."
-              href={taskQueueHref("unassigned")}
-              itemHref={(taskId) => taskDetailHref(taskId, "unassigned")}
-              itemMeta={(task) => `${task.section.title} • Due ${formatDate(task.dueDate)}`}
-              items={summaryQuery.data.attention.unassigned.items}
-              linkLabel="Open unassigned queue"
-              title={`Unassigned Tasks (${summaryQuery.data.attention.unassigned.count})`}
-            />
-          </section>
-
-          <section className="grid gap-6 xl:grid-cols-2">
-            <AttentionQueueCard
-              detail="Active tasks due in the next 7 days."
-              href={taskQueueHref("upcoming")}
-              itemHref={(taskId) => taskDetailHref(taskId, "upcoming")}
-              itemMeta={(task) =>
-                `Due ${formatDate(task.dueDate)} • ${task.assignedTo?.name ?? "Unassigned"}`
-              }
-              items={summaryQuery.data.attention.upcoming.items}
-              linkLabel="Open upcoming queue"
-              title={`Due This Week (${summaryQuery.data.attention.upcoming.count})`}
-            />
-
-            <AttentionQueueCard
-              detail="Incomplete active tasks not updated in the last 7 days."
-              href={taskQueueHref("stale")}
-              itemHref={(taskId) => taskDetailHref(taskId, "stale")}
-              itemMeta={(task) =>
-                `Last changed ${formatDate(task.updatedAt)} • ${task.assignedTo?.name ?? "Unassigned"}`
-              }
-              items={summaryQuery.data.attention.stale.items}
-              linkLabel="Open stale queue"
-              title={`Needs Update (${summaryQuery.data.attention.stale.count})`}
-            />
-          </section>
+          {secondaryAttentionCards.length > 0 ? (
+            <section className="grid gap-6 xl:grid-cols-2">
+              {secondaryAttentionCards.map((item) => (
+                <div key={item.key}>{item.card}</div>
+              ))}
+            </section>
+          ) : null}
 
           <section className="grid gap-6 xl:grid-cols-3">
             <section className="rounded-[1.5rem] border border-border bg-white/85 p-5 shadow-sm backdrop-blur">
@@ -223,7 +272,7 @@ export function DashboardWorkspacePage() {
                   </p>
                 </div>
                 <Link
-                  className="rounded-full border border-border px-3 py-2 text-sm text-muted-foreground hover:bg-muted"
+                  className="inline-flex min-h-10 items-center justify-center rounded-full border border-border px-3 py-2 text-center text-sm text-muted-foreground hover:bg-muted"
                   to="/documents"
                 >
                   Open vault
@@ -266,7 +315,7 @@ export function DashboardWorkspacePage() {
                   </p>
                 </div>
                 <Link
-                  className="rounded-full border border-border px-3 py-2 text-sm text-muted-foreground hover:bg-muted"
+                  className="inline-flex min-h-10 items-center justify-center rounded-full border border-border px-3 py-2 text-center text-sm text-muted-foreground hover:bg-muted"
                   to="/messages"
                 >
                   Open board

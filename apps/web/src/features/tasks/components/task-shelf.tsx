@@ -189,53 +189,6 @@ function formatFileSize(size: number) {
   return `${Math.max(1, Math.round(size / 1024))} KB`;
 }
 
-function ReviewMetric({
-  label,
-  value,
-  tone = "default"
-}: {
-  label: string;
-  value: string;
-  tone?: "default" | "positive" | "warning";
-}) {
-  return (
-    <div className="rounded-[1rem] border border-border/75 bg-white px-4 py-4 shadow-[0_18px_50px_-44px_rgba(15,23,42,0.18)]">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-        {label}
-      </p>
-      <p
-        className={joinClasses(
-          "mt-2 break-words text-base font-semibold",
-          tone === "positive"
-            ? "text-emerald-700"
-            : tone === "warning"
-              ? "text-amber-800"
-              : "text-foreground"
-        )}
-      >
-        {value}
-      </p>
-    </div>
-  );
-}
-
-function OverviewField({
-  label,
-  value
-}: {
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="rounded-[1rem] border border-border/70 bg-muted/18 px-4 py-4">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-        {label}
-      </p>
-      <p className="mt-2 break-words text-sm leading-6 text-foreground">{value}</p>
-    </div>
-  );
-}
-
 function SubtaskCard({
   currentUser,
   taskAssignedToId,
@@ -506,6 +459,8 @@ export function TaskShelf({
   const [showUploadForm, setShowUploadForm] = useState(false);
   const [showArchivedSubtasks, setShowArchivedSubtasks] = useState(false);
   const [isEditingTask, setIsEditingTask] = useState(false);
+  const [quickStatus, setQuickStatus] = useState<TaskFormValues["status"]>("NOT_STARTED");
+  const [quickBlockedReason, setQuickBlockedReason] = useState("");
   const editSectionRef = useRef<HTMLElement | null>(null);
 
   const taskForm = useForm<TaskFormValues>({
@@ -588,6 +543,11 @@ export function TaskShelf({
   }, [commentForm, createSubtaskForm, dependencyForm, documentForm, task?.id]);
 
   useEffect(() => {
+    setQuickStatus(task?.status ?? "NOT_STARTED");
+    setQuickBlockedReason(task?.blockedReason ?? "");
+  }, [task?.blockedReason, task?.id, task?.status]);
+
+  useEffect(() => {
     if (!isEditingTask) {
       return;
     }
@@ -618,26 +578,27 @@ export function TaskShelf({
     );
   }
 
+  const currentTask = task;
   const canChangeAssignee = currentUser.role === "OWNER_ADMIN";
   const canEditTask =
-    currentUser.role === "OWNER_ADMIN" || task.assignedToId === currentUser.id;
-  const taskId = task.id;
-  const taskAssignedToId = task.assignedToId;
-  const canManageChecklist = canEditTask && !task.archivedAt;
-  const canUploadDocuments = canEditTask && !task.archivedAt;
-  const activeSubtasks = task.subtasks.filter((subtask) => !subtask.archivedAt);
-  const archivedSubtasks = task.subtasks.filter((subtask) => subtask.archivedAt);
+    currentUser.role === "OWNER_ADMIN" || currentTask.assignedToId === currentUser.id;
+  const taskId = currentTask.id;
+  const taskAssignedToId = currentTask.assignedToId;
+  const canManageChecklist = canEditTask && !currentTask.archivedAt;
+  const canUploadDocuments = canEditTask && !currentTask.archivedAt;
+  const activeSubtasks = currentTask.subtasks.filter((subtask) => !subtask.archivedAt);
+  const archivedSubtasks = currentTask.subtasks.filter((subtask) => subtask.archivedAt);
   const completeActiveSubtasks = activeSubtasks.filter((subtask) => subtask.isComplete).length;
   const incompleteSubtasks = activeSubtasks.length - completeActiveSubtasks;
-  const existingDependencyIds = new Set(task.dependencies.map((dependency) => dependency.id));
-  const availableDependencyCandidates = task.dependencyCandidates.filter(
+  const existingDependencyIds = new Set(currentTask.dependencies.map((dependency) => dependency.id));
+  const availableDependencyCandidates = currentTask.dependencyCandidates.filter(
     (candidate) => !existingDependencyIds.has(candidate.id)
   );
-  const shelfMeta = `${task.section.title} • Due ${formatDate(task.dueDate)} • ${task.assignedTo?.name ?? "Unassigned"}`;
+  const shelfMeta = `${currentTask.section.title} • Due ${formatDate(currentTask.dueDate)} • ${currentTask.assignedTo?.name ?? "Unassigned"}`;
   const dependencySummary =
-    task.dependencies.length === 0 && task.dependents.length === 0
+    currentTask.dependencies.length === 0 && currentTask.dependents.length === 0
       ? "No linked dependency work"
-      : `${task.dependencies.length} upstream • ${task.dependents.length} downstream`;
+      : `${currentTask.dependencies.length} upstream • ${currentTask.dependents.length} downstream`;
 
   async function submitTaskValues(values: TaskFormValues) {
     await onSubmitTaskUpdate({
@@ -653,15 +614,35 @@ export function TaskShelf({
     });
   }
 
+  async function saveQuickStatus() {
+    await onSubmitTaskUpdate({
+      taskId,
+      title: currentTask.title,
+      description: currentTask.description,
+      notes: currentTask.notes,
+      dueDate: currentTask.dueDate,
+      status: quickStatus,
+      priority: currentTask.priority,
+      assignedToId: taskAssignedToId,
+      blockedReason: quickStatus === "BLOCKED" ? quickBlockedReason || null : null
+    });
+  }
+
   return (
     <div className="flex h-full flex-col">
-      <div className="border-b border-border/80 px-5 py-5">
-        <div className="space-y-4">
+      <div className="relative border-b border-border/80 px-5 py-5">
+        <button
+          aria-label="Close"
+          className="absolute right-5 top-5 inline-flex h-9 w-9 items-center justify-center rounded-full border border-border text-sm text-muted-foreground hover:bg-muted"
+          onClick={onClose}
+          type="button"
+        >
+          X
+        </button>
+
+        <div className="space-y-4 pr-12">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-                Task shelf
-              </p>
               <span className="rounded-full bg-muted px-3 py-1 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
                 {task.status.replaceAll("_", " ")}
               </span>
@@ -673,24 +654,50 @@ export function TaskShelf({
             </div>
             <h3 className="mt-2 break-words text-2xl font-semibold">{task.title}</h3>
             <p className="mt-2 break-words text-sm text-muted-foreground">{shelfMeta}</p>
+
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              {canEditTask ? (
+                <button
+                  aria-expanded={isEditingTask}
+                  className={joinClasses(
+                    "rounded-full border px-3 py-1.5 text-sm transition",
+                    isEditingTask
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border text-muted-foreground hover:bg-muted"
+                  )}
+                  onClick={() => setIsEditingTask((current) => !current)}
+                  type="button"
+                >
+                  {isEditingTask ? "Hide details" : "Edit task"}
+                </button>
+              ) : null}
+              {currentUser.role === "OWNER_ADMIN" ? (
+                <button
+                  className="rounded-full border border-border px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted disabled:opacity-60"
+                  disabled={isArchivingTask}
+                  onClick={async () => {
+                    if (task.archivedAt) {
+                      await onRestoreTask({ taskId: task.id });
+                      return;
+                    }
+
+                    await onArchiveTask({ taskId: task.id });
+                  }}
+                  type="button"
+                >
+                  {isArchivingTask
+                    ? task.archivedAt
+                      ? "Restoring..."
+                      : "Archiving..."
+                    : task.archivedAt
+                      ? "Restore"
+                      : "Archive"}
+                </button>
+              ) : null}
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            {canEditTask ? (
-              <button
-                aria-expanded={isEditingTask}
-                className={joinClasses(
-                  "min-h-[2.75rem] min-w-[7.5rem] rounded-full border px-3 py-2 text-sm transition",
-                  isEditingTask
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border text-muted-foreground hover:bg-muted"
-                )}
-                onClick={() => setIsEditingTask((current) => !current)}
-                type="button"
-              >
-                {isEditingTask ? "Hide editor" : "Edit task"}
-              </button>
-            ) : null}
             <button
               className="min-h-[2.75rem] min-w-[7.5rem] rounded-full border border-border px-3 py-2 text-sm text-muted-foreground hover:bg-muted"
               onClick={onToggleExpanded}
@@ -714,61 +721,144 @@ export function TaskShelf({
             >
               Next
             </button>
-            <button
-              className="min-h-[2.75rem] min-w-[7.5rem] rounded-full border border-border px-3 py-2 text-sm text-muted-foreground hover:bg-muted"
-              onClick={onClose}
-              type="button"
-            >
-              Close
-            </button>
           </div>
         </div>
       </div>
 
-      <div className="flex-1 space-y-6 overflow-y-auto p-5">
-        <section className="space-y-5 rounded-[1.5rem] border border-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.97),rgba(247,243,235,0.86))] p-4 shadow-[0_22px_50px_-44px_rgba(15,23,42,0.3)]">
+      <div className="flex-1 space-y-5 overflow-y-auto p-5">
+        <section className="space-y-4 rounded-[1.5rem] border border-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.97),rgba(247,243,235,0.86))] p-4 shadow-[0_22px_50px_-44px_rgba(15,23,42,0.3)]">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <p className="font-semibold">Operational review</p>
-              <p className="text-sm text-muted-foreground">
-                Default shelf view prioritizes status, dependencies, checklist work, documents, and
-                comments before edit-heavy fields.
-              </p>
+              <p className="font-semibold">Overview</p>
+              <p className="text-sm text-muted-foreground">Key context stays visible while you work.</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <span className="rounded-full bg-white/80 px-3 py-1 text-xs text-muted-foreground">
+                Documents {task.attachments.length}
+              </span>
+              <span className="rounded-full bg-white/80 px-3 py-1 text-xs text-muted-foreground">
+                Comments {task.comments.length}
+              </span>
+              <span className="rounded-full bg-white/80 px-3 py-1 text-xs text-muted-foreground">
+                Dependencies {dependencySummary}
+              </span>
+              <span className="rounded-full bg-white/80 px-3 py-1 text-xs text-muted-foreground">
+                Checklist {completeActiveSubtasks}/{activeSubtasks.length}
+              </span>
             </div>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-            <ReviewMetric
-              label="Status"
-              tone={task.status === "BLOCKED" ? "warning" : task.status === "COMPLETE" ? "positive" : "default"}
-              value={task.status.replaceAll("_", " ")}
-            />
-            <ReviewMetric label="Documents" value={`${task.attachments.length} linked`} />
-            <ReviewMetric label="Comments" value={`${task.comments.length} captured`} />
-            <ReviewMetric label="Dependencies" value={dependencySummary} />
-            <ReviewMetric
-              label="Checklist"
-              tone={incompleteSubtasks === 0 && activeSubtasks.length > 0 ? "positive" : "default"}
-              value={`${completeActiveSubtasks}/${activeSubtasks.length} complete`}
-            />
+          <div className="rounded-[1rem] border border-border/70 bg-white/70 px-4 py-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium text-foreground">Status</p>
+                <p className="text-sm text-muted-foreground">Update progress without opening the full editor.</p>
+              </div>
+              {canEditTask ? (
+                <button
+                  className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-60"
+                  disabled={
+                    isSavingTask ||
+                    (quickStatus === "BLOCKED" && !quickBlockedReason.trim()) ||
+                    quickStatus === task.status &&
+                      (quickStatus !== "BLOCKED" || quickBlockedReason === (task.blockedReason ?? ""))
+                  }
+                  onClick={saveQuickStatus}
+                  type="button"
+                >
+                  {isSavingTask ? "Saving..." : "Update status"}
+                </button>
+              ) : null}
+            </div>
+
+            <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+              {statusOptions.map((option) => {
+                const isActive = quickStatus === option.value;
+
+                return (
+                  <button
+                    key={option.value}
+                    className={joinClasses(
+                      "rounded-full border px-4 py-2.5 text-sm transition",
+                      isActive
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border bg-white text-muted-foreground hover:bg-muted"
+                    )}
+                    disabled={!canEditTask}
+                    onClick={() => setQuickStatus(option.value)}
+                    type="button"
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {quickStatus === "BLOCKED" ? (
+              <label className="mt-3 block space-y-2">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                  Blocked reason
+                </span>
+                <textarea
+                  className="min-h-20 w-full rounded-[1rem] border border-border bg-white px-4 py-3"
+                  disabled={!canEditTask}
+                  onChange={(event) => setQuickBlockedReason(event.target.value)}
+                  placeholder="What is stopping this work?"
+                  value={quickBlockedReason}
+                />
+              </label>
+            ) : null}
+
+            {taskError ? <p className="mt-3 text-sm text-red-700">{taskError}</p> : null}
+            {archiveError ? <p className="mt-3 text-sm text-red-700">{archiveError}</p> : null}
           </div>
 
-          <div className="grid gap-3 xl:grid-cols-4">
-            <OverviewField label="Phase / section" value={`${task.phase?.title ?? "No phase"} / ${task.section.title}`} />
-            <OverviewField label="Assignee" value={task.assignedTo?.name ?? "Unassigned"} />
-            <OverviewField label="Due date" value={formatDate(task.dueDate)} />
-            <OverviewField label="Priority" value={task.priority} />
-          </div>
+          <dl className="grid gap-x-4 gap-y-3 border-t border-border/70 pt-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div>
+              <dt className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Phase / section
+              </dt>
+              <dd className="mt-1 text-sm text-foreground">
+                {task.phase?.title ?? "No phase"} / {task.section.title}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Assignee
+              </dt>
+              <dd className="mt-1 text-sm text-foreground">{task.assignedTo?.name ?? "Unassigned"}</dd>
+            </div>
+            <div>
+              <dt className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Due date
+              </dt>
+              <dd className="mt-1 text-sm text-foreground">{formatDate(task.dueDate)}</dd>
+            </div>
+            <div>
+              <dt className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Priority
+              </dt>
+              <dd className="mt-1 text-sm text-foreground">{task.priority}</dd>
+            </div>
+          </dl>
 
-          <div className="grid gap-3 xl:grid-cols-2">
-            <OverviewField
-              label="Description"
-              value={task.description?.trim() || "No task description yet."}
-            />
-            <OverviewField
-              label="Working notes"
-              value={task.notes?.trim() || "No working notes captured yet."}
-            />
+          <div className="grid gap-4 border-t border-border/70 pt-4 xl:grid-cols-2">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Description
+              </p>
+              <p className="mt-2 text-sm leading-6 text-foreground">
+                {task.description?.trim() || "No description yet."}
+              </p>
+            </div>
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Working notes
+              </p>
+              <p className="mt-2 text-sm leading-6 text-foreground">
+                {task.notes?.trim() || "No working notes yet."}
+              </p>
+            </div>
           </div>
 
           {task.blockedReason ? (
@@ -1298,59 +1388,34 @@ export function TaskShelf({
           </div>
         </section>
 
-        <section
-          ref={editSectionRef}
-          className="rounded-[1.5rem] border border-border bg-white p-4"
-        >
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <p className="font-semibold">Task editor</p>
-              <p className="text-sm text-muted-foreground">
-                Open only when you need to change task fields. Review surfaces stay visible above.
-              </p>
-            </div>
+        {isEditingTask ? (
+          <section
+            ref={editSectionRef}
+            className="rounded-[1.5rem] border border-border bg-white p-4"
+          >
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="font-semibold">Details</p>
+                <p className="text-sm text-muted-foreground">
+                  Edit fields that do not need to stay visible during normal review.
+                </p>
+              </div>
 
-            {canEditTask ? (
               <button
                 aria-expanded={isEditingTask}
                 className="rounded-full border border-border px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground hover:bg-muted"
-                onClick={() => setIsEditingTask((current) => !current)}
+                onClick={() => setIsEditingTask(false)}
                 type="button"
               >
-                {isEditingTask ? "Collapse" : "Open editor"}
+                Hide details
               </button>
-            ) : null}
-          </div>
+            </div>
 
-          {isEditingTask ? (
             <form
               className="mt-5 space-y-5 border-t border-border/70 pt-5"
               onSubmit={taskForm.handleSubmit(submitTaskValues)}
             >
               <div className="flex flex-wrap gap-2">
-                {currentUser.role === "OWNER_ADMIN" ? (
-                  <button
-                    className="min-w-[7.5rem] rounded-full border border-border px-4 py-2 text-sm text-muted-foreground disabled:opacity-60"
-                    disabled={isArchivingTask}
-                    onClick={async () => {
-                      if (task.archivedAt) {
-                        await onRestoreTask({ taskId: task.id });
-                        return;
-                      }
-
-                      await onArchiveTask({ taskId: task.id });
-                    }}
-                    type="button"
-                  >
-                    {isArchivingTask
-                      ? task.archivedAt
-                        ? "Restoring..."
-                        : "Archiving..."
-                      : task.archivedAt
-                        ? "Restore"
-                        : "Archive"}
-                  </button>
-                ) : null}
                 <button
                   className="min-w-[7.5rem] rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-60"
                   disabled={isSavingTask || !taskForm.formState.isDirty}
@@ -1499,16 +1564,9 @@ export function TaskShelf({
                   {taskForm.formState.errors.blockedReason.message}
                 </p>
               ) : null}
-              {taskError ? <p className="text-sm text-red-700">{taskError}</p> : null}
-              {archiveError ? <p className="text-sm text-red-700">{archiveError}</p> : null}
             </form>
-          ) : (
-            <div className="mt-4 rounded-[1rem] border border-dashed border-border bg-muted/18 px-4 py-4 text-sm text-muted-foreground">
-              Task fields stay out of the default shelf view. Use Edit task when you need to change
-              title, status, dates, notes, assignment, or archive state.
-            </div>
-          )}
-        </section>
+          </section>
+        ) : null}
       </div>
     </div>
   );

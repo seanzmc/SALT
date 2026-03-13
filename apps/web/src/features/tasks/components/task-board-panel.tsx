@@ -110,6 +110,11 @@ export function TaskBoardPanel({
                           <span className="rounded-full border border-border px-2.5 py-1 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
                             {task.priority}
                           </span>
+                          {task.checklistItemCount > 0 ? (
+                            <span className="rounded-full border border-border px-2.5 py-1 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                              Checklist {task.completedChecklistItemCount}/{task.checklistItemCount}
+                            </span>
+                          ) : null}
                           <span
                             className={joinClasses(
                               "rounded-full px-2.5 py-1 text-[11px] uppercase tracking-[0.14em]",

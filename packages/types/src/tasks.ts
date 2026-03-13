@@ -27,7 +27,9 @@ export const TASK_QUEUE_VALUES = [
 
 export const TASK_ARCHIVE_VALUES = ["active", "archived", "all"] as const;
 export const TASK_SORT_VALUES = ["dueDate", "priority", "title", "status"] as const;
+export const TASK_SORT_DIRECTION_VALUES = ["asc", "desc"] as const;
 export const TASK_VIEW_VALUES = ["list", "board"] as const;
+export const TASK_GROUP_VALUES = ["none", "section"] as const;
 export const TASK_BULK_ACTION_VALUES = [
   "assign",
   "clearAssignee",
@@ -44,7 +46,9 @@ export type TaskOpeningPriority = (typeof OPENING_PRIORITY_VALUES)[number];
 export type TaskQueue = (typeof TASK_QUEUE_VALUES)[number];
 export type TaskArchiveView = (typeof TASK_ARCHIVE_VALUES)[number];
 export type TaskSort = (typeof TASK_SORT_VALUES)[number];
+export type TaskSortDirection = (typeof TASK_SORT_DIRECTION_VALUES)[number];
 export type TaskWorkspaceView = (typeof TASK_VIEW_VALUES)[number];
+export type TaskGroupBy = (typeof TASK_GROUP_VALUES)[number];
 export type TaskBulkAction = (typeof TASK_BULK_ACTION_VALUES)[number];
 
 export type TaskSummary = {
@@ -68,6 +72,8 @@ export type TaskSummary = {
     id: string;
     title: string;
   } | null;
+  checklistItemCount: number;
+  completedChecklistItemCount: number;
   assignedTo: {
     id: string;
     name: string;
@@ -162,25 +168,28 @@ export type TaskWorkspaceData = {
 
 export type TaskListFilters = {
   q?: string;
-  status?: TaskStatus | "ALL";
-  section?: string;
-  priority?: TaskPriority;
-  assignee?: string;
+  status?: TaskStatus[];
+  section?: string[];
+  priority?: TaskPriority[];
+  assignee?: string[];
   queue?: TaskQueue;
   archived?: TaskArchiveView;
   sort?: TaskSort;
+  order?: TaskSortDirection;
 };
 
 export type TaskWorkspaceSearchState = {
   q: string;
-  status: TaskStatus | "ALL";
-  section: string;
-  priority: TaskPriority | "";
-  assignee: string;
+  status: TaskStatus[];
+  section: string[];
+  priority: TaskPriority[];
+  assignee: string[];
   queue: TaskQueue;
   archived: TaskArchiveView;
   sort: TaskSort;
+  order: TaskSortDirection;
   view: TaskWorkspaceView;
+  group: TaskGroupBy;
 };
 
 export type TaskQueueCounts = {

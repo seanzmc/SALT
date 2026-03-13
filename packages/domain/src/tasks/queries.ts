@@ -5,6 +5,38 @@ import type { TaskListFilters } from "@salt/types";
 
 import { serializeTaskListResponse, serializeTaskWorkspace } from "./serializers.js";
 
+function buildAssigneeWhere(
+  assignees: TaskListFilters["assignee"],
+  currentUserId?: string
+): Prisma.TaskWhereInput {
+  if (!assignees || assignees.length === 0) {
+    return {};
+  }
+
+  const explicitIds = assignees.filter(
+    (value) => value !== "me" && value !== "unassigned"
+  );
+  const or: Prisma.TaskWhereInput[] = [];
+
+  if (assignees.includes("unassigned")) {
+    or.push({ assignedToId: null });
+  }
+
+  if (assignees.includes("me") && currentUserId) {
+    or.push({ assignedToId: currentUserId });
+  }
+
+  if (explicitIds.length > 0) {
+    or.push({ assignedToId: { in: explicitIds } });
+  }
+
+  if (or.length === 0) {
+    return {};
+  }
+
+  return or.length === 1 ? or[0]! : { OR: or };
+}
+
 export async function listTasks(filters: TaskListFilters & { currentUserId?: string } = {}) {
   const now = new Date();
   const upcomingLimit = new Date(now);
@@ -23,21 +55,19 @@ export async function listTasks(filters: TaskListFilters & { currentUserId?: str
             ]
           }
         : {},
-      filters.status && filters.status !== "ALL" ? { status: filters.status } : {},
-      filters.section ? { section: { slug: filters.section } } : {},
-      filters.priority ? { priority: filters.priority } : {},
+      filters.status && filters.status.length > 0 ? { status: { in: filters.status } } : {},
+      filters.section && filters.section.length > 0
+        ? { section: { slug: { in: filters.section } } }
+        : {},
+      filters.priority && filters.priority.length > 0
+        ? { priority: { in: filters.priority } }
+        : {},
       filters.archived === "archived"
         ? { archivedAt: { not: null } }
         : filters.archived === "all"
           ? {}
           : { archivedAt: null },
-      filters.assignee === "unassigned"
-        ? { assignedToId: null }
-        : filters.assignee === "me"
-          ? { assignedToId: filters.currentUserId }
-          : filters.assignee
-            ? { assignedToId: filters.assignee }
-            : {},
+      buildAssigneeWhere(filters.assignee, filters.currentUserId),
       filters.queue === "my-work"
         ? { assignedToId: filters.currentUserId }
         : filters.queue === "overdue"
@@ -60,14 +90,16 @@ export async function listTasks(filters: TaskListFilters & { currentUserId?: str
     ]
   };
 
+  const sortDirection =
+    filters.order ?? (filters.sort === "priority" ? "desc" : "asc");
   const orderBy: Prisma.TaskOrderByWithRelationInput =
     filters.sort === "priority"
-      ? { priority: "desc" }
+      ? { priority: sortDirection }
       : filters.sort === "title"
-        ? { title: "asc" }
+        ? { title: sortDirection }
         : filters.sort === "status"
-          ? { status: "asc" }
-          : { dueDate: "asc" };
+          ? { status: sortDirection }
+          : { dueDate: sortDirection };
 
   const [tasks, sections, users, phases, queueCounts] = await Promise.all([
     prisma.task.findMany({
@@ -76,6 +108,12 @@ export async function listTasks(filters: TaskListFilters & { currentUserId?: str
         section: true,
         phase: { select: { id: true, title: true } },
         assignedTo: { select: { id: true, name: true, role: true } },
+        subtasks: {
+          select: {
+            archivedAt: true,
+            isComplete: true
+          }
+        },
         taskDependencies: {
           include: {
             dependsOnTask: {

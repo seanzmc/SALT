@@ -1,36 +1,65 @@
 import type {
+  TaskGroupBy,
   TaskListFilters,
   TaskPriority,
+  TaskSortDirection,
   TaskStatus,
   TaskWorkspaceSearchState
 } from "@salt/types";
 
 const DEFAULT_STATE: TaskWorkspaceSearchState = {
   q: "",
-  status: "ALL",
-  section: "",
-  priority: "",
-  assignee: "",
+  status: [],
+  section: [],
+  priority: [],
+  assignee: [],
   queue: "all",
   archived: "active",
   sort: "dueDate",
-  view: "list"
+  order: "asc",
+  view: "list",
+  group: "none"
 };
+
+function getMultiValue(searchParams: URLSearchParams, key: string) {
+  const values = searchParams.getAll(key);
+
+  if (values.length === 0) {
+    const single = searchParams.get(key);
+    if (!single || single === "ALL") {
+      return [];
+    }
+
+    return Array.from(
+      new Set(
+        single
+          .split(",")
+          .map((value) => value.trim())
+          .filter(Boolean)
+      )
+    );
+  }
+
+  return Array.from(new Set(values.filter(Boolean)));
+}
 
 export function getTaskWorkspaceSearchState(
   searchParams: URLSearchParams
 ): TaskWorkspaceSearchState {
   return {
     q: searchParams.get("q") ?? DEFAULT_STATE.q,
-    status: (searchParams.get("status") as TaskStatus | "ALL" | null) ?? DEFAULT_STATE.status,
-    section: searchParams.get("section") ?? DEFAULT_STATE.section,
-    priority: (searchParams.get("priority") as TaskPriority | null) ?? DEFAULT_STATE.priority,
-    assignee: searchParams.get("assignee") ?? DEFAULT_STATE.assignee,
+    status: getMultiValue(searchParams, "status") as TaskStatus[],
+    section: getMultiValue(searchParams, "section"),
+    priority: getMultiValue(searchParams, "priority") as TaskPriority[],
+    assignee: getMultiValue(searchParams, "assignee"),
     queue: (searchParams.get("queue") as TaskWorkspaceSearchState["queue"] | null) ?? DEFAULT_STATE.queue,
     archived:
       (searchParams.get("archived") as TaskWorkspaceSearchState["archived"] | null) ?? DEFAULT_STATE.archived,
     sort: (searchParams.get("sort") as TaskWorkspaceSearchState["sort"] | null) ?? DEFAULT_STATE.sort,
-    view: (searchParams.get("view") as TaskWorkspaceSearchState["view"] | null) ?? DEFAULT_STATE.view
+    order:
+      (searchParams.get("order") as TaskSortDirection | null) ?? DEFAULT_STATE.order,
+    view: (searchParams.get("view") as TaskWorkspaceSearchState["view"] | null) ?? DEFAULT_STATE.view,
+    group: (searchParams.get("group") as TaskGroupBy | null) ?? DEFAULT_STATE.group
   };
 }
 
@@ -42,13 +71,14 @@ export function toTaskListFilters(
 
   return {
     q: next.q || undefined,
-    status: next.status,
-    section: next.section || undefined,
-    priority: next.priority || undefined,
-    assignee: next.assignee || undefined,
+    status: next.status.length > 0 ? next.status : undefined,
+    section: next.section.length > 0 ? next.section : undefined,
+    priority: next.priority.length > 0 ? next.priority : undefined,
+    assignee: next.assignee.length > 0 ? next.assignee : undefined,
     queue: next.queue,
     archived: next.archived,
-    sort: next.sort
+    sort: next.sort,
+    order: next.order
   };
 }
 
@@ -61,21 +91,10 @@ export function buildTaskSearchParams(
     searchParams.set("q", state.q);
   }
 
-  if (state.status !== DEFAULT_STATE.status) {
-    searchParams.set("status", state.status);
-  }
-
-  if (state.section) {
-    searchParams.set("section", state.section);
-  }
-
-  if (state.priority) {
-    searchParams.set("priority", state.priority);
-  }
-
-  if (state.assignee) {
-    searchParams.set("assignee", state.assignee);
-  }
+  state.status.forEach((value) => searchParams.append("status", value));
+  state.section.forEach((value) => searchParams.append("section", value));
+  state.priority.forEach((value) => searchParams.append("priority", value));
+  state.assignee.forEach((value) => searchParams.append("assignee", value));
 
   if (state.queue !== DEFAULT_STATE.queue) {
     searchParams.set("queue", state.queue);
@@ -89,8 +108,16 @@ export function buildTaskSearchParams(
     searchParams.set("sort", state.sort);
   }
 
+  if (state.order !== DEFAULT_STATE.order) {
+    searchParams.set("order", state.order);
+  }
+
   if (state.view !== DEFAULT_STATE.view) {
     searchParams.set("view", state.view);
+  }
+
+  if (state.group !== DEFAULT_STATE.group) {
+    searchParams.set("group", state.group);
   }
 
   return searchParams;

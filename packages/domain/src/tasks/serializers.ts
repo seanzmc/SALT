@@ -39,9 +39,12 @@ export function serializeTaskSummary(task: {
   updatedAt: Date;
   section: { id: string; slug: string; title: string };
   phase: { id: string; title: string } | null;
+  subtasks: Array<{ archivedAt: Date | null; isComplete: boolean }>;
   assignedTo: TaskSummary["assignedTo"];
   taskDependencies: Array<{ dependsOnTask: { status: TaskSummary["status"] } }>;
 }): TaskSummary {
+  const activeSubtasks = task.subtasks.filter((subtask) => !subtask.archivedAt);
+
   return {
     id: task.id,
     title: task.title,
@@ -56,6 +59,8 @@ export function serializeTaskSummary(task: {
     updatedAt: task.updatedAt.toISOString(),
     section: task.section,
     phase: task.phase,
+    checklistItemCount: task.subtasks.length,
+    completedChecklistItemCount: activeSubtasks.filter((subtask) => subtask.isComplete).length,
     assignedTo: task.assignedTo,
     dependencyStatuses: task.taskDependencies.map((item) => item.dependsOnTask.status)
   };
