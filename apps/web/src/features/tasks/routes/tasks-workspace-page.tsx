@@ -1672,6 +1672,7 @@ export function TasksWorkspacePage() {
               }}
               subtaskError={subtaskError}
               taskError={taskError}
+              taskSearch={search ? `?${search}` : ""}
             />
           ) : (
             <div className="flex h-full items-center justify-center px-6 py-8 text-sm text-muted-foreground">

@@ -35,6 +35,10 @@ function validationError(message: string, fieldErrors?: Record<string, string[] 
   return new AppError(400, "VALIDATION_ERROR", message, fieldErrors);
 }
 
+function getFirstFieldError(fieldErrors: Record<string, string[] | undefined>) {
+  return Object.values(fieldErrors).flatMap((value) => value ?? [])[0];
+}
+
 function buildContentDisposition(fileName: string, download: boolean) {
   const encodedFileName = encodeURIComponent(fileName);
   const type = download ? "attachment" : "inline";
@@ -159,7 +163,7 @@ documentsRouter.post(
 
     if (!parsed.success) {
       throw validationError(
-        parsed.error.flatten().formErrors[0] ?? "Invalid upload payload.",
+        getFirstFieldError(parsed.error.flatten().fieldErrors) ?? "Invalid upload payload.",
         parsed.error.flatten().fieldErrors
       );
     }

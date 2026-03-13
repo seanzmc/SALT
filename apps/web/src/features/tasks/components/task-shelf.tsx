@@ -22,6 +22,7 @@ import { z } from "zod";
 type TaskShelfProps = {
   currentUser: SessionPayload["user"];
   data: TaskWorkspaceData;
+  taskSearch: string;
   isExpanded: boolean;
   onClose: () => void;
   onToggleExpanded: () => void;
@@ -422,6 +423,7 @@ function SubtaskCard({
 export function TaskShelf({
   currentUser,
   data,
+  taskSearch,
   isExpanded,
   onClose,
   onToggleExpanded,
@@ -937,12 +939,21 @@ export function TaskShelf({
                 task.dependencies.map((dependency) => (
                   <div key={dependency.id} className="rounded-[1rem] border border-border p-4">
                     <div className="flex items-start justify-between gap-3">
-                      <div>
+                      <Link
+                        className="min-w-0 flex-1 rounded-[0.85rem] transition hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        to={{
+                          pathname: `/tasks/${dependency.id}`,
+                          search: taskSearch
+                        }}
+                      >
                         <p className="font-medium">{dependency.title}</p>
                         <p className="mt-1 text-sm text-muted-foreground">
                           {dependency.assignedTo?.name ?? "Unassigned"} • {formatDate(dependency.dueDate)}
                         </p>
-                      </div>
+                        <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">
+                          Open dependency
+                        </p>
+                      </Link>
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="rounded-full bg-muted px-3 py-1 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
                           {dependency.status.replaceAll("_", " ")}
@@ -977,13 +988,27 @@ export function TaskShelf({
                 </div>
               ) : (
                 task.dependents.map((dependency) => (
-                  <div key={dependency.id} className="rounded-[1rem] border border-border p-4">
-                    <p className="font-medium">{dependency.title}</p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {dependency.assignedTo?.name ?? "Unassigned"} • {formatDate(dependency.dueDate)} •{" "}
-                      {dependency.status.replaceAll("_", " ")}
-                    </p>
-                  </div>
+                  <Link
+                    key={dependency.id}
+                    className="block rounded-[1rem] border border-border p-4 transition hover:border-primary/40 hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    to={{
+                      pathname: `/tasks/${dependency.id}`,
+                      search: taskSearch
+                    }}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="font-medium">{dependency.title}</p>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {dependency.assignedTo?.name ?? "Unassigned"} • {formatDate(dependency.dueDate)} •{" "}
+                          {dependency.status.replaceAll("_", " ")}
+                        </p>
+                      </div>
+                      <span className="rounded-full border border-border px-3 py-1 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                        Open dependent
+                      </span>
+                    </div>
+                  </Link>
                 ))
               )}
             </div>

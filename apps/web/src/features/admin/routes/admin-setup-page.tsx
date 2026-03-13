@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import type {
@@ -107,6 +107,67 @@ function Notice({
   );
 }
 
+type FieldErrors = Record<string, string[] | undefined>;
+
+function getFieldError(fieldErrors: FieldErrors, field: string) {
+  return fieldErrors[field]?.[0];
+}
+
+function hasFieldError(fieldErrors: FieldErrors, field: string) {
+  return Boolean(getFieldError(fieldErrors, field));
+}
+
+function getApiFieldErrors(error: unknown) {
+  if (error instanceof ApiClientError) {
+    return error.payload?.error.fieldErrors ?? {};
+  }
+
+  return {};
+}
+
+function controlClassName(isInvalid: boolean) {
+  return [
+    "w-full rounded-2xl border bg-card px-4 py-3 transition focus:outline-none focus:ring-2",
+    isInvalid
+      ? "border-red-400 bg-red-50/60 focus:border-red-500 focus:ring-red-100"
+      : "border-border focus:border-primary/40 focus:ring-primary/15"
+  ].join(" ");
+}
+
+function FieldError({ id, message }: { id: string; message?: string }) {
+  if (!message) {
+    return null;
+  }
+
+  return (
+    <p className="text-sm text-red-700" id={id}>
+      {message}
+    </p>
+  );
+}
+
+function useInvalidFieldFocus(
+  formRef: React.RefObject<HTMLFormElement>,
+  fieldErrors: FieldErrors
+) {
+  useEffect(() => {
+    const firstInvalidField = Object.keys(fieldErrors).find((field) => fieldErrors[field]?.length);
+
+    if (!firstInvalidField) {
+      return;
+    }
+
+    const element = formRef.current?.querySelector<HTMLElement>(`[name="${firstInvalidField}"]`);
+
+    if (!element) {
+      return;
+    }
+
+    element.focus({ preventScroll: true });
+    element.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [fieldErrors, formRef]);
+}
+
 function SummaryTile({
   label,
   value,
@@ -184,15 +245,19 @@ function CreateUserForm({
 }: {
   onCreated: (user: AdminUserRecord) => Promise<void>;
 }) {
+  const formRef = useRef<HTMLFormElement | null>(null);
   const [form, setForm] = useState<AdminCreateUserInput>({
     name: "",
     email: "",
     password: "",
     role: "COLLABORATOR"
   });
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  useInvalidFieldFocus(formRef, fieldErrors);
   const mutation = useMutation({
     mutationFn: createAdminUser,
     onSuccess: async (user) => {
+      setFieldErrors({});
       setForm({
         name: "",
         email: "",
@@ -200,12 +265,35 @@ function CreateUserForm({
         role: "COLLABORATOR"
       });
       await onCreated(user);
+    },
+    onError: (error) => {
+      setFieldErrors(getApiFieldErrors(error));
     }
   });
+
+  function updateField<K extends keyof AdminCreateUserInput>(
+    field: K,
+    value: AdminCreateUserInput[K]
+  ) {
+    if (mutation.error || mutation.isSuccess) {
+      mutation.reset();
+    }
+
+    setFieldErrors((current) =>
+      current[field]
+        ? {
+            ...current,
+            [field]: undefined
+          }
+        : current
+    );
+    setForm((current) => ({ ...current, [field]: value }));
+  }
 
   return (
     <form
       className="grid gap-4 md:grid-cols-2"
+      ref={formRef}
       onSubmit={async (event) => {
         event.preventDefault();
         await mutation.mutateAsync(form);
@@ -214,41 +302,62 @@ function CreateUserForm({
       <label className="space-y-2">
         <span className="text-sm font-medium">Name</span>
         <input
-          className="w-full rounded-2xl border border-border bg-card px-4 py-3"
-          onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
+          aria-describedby={hasFieldError(fieldErrors, "name") ? "create-user-name-error" : undefined}
+          aria-invalid={hasFieldError(fieldErrors, "name")}
+          className={controlClassName(hasFieldError(fieldErrors, "name"))}
+          name="name"
+          onChange={(event) => updateField("name", event.target.value)}
           value={form.name}
         />
+        <FieldError id="create-user-name-error" message={getFieldError(fieldErrors, "name")} />
       </label>
       <label className="space-y-2">
         <span className="text-sm font-medium">Email</span>
         <input
-          className="w-full rounded-2xl border border-border bg-card px-4 py-3"
-          onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
+          aria-describedby={hasFieldError(fieldErrors, "email") ? "create-user-email-error" : undefined}
+          aria-invalid={hasFieldError(fieldErrors, "email")}
+          className={controlClassName(hasFieldError(fieldErrors, "email"))}
+          name="email"
+          onChange={(event) => updateField("email", event.target.value)}
           type="email"
           value={form.email}
         />
+        <FieldError id="create-user-email-error" message={getFieldError(fieldErrors, "email")} />
       </label>
       <label className="space-y-2">
         <span className="text-sm font-medium">Password</span>
         <input
-          className="w-full rounded-2xl border border-border bg-card px-4 py-3"
-          onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
+          aria-describedby={
+            hasFieldError(fieldErrors, "password") ? "create-user-password-error" : undefined
+          }
+          aria-invalid={hasFieldError(fieldErrors, "password")}
+          className={controlClassName(hasFieldError(fieldErrors, "password"))}
+          name="password"
+          onChange={(event) => updateField("password", event.target.value)}
           type="password"
           value={form.password}
+        />
+        <FieldError
+          id="create-user-password-error"
+          message={getFieldError(fieldErrors, "password")}
         />
       </label>
       <label className="space-y-2">
         <span className="text-sm font-medium">Role</span>
         <select
-          className="w-full rounded-2xl border border-border bg-card px-4 py-3"
+          aria-describedby={hasFieldError(fieldErrors, "role") ? "create-user-role-error" : undefined}
+          aria-invalid={hasFieldError(fieldErrors, "role")}
+          className={controlClassName(hasFieldError(fieldErrors, "role"))}
+          name="role"
           onChange={(event) =>
-            setForm((current) => ({ ...current, role: event.target.value as UserRole }))
+            updateField("role", event.target.value as UserRole)
           }
           value={form.role}
         >
           <option value="COLLABORATOR">Collaborator</option>
           <option value="OWNER_ADMIN">Owner Admin</option>
         </select>
+        <FieldError id="create-user-role-error" message={getFieldError(fieldErrors, "role")} />
       </label>
       <div className="md:col-span-2 space-y-2">
         {mutation.error instanceof ApiClientError ? (
@@ -276,12 +385,15 @@ function UserRowForm({
   onSaved: (user: AdminUserRecord) => Promise<void>;
   user: AdminUserRecord;
 }) {
+  const formRef = useRef<HTMLFormElement | null>(null);
   const [form, setForm] = useState({
     name: user.name,
     email: user.email,
     role: user.role,
     password: ""
   });
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  useInvalidFieldFocus(formRef, fieldErrors);
 
   useEffect(() => {
     setForm({
@@ -290,15 +402,39 @@ function UserRowForm({
       role: user.role,
       password: ""
     });
+    setFieldErrors({});
   }, [user.email, user.name, user.role]);
 
   const mutation = useMutation({
-    mutationFn: updateAdminUser
+    mutationFn: updateAdminUser,
+    onSuccess: () => {
+      setFieldErrors({});
+    },
+    onError: (error) => {
+      setFieldErrors(getApiFieldErrors(error));
+    }
   });
+
+  function updateField(field: "name" | "email" | "password" | "role", value: string) {
+    if (mutation.error || mutation.isSuccess) {
+      mutation.reset();
+    }
+
+    setFieldErrors((current) =>
+      current[field]
+        ? {
+            ...current,
+            [field]: undefined
+          }
+        : current
+    );
+    setForm((current) => ({ ...current, [field]: value }));
+  }
 
   return (
     <form
       className="rounded-xl border border-border p-4"
+      ref={formRef}
       onSubmit={async (event) => {
         event.preventDefault();
         const updatedUser = await mutation.mutateAsync({
@@ -315,43 +451,69 @@ function UserRowForm({
         <label className="space-y-2">
           <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Name</span>
           <input
-            className="w-full rounded-2xl border border-border bg-card px-4 py-3"
-            onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
+            aria-describedby={hasFieldError(fieldErrors, "name") ? `user-${user.id}-name-error` : undefined}
+            aria-invalid={hasFieldError(fieldErrors, "name")}
+            className={controlClassName(hasFieldError(fieldErrors, "name"))}
+            name="name"
+            onChange={(event) => updateField("name", event.target.value)}
             value={form.name}
           />
+          <FieldError id={`user-${user.id}-name-error`} message={getFieldError(fieldErrors, "name")} />
         </label>
         <label className="space-y-2">
           <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Email</span>
           <input
-            className="w-full rounded-2xl border border-border bg-card px-4 py-3"
-            onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
+            aria-describedby={
+              hasFieldError(fieldErrors, "email") ? `user-${user.id}-email-error` : undefined
+            }
+            aria-invalid={hasFieldError(fieldErrors, "email")}
+            className={controlClassName(hasFieldError(fieldErrors, "email"))}
+            name="email"
+            onChange={(event) => updateField("email", event.target.value)}
             type="email"
             value={form.email}
+          />
+          <FieldError
+            id={`user-${user.id}-email-error`}
+            message={getFieldError(fieldErrors, "email")}
           />
         </label>
         <label className="space-y-2">
           <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Role</span>
           <select
-            className="w-full rounded-2xl border border-border bg-card px-4 py-3"
+            aria-describedby={hasFieldError(fieldErrors, "role") ? `user-${user.id}-role-error` : undefined}
+            aria-invalid={hasFieldError(fieldErrors, "role")}
+            className={controlClassName(hasFieldError(fieldErrors, "role"))}
+            name="role"
             onChange={(event) =>
-              setForm((current) => ({ ...current, role: event.target.value as UserRole }))
+              updateField("role", event.target.value)
             }
             value={form.role}
           >
             <option value="COLLABORATOR">Collaborator</option>
             <option value="OWNER_ADMIN">Owner Admin</option>
           </select>
+          <FieldError id={`user-${user.id}-role-error`} message={getFieldError(fieldErrors, "role")} />
         </label>
         <label className="space-y-2">
           <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
             Password
           </span>
           <input
-            className="w-full rounded-2xl border border-border bg-card px-4 py-3"
-            onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
+            aria-describedby={
+              hasFieldError(fieldErrors, "password") ? `user-${user.id}-password-error` : undefined
+            }
+            aria-invalid={hasFieldError(fieldErrors, "password")}
+            className={controlClassName(hasFieldError(fieldErrors, "password"))}
+            name="password"
+            onChange={(event) => updateField("password", event.target.value)}
             placeholder="Leave blank to keep"
             type="password"
             value={form.password}
+          />
+          <FieldError
+            id={`user-${user.id}-password-error`}
+            message={getFieldError(fieldErrors, "password")}
           />
         </label>
         <div className="space-y-2">

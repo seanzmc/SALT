@@ -1,6 +1,8 @@
 import path from "node:path";
 import { put } from "@vercel/blob";
 
+import { DomainError } from "../shared/domain-error.js";
+
 const maxFileSizeBytes = 10 * 1024 * 1024;
 const allowedMimeTypes = new Set([
   "application/pdf",
@@ -13,16 +15,22 @@ const allowedMimeTypes = new Set([
 
 export async function saveUploadedFile(file: File) {
   if (!allowedMimeTypes.has(file.type)) {
-    throw new Error("Unsupported file type.");
+    throw new DomainError(
+      400,
+      "VALIDATION_ERROR",
+      "Unsupported file type. Upload a PDF, JPG, PNG, WEBP, TXT, or DOCX file."
+    );
   }
 
   if (file.size > maxFileSizeBytes) {
-    throw new Error("File exceeds 10MB size limit.");
+    throw new DomainError(400, "VALIDATION_ERROR", "File exceeds the 10 MB size limit.");
   }
 
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
-    throw new Error(
-      "Document uploads require Vercel Blob. Set BLOB_READ_WRITE_TOKEN before uploading files."
+    throw new DomainError(
+      500,
+      "INTERNAL_ERROR",
+      "Document storage is not configured. Set BLOB_READ_WRITE_TOKEN before uploading files."
     );
   }
 
@@ -37,11 +45,22 @@ export async function saveUploadedFile(file: File) {
   const fileName = `documents/${Date.now()}-${Math.random()
     .toString(36)
     .slice(2, 10)}-${safeBaseName}${extension.toLowerCase()}`;
-  const blob = await put(fileName, file, {
-    access: "private",
-    addRandomSuffix: false,
-    contentType: file.type || "application/octet-stream"
-  });
+  let blob;
+
+  try {
+    blob = await put(fileName, file, {
+      access: "private",
+      addRandomSuffix: false,
+      contentType: file.type || "application/octet-stream"
+    });
+  } catch (error) {
+    console.error("[documents] Failed to persist uploaded file", error);
+    throw new DomainError(
+      500,
+      "INTERNAL_ERROR",
+      "Document storage is unavailable right now. Please try again."
+    );
+  }
 
   return {
     storagePath: blob.url,
