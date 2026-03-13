@@ -6,10 +6,10 @@ if (!apiOrigin) {
 
 const normalizedApiOrigin = apiOrigin.replace(/\/+$/, "");
 
-export const config = {
+export default {
   buildCommand: "npm run build",
   outputDirectory: "dist",
-  rewrites: [
+  rewrites: async () => [
     {
       source: "/api/:path*",
       destination: `${normalizedApiOrigin}/api/:path*`
