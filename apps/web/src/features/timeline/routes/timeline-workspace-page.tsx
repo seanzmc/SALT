@@ -160,7 +160,7 @@ export function TimelineWorkspacePage() {
             <TimelineOverview phases={timelineQuery.data.phases} />
 
             <div className="grid gap-6 lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start">
-              <aside className="rounded-[1.4rem] border border-border/75 bg-[linear-gradient(180deg,rgba(230,244,239,0.9),rgba(255,255,255,0.82))] shadow-[0_18px_50px_-42px_rgba(15,23,42,0.35)]">
+              <aside className="overflow-hidden rounded-[1.4rem] border border-border/75 bg-[linear-gradient(180deg,rgba(230,244,239,0.96),rgba(255,255,255,0.84))] shadow-[0_18px_50px_-42px_rgba(15,23,42,0.35)]">
                 <div className="border-b border-border/70 px-4 py-4">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                     Phase navigator
@@ -170,14 +170,19 @@ export function TimelineWorkspacePage() {
                     Select the stage you want to review or update.
                   </p>
                 </div>
+                <div className="border-b border-border/60 bg-white/45 px-4 py-3 text-xs leading-5 text-muted-foreground">
+                  Status, dates, blockers, and notes are editable here. Linked tasks open in the
+                  task workspace.
+                </div>
                 <div className="divide-y divide-border/60">
                   {phases.map((phase, index) => (
                     <button
+                      aria-current={activePhase?.id === phase.id ? "step" : undefined}
                       key={phase.id}
                       className={[
                         "flex w-full items-start gap-3 px-4 py-4 text-left transition",
                         activePhase?.id === phase.id
-                          ? "bg-white/70 shadow-[inset_0_0_0_1px_rgba(18,78,68,0.12)]"
+                          ? "bg-white/82 shadow-[inset_4px_0_0_0_rgba(33,95,84,0.9)]"
                           : "hover:bg-white/55"
                       ].join(" ")}
                       onClick={() => {
@@ -187,7 +192,7 @@ export function TimelineWorkspacePage() {
                       }}
                       type="button"
                     >
-                      <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-white text-sm font-medium text-foreground shadow-sm">
+                      <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-white text-sm font-semibold text-foreground shadow-sm">
                         {index + 1}
                       </span>
                       <div className="min-w-0">

@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -40,10 +40,13 @@ function SettingsPanel({
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(defaultOpen);
+  const panelId = useId();
 
   return (
     <section className="rounded-[1.25rem] border border-border/75 bg-white/72 shadow-[0_18px_50px_-42px_rgba(15,23,42,0.35)]">
       <button
+        aria-controls={panelId}
+        aria-expanded={open}
         className="flex w-full items-start justify-between gap-4 px-5 py-4 text-left"
         onClick={() => setOpen((current) => !current)}
         type="button"
@@ -53,11 +56,15 @@ function SettingsPanel({
           <p className="mt-1 text-sm leading-6 text-muted-foreground">{description}</p>
         </div>
         <span className="rounded-full border border-border bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-          {open ? "Open" : "Closed"}
+          {open ? "Expanded" : "Collapsed"}
         </span>
       </button>
 
-      {open ? <div className="border-t border-border/70 px-5 py-5">{children}</div> : null}
+      {open ? (
+        <div className="border-t border-border/70 px-5 py-5" id={panelId}>
+          {children}
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -158,32 +165,42 @@ export function AccountSettingsPage() {
 
       <WorkspaceSurface
         bodyClassName="space-y-5"
-        description="Your account context stays visible at the top so lower-frequency options are easier to understand."
+        description="Identity stays visible at the top. Less-frequent sign-in controls sit lower so profile context remains clear."
         title="Account profile"
       >
         <section className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
           <div className="rounded-[1.25rem] border border-border/75 bg-[rgba(232,244,241,0.68)] p-5 shadow-[0_18px_50px_-42px_rgba(15,23,42,0.35)]">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              Signed-in identity
+              Visible identity context
             </p>
             <h3 className="mt-2 break-words text-2xl font-semibold text-foreground">
               {sessionUser?.name ?? "Loading account"}
             </h3>
             <p className="mt-2 break-words text-sm text-muted-foreground">{sessionUser?.email}</p>
 
-            <div className="mt-4 flex flex-wrap gap-2">
-              <span className="rounded-full border border-border bg-white/85 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                {sessionUser?.role === "OWNER_ADMIN" ? "Owner admin" : "Collaborator"}
-              </span>
-              <span className="rounded-full border border-border bg-white/85 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                Protected workspace account
-              </span>
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              <div className="rounded-[1rem] border border-border/70 bg-white/82 px-4 py-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                  Role
+                </p>
+                <p className="mt-2 text-sm font-medium text-foreground">
+                  {sessionUser?.role === "OWNER_ADMIN" ? "Owner admin" : "Collaborator"}
+                </p>
+              </div>
+              <div className="rounded-[1rem] border border-border/70 bg-white/82 px-4 py-3 sm:col-span-2">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                  Access
+                </p>
+                <p className="mt-2 text-sm font-medium text-foreground">
+                  Protected workspace account
+                </p>
+              </div>
             </div>
           </div>
 
           <div className="rounded-[1.25rem] border border-border/75 bg-white/78 p-5 shadow-[0_18px_50px_-42px_rgba(15,23,42,0.35)]">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              Profile
+              Primary profile edit
             </p>
             <form
               className="mt-4 space-y-4"
@@ -220,8 +237,8 @@ export function AccountSettingsPage() {
           </div>
         </section>
 
-        <section className="space-y-4">
-          <div>
+        <section className="space-y-4 rounded-[1.25rem] border border-border/75 bg-white/72 p-5 shadow-[0_18px_50px_-42px_rgba(15,23,42,0.28)]">
+          <div className="max-w-2xl">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
               Account options
             </p>

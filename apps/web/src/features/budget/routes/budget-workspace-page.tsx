@@ -184,7 +184,7 @@ export function BudgetWorkspacePage() {
             description="Category groups can collapse when you want less page length. Each line separates the financial signal from the owner-only update controls."
             title="Budget lines"
             toolbar={
-              <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto]">
+              <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(16rem,auto)]">
                 <label className="space-y-2">
                   <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                     Category
@@ -208,6 +208,17 @@ export function BudgetWorkspacePage() {
                     ))}
                   </select>
                 </label>
+
+                <div className="rounded-[1rem] border border-border/70 bg-white/78 px-4 py-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                    Editing rights
+                  </p>
+                  <p className="mt-2 text-sm leading-6 text-foreground">
+                    {sessionQuery.data?.user.role === "OWNER_ADMIN"
+                      ? "Owner admins can update actuals, vendor movement, payment state, and notes."
+                      : "Collaborators stay in review mode here. Actuals and payment changes remain owner-admin only."}
+                  </p>
+                </div>
               </div>
             }
           >

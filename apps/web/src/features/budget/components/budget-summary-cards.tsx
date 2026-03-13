@@ -18,7 +18,7 @@ function SummaryCard({
   tone?: "default" | "positive" | "negative";
 }) {
   return (
-    <div className="rounded-[1rem] border border-border/70 bg-white px-4 py-4">
+    <div className="rounded-[1rem] border border-border/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(247,243,235,0.88))] px-4 py-4 shadow-[0_18px_50px_-44px_rgba(15,23,42,0.22)]">
       <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
         {title}
       </p>

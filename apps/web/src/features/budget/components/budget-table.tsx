@@ -173,70 +173,97 @@ function BudgetRowCard({
           });
         }}
       >
-        <div>
-          <p className="font-semibold text-foreground">Update controls</p>
-          <p className="mt-1 text-sm leading-6 text-muted-foreground">
-            Keep actuals, payment state, and sourcing notes current without digging through the row.
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="font-semibold text-foreground">Owner update workspace</p>
+            <span className="rounded-full border border-border/70 bg-white/78 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              {canEdit ? "Editable" : "Review only"}
+            </span>
+          </div>
+          <p className="text-sm leading-6 text-muted-foreground">
+            Update actual spend, payment state, and vendor context in one labeled editing panel.
           </p>
         </div>
 
-        <label className="space-y-2">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            Actual spend
-          </span>
-          <input
-            className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
-            disabled={!canEdit || isSaving}
-            min={0}
-            onChange={(event) => setActual(event.target.value)}
-            step="0.01"
-            type="number"
-            value={actual}
-          />
-        </label>
+        <div className="space-y-3 rounded-[1rem] border border-border/70 bg-white/65 p-3">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              Financial update
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Capture the latest actual spend and payment position for this line.
+            </p>
+          </div>
 
-        <label className="space-y-2">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            Vendor
-          </span>
-          <input
-            className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
-            disabled={!canEdit || isSaving}
-            onChange={(event) => setVendor(event.target.value)}
-            placeholder="Vendor name"
-            value={vendor}
-          />
-        </label>
+          <label className="space-y-2">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              Actual spend
+            </span>
+            <input
+              className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
+              disabled={!canEdit || isSaving}
+              min={0}
+              onChange={(event) => setActual(event.target.value)}
+              step="0.01"
+              type="number"
+              value={actual}
+            />
+          </label>
 
-        <label className="space-y-2">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            Payment status
-          </span>
-          <select
-            className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
-            disabled={!canEdit || isSaving}
-            onChange={(event) => setPaidStatus(event.target.value as PaymentStatus)}
-            value={paidStatus}
-          >
-            <option value="NOT_PAID">Not paid</option>
-            <option value="DEPOSIT_DUE">Deposit due</option>
-            <option value="PARTIALLY_PAID">Partially paid</option>
-            <option value="PAID">Paid</option>
-          </select>
-        </label>
+          <label className="space-y-2">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              Payment status
+            </span>
+            <select
+              className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
+              disabled={!canEdit || isSaving}
+              onChange={(event) => setPaidStatus(event.target.value as PaymentStatus)}
+              value={paidStatus}
+            >
+              <option value="NOT_PAID">Not paid</option>
+              <option value="DEPOSIT_DUE">Deposit due</option>
+              <option value="PARTIALLY_PAID">Partially paid</option>
+              <option value="PAID">Paid</option>
+            </select>
+          </label>
+        </div>
 
-        <label className="space-y-2">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            Notes
-          </span>
-          <textarea
-            className="min-h-28 w-full rounded-[1rem] border border-border bg-white px-4 py-3"
-            disabled={!canEdit || isSaving}
-            onChange={(event) => setNotes(event.target.value)}
-            placeholder="Quote status, approval notes, or payment context"
-            value={notes}
-          />
-        </label>
+        <div className="space-y-3 rounded-[1rem] border border-border/70 bg-white/65 p-3">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              Vendor context
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Keep sourcing, quote, and payment notes attached to the same budget line.
+            </p>
+          </div>
+
+          <label className="space-y-2">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              Vendor
+            </span>
+            <input
+              className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
+              disabled={!canEdit || isSaving}
+              onChange={(event) => setVendor(event.target.value)}
+              placeholder="Vendor name"
+              value={vendor}
+            />
+          </label>
+
+          <label className="space-y-2">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              Notes
+            </span>
+            <textarea
+              className="min-h-28 w-full rounded-[1rem] border border-border bg-white px-4 py-3"
+              disabled={!canEdit || isSaving}
+              onChange={(event) => setNotes(event.target.value)}
+              placeholder="Quote status, approval notes, or payment context"
+              value={notes}
+            />
+          </label>
+        </div>
 
         <button
           className="w-full rounded-[1rem] bg-primary px-4 py-3 text-sm font-medium text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
@@ -331,6 +358,7 @@ export function BudgetTable({
                   Actual {formatCurrency(actual)}
                 </span>
                 <button
+                  aria-expanded={isOpen}
                   className="rounded-full border border-border bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground hover:bg-muted"
                   onClick={() =>
                     setOpenGroups((current) => ({

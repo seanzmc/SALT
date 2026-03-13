@@ -1,13 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import type {
   AdminAssignmentUser,
   AdminCreateUserInput,
   AdminResetTarget,
-  AdminSetupData,
   AdminSetupSubtask,
-  AdminSetupTask,
   AdminUserRecord,
   UserRole
 } from "@salt/types";
@@ -26,25 +24,12 @@ import {
   reactivateAdminUser,
   resetAdminStatuses,
   updateAdminSubtaskSetup,
-  updateAdminTaskSetup,
   updateAdminUser
 } from "../api/admin-client";
 import { adminQueryKeys } from "../lib/query-keys";
 
 function toDateValue(value: string | null) {
   return value ? value.slice(0, 10) : "";
-}
-
-function formatDate(value: string | null) {
-  if (!value) {
-    return "No date";
-  }
-
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric"
-  }).format(new Date(value));
 }
 
 async function invalidateOperationalQueries(queryClient: ReturnType<typeof useQueryClient>) {
@@ -74,6 +59,7 @@ function SectionCard({
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(defaultOpen);
+  const panelId = useId();
 
   return (
     <section className="rounded-[1.5rem] border border-border/80 bg-white/78 shadow-[0_20px_50px_-42px_rgba(15,23,42,0.35)] backdrop-blur">
@@ -84,16 +70,20 @@ function SectionCard({
         </div>
         {collapsible ? (
           <button
+            aria-controls={panelId}
+            aria-expanded={open}
             className="rounded-full border border-border bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground hover:bg-muted"
             onClick={() => setOpen((current) => !current)}
             type="button"
           >
-            {open ? "Hide" : "Show"}
+            {open ? "Collapse" : "Expand"}
           </button>
         ) : null}
       </div>
       {!collapsible || open ? (
-        <div className="border-t border-border/70 px-5 py-5">{children}</div>
+        <div className="border-t border-border/70 px-5 py-5" id={panelId}>
+          {children}
+        </div>
       ) : null}
     </section>
   );
@@ -214,71 +204,66 @@ function CreateUserForm({
   });
 
   return (
-    <SectionCard
-      description="Add owner or collaborator accounts using the current credentials flow."
-      title="Create user"
+    <form
+      className="grid gap-4 md:grid-cols-2"
+      onSubmit={async (event) => {
+        event.preventDefault();
+        await mutation.mutateAsync(form);
+      }}
     >
-      <form
-        className="grid gap-4 md:grid-cols-2"
-        onSubmit={async (event) => {
-          event.preventDefault();
-          await mutation.mutateAsync(form);
-        }}
-      >
-        <label className="space-y-2">
-          <span className="text-sm font-medium">Name</span>
-          <input
-            className="w-full rounded-2xl border border-border bg-card px-4 py-3"
-            onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
-            value={form.name}
-          />
-        </label>
-        <label className="space-y-2">
-          <span className="text-sm font-medium">Email</span>
-          <input
-            className="w-full rounded-2xl border border-border bg-card px-4 py-3"
-            onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
-            type="email"
-            value={form.email}
-          />
-        </label>
-        <label className="space-y-2">
-          <span className="text-sm font-medium">Password</span>
-          <input
-            className="w-full rounded-2xl border border-border bg-card px-4 py-3"
-            onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
-            type="password"
-            value={form.password}
-          />
-        </label>
-        <label className="space-y-2">
-          <span className="text-sm font-medium">Role</span>
-          <select
-            className="w-full rounded-2xl border border-border bg-card px-4 py-3"
-            onChange={(event) =>
-              setForm((current) => ({ ...current, role: event.target.value as UserRole }))
-            }
-            value={form.role}
-          >
-            <option value="COLLABORATOR">Collaborator</option>
-            <option value="OWNER_ADMIN">Owner Admin</option>
-          </select>
-        </label>
-        <div className="md:col-span-2 space-y-2">
-          {mutation.error instanceof ApiClientError ? (
-            <Notice message={mutation.error.message} tone="error" />
-          ) : null}
-          {mutation.data ? <Notice message="User account created." tone="success" /> : null}
-          <button
-            className="rounded-2xl bg-primary px-4 py-3 font-medium text-primary-foreground disabled:cursor-not-allowed disabled:opacity-70"
-            disabled={mutation.isPending}
-            type="submit"
-          >
-            {mutation.isPending ? "Creating…" : "Create user"}
-          </button>
-        </div>
-      </form>
-    </SectionCard>
+      <label className="space-y-2">
+        <span className="text-sm font-medium">Name</span>
+        <input
+          className="w-full rounded-2xl border border-border bg-card px-4 py-3"
+          onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
+          value={form.name}
+        />
+      </label>
+      <label className="space-y-2">
+        <span className="text-sm font-medium">Email</span>
+        <input
+          className="w-full rounded-2xl border border-border bg-card px-4 py-3"
+          onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
+          type="email"
+          value={form.email}
+        />
+      </label>
+      <label className="space-y-2">
+        <span className="text-sm font-medium">Password</span>
+        <input
+          className="w-full rounded-2xl border border-border bg-card px-4 py-3"
+          onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
+          type="password"
+          value={form.password}
+        />
+      </label>
+      <label className="space-y-2">
+        <span className="text-sm font-medium">Role</span>
+        <select
+          className="w-full rounded-2xl border border-border bg-card px-4 py-3"
+          onChange={(event) =>
+            setForm((current) => ({ ...current, role: event.target.value as UserRole }))
+          }
+          value={form.role}
+        >
+          <option value="COLLABORATOR">Collaborator</option>
+          <option value="OWNER_ADMIN">Owner Admin</option>
+        </select>
+      </label>
+      <div className="md:col-span-2 space-y-2">
+        {mutation.error instanceof ApiClientError ? (
+          <Notice message={mutation.error.message} tone="error" />
+        ) : null}
+        {mutation.data ? <Notice message="User account created." tone="success" /> : null}
+        <button
+          className="rounded-2xl bg-primary px-4 py-3 font-medium text-primary-foreground disabled:cursor-not-allowed disabled:opacity-70"
+          disabled={mutation.isPending}
+          type="submit"
+        >
+          {mutation.isPending ? "Creating…" : "Create user"}
+        </button>
+      </div>
+    </form>
   );
 }
 
@@ -563,94 +548,6 @@ function ReactivateUserForm({
   );
 }
 
-function TaskSetupRow({
-  onSaved,
-  task,
-  users
-}: {
-  onSaved: (task: AdminSetupTask) => Promise<void>;
-  task: AdminSetupTask;
-  users: AdminAssignmentUser[];
-}) {
-  const [dueDate, setDueDate] = useState(toDateValue(task.dueDate));
-  const [assignedToId, setAssignedToId] = useState(task.assignedToId ?? "");
-  const mutation = useMutation({
-    mutationFn: updateAdminTaskSetup
-  });
-
-  useEffect(() => {
-    setDueDate(toDateValue(task.dueDate));
-    setAssignedToId(task.assignedToId ?? "");
-  }, [task.assignedToId, task.dueDate]);
-
-  return (
-    <form
-      className="rounded-xl border border-border p-4"
-      onSubmit={async (event) => {
-        event.preventDefault();
-        const updatedTask = await mutation.mutateAsync({
-          taskId: task.id,
-          dueDate: dueDate || null,
-          assignedToId: assignedToId || null
-        });
-        await onSaved(updatedTask);
-      }}
-    >
-      <div className="grid gap-4 lg:grid-cols-[1.4fr_0.7fr_0.9fr_1fr_auto]">
-        <div>
-          <p className="mb-2 text-xs uppercase tracking-[0.16em] text-muted-foreground">Task</p>
-          <div className="font-medium">{task.title}</div>
-          <div className="text-xs text-muted-foreground">{task.section.title}</div>
-        </div>
-        <div>
-          <p className="mb-2 text-xs uppercase tracking-[0.16em] text-muted-foreground">Status</p>
-          <p>{task.status.replaceAll("_", " ")}</p>
-        </div>
-        <label className="space-y-2">
-          <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Due date</span>
-          <input
-            className="w-full rounded-2xl border border-border bg-card px-4 py-3"
-            onChange={(event) => setDueDate(event.target.value)}
-            type="date"
-            value={dueDate}
-          />
-          <p className="text-xs text-muted-foreground">Current: {formatDate(task.dueDate)}</p>
-        </label>
-        <label className="space-y-2">
-          <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Assigned to</span>
-          <select
-            className="w-full rounded-2xl border border-border bg-card px-4 py-3"
-            onChange={(event) => setAssignedToId(event.target.value)}
-            value={assignedToId}
-          >
-            <option value="">Unassigned</option>
-            {users.map((user) => (
-              <option key={user.id} value={user.id}>
-                {user.name} ({user.role === "OWNER_ADMIN" ? "Owner" : "Collaborator"})
-              </option>
-            ))}
-          </select>
-        </label>
-        <div className="space-y-2">
-          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Action</p>
-          <button
-            className="rounded-2xl border border-border bg-card px-4 py-3 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-70"
-            disabled={mutation.isPending}
-            type="submit"
-          >
-            {mutation.isPending ? "Saving…" : "Save"}
-          </button>
-        </div>
-      </div>
-      <div className="mt-3">
-        {mutation.error instanceof ApiClientError ? (
-          <Notice message={mutation.error.message} tone="error" />
-        ) : null}
-      </div>
-    </form>
-  );
-}
-
 function SubtaskSetupRow({
   onSaved,
   subtask,
@@ -810,36 +707,56 @@ export function AdminSetupPage() {
             owner-only overrides, user lifecycle work, and operational resets.
           </div>
 
-          <CreateUserForm
-            onCreated={async () => {
-              await refreshAdminAfterMutation();
-              toast.success("User created");
-            }}
-          />
-
           <SectionCard
-            description="Update names, emails, roles, and passwords without editing the database directly."
-            title="Manage users"
+            description="Keep primary owner admin work in one place: add accounts first, then update existing users without leaving the section."
+            title="User access"
           >
-            {sortedUsers.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-border bg-muted/35 p-4 text-sm text-muted-foreground">
-                No users are available yet.
+            <div className="space-y-5">
+              <div className="space-y-4 rounded-[1.15rem] border border-border/70 bg-muted/18 p-4">
+                <div>
+                  <p className="font-medium text-foreground">Create user</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Add owner or collaborator accounts using the current credentials flow.
+                  </p>
+                </div>
+                <CreateUserForm
+                  onCreated={async () => {
+                    await refreshAdminAfterMutation();
+                    toast.success("User created");
+                  }}
+                />
               </div>
-            ) : (
+
               <div className="space-y-4">
-                {sortedUsers.map((user) => (
-                  <UserRowForm
-                    currentUserId={currentUserId}
-                    key={user.id}
-                    onSaved={async (updatedUser) => {
-                      await refreshAdminAfterMutation();
-                      toast.success("User updated", updatedUser.name);
-                    }}
-                    user={user}
-                  />
-                ))}
+                <div>
+                  <p className="font-medium text-foreground">Existing users</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Update names, emails, roles, and passwords without editing the database
+                    directly.
+                  </p>
+                </div>
+
+                {sortedUsers.length === 0 ? (
+                  <div className="rounded-2xl border border-dashed border-border bg-muted/35 p-4 text-sm text-muted-foreground">
+                    No users are available yet.
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {sortedUsers.map((user) => (
+                      <UserRowForm
+                        currentUserId={currentUserId}
+                        key={user.id}
+                        onSaved={async (updatedUser) => {
+                          await refreshAdminAfterMutation();
+                          toast.success("User updated", updatedUser.name);
+                        }}
+                        user={user}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </SectionCard>
 
           <SectionCard

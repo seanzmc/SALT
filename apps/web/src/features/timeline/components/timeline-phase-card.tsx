@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useId, useState, type ReactNode } from "react";
 import type {
   TimelinePhaseRecord,
   TimelinePhaseStatus,
@@ -64,6 +64,7 @@ function CollapsibleBlock({
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(defaultOpen);
+  const panelId = useId();
 
   return (
     <section className="rounded-[1.25rem] border border-border/70 bg-white p-4">
@@ -73,14 +74,16 @@ function CollapsibleBlock({
           <p className="mt-1 text-sm text-muted-foreground">{description}</p>
         </div>
         <button
+          aria-controls={panelId}
+          aria-expanded={open}
           className="rounded-full border border-border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground hover:bg-muted"
           onClick={() => setOpen((current) => !current)}
           type="button"
         >
-          {open ? "Hide" : "Show"}
+          {open ? "Collapse" : "Expand"}
         </button>
       </div>
-      {open ? <div className="mt-4">{children}</div> : null}
+      {open ? <div className="mt-4" id={panelId}>{children}</div> : null}
     </section>
   );
 }
@@ -185,6 +188,10 @@ export function TimelinePhaseCard({
           description="These task links open the universal task shelf inside the task workspace."
           title="Linked tasks"
         >
+          <div className="mb-3 rounded-[1rem] border border-border/70 bg-muted/18 px-4 py-3 text-sm text-muted-foreground">
+            Linked tasks are read-only from the timeline. Open a task to edit status, documents,
+            checklist items, comments, or dependencies in the task workspace.
+          </div>
           <div className="space-y-3">
             {phase.tasks.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-border bg-muted/30 p-4 text-sm text-muted-foreground">
@@ -233,7 +240,12 @@ export function TimelinePhaseCard({
         }}
       >
         <div>
-          <p className="font-semibold text-foreground">Update phase</p>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="font-semibold text-foreground">Update phase</p>
+            <span className="rounded-full border border-border/70 bg-white/82 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              Editable here
+            </span>
+          </div>
           <p className="mt-1 text-sm text-muted-foreground">
             These fields define the official operating status for this opening stage.
           </p>

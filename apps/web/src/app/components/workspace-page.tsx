@@ -58,12 +58,12 @@ export function WorkspaceSurface({
   return (
     <section
       className={joinClasses(
-        "overflow-hidden rounded-[1.75rem] border border-white/65 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(255,251,244,0.88))] shadow-[0_30px_90px_-56px_rgba(15,23,42,0.42)] ring-1 ring-slate-950/5 backdrop-blur-md",
+        "overflow-hidden rounded-[1.75rem] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(251,247,239,0.92))] shadow-[0_30px_90px_-56px_rgba(15,23,42,0.36)] ring-1 ring-slate-950/5 backdrop-blur-md",
         className
       )}
     >
       {title || description || actions || toolbar ? (
-        <div className="border-b border-border/70 bg-white/35 px-5 py-5 sm:px-6">
+        <div className="border-b border-border/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.72),rgba(244,239,229,0.46))] px-5 py-5 sm:px-6">
           {title || description || actions ? (
             <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
               <div className="max-w-3xl min-w-0">
@@ -91,7 +91,9 @@ export function WorkspaceSurface({
         </div>
       ) : null}
 
-      <div className={joinClasses("min-w-0 px-5 py-5 sm:px-6", bodyClassName)}>{children}</div>
+      <div className={joinClasses("min-w-0 px-5 py-5 sm:px-6 lg:px-7", bodyClassName)}>
+        {children}
+      </div>
     </section>
   );
 }
