@@ -7,14 +7,11 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "next dev",
     "dev:api": "npm run dev -w @salt/api",
     "dev:web": "npm run dev -w @salt/web",
-    "build": "next build",
+    "build": "npm run build:api && npm run build:web",
     "build:api": "npm run build -w @salt/api",
     "build:web": "npm run build -w @salt/web",
-    "start": "next start",
-    "lint": "next lint",
     "postinstall": "prisma generate",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
