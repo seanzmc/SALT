@@ -73,16 +73,30 @@ function joinClasses(...values: Array<string | false | null | undefined>) {
   return values.filter(Boolean).join(" ");
 }
 
+const basePillClasses =
+  "inline-flex h-10 items-center justify-center rounded-full border px-3.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:border-border/60 disabled:bg-muted/40 disabled:text-muted-foreground disabled:opacity-100";
+
+function getPillStateClasses(active: boolean) {
+  return active
+    ? "border-primary/55 bg-primary text-primary-foreground shadow-[0_10px_25px_-16px_rgba(33,95,84,0.8)] hover:border-primary/55 hover:bg-primary"
+    : "border-border/80 bg-white text-foreground hover:border-primary/25 hover:bg-[rgba(248,246,241,0.95)]";
+}
+
 function FilterButton({
+  active = false,
   children,
   className,
   type = "button",
   ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement> & { children: ReactNode }) {
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  active?: boolean;
+  children: ReactNode;
+}) {
   return (
     <button
       className={joinClasses(
-        "inline-flex h-10 items-center justify-center rounded-full border border-border bg-white px-3.5 text-sm text-foreground transition hover:bg-muted",
+        basePillClasses,
+        getPillStateClasses(active),
         className
       )}
       type={type}
@@ -101,13 +115,20 @@ function MultiSelectMenu<TValue extends string>({
 }: MultiSelectMenuProps<TValue>) {
   const selectedSet = new Set(value);
   const selectedCount = value.length;
+  const isActive = selectedCount > 0;
 
   return (
     <details className="group relative min-w-[10rem]">
       <summary className="list-none [&::-webkit-details-marker]:hidden">
-        <span className="inline-flex h-10 w-full items-center justify-between gap-2 rounded-full border border-border bg-white px-3.5 text-sm text-foreground transition group-open:bg-muted">
+        <span
+          className={joinClasses(
+            basePillClasses,
+            "w-full justify-between gap-2 group-open:border-primary/35 group-open:bg-[rgba(248,246,241,0.95)]",
+            getPillStateClasses(isActive)
+          )}
+        >
           <span>{label}</span>
-          <span className="text-xs text-muted-foreground">
+          <span className={joinClasses("text-xs", isActive ? "text-primary-foreground/88" : "text-muted-foreground")}>
             {selectedCount > 0 ? `${selectedCount} selected` : "All"}
           </span>
         </span>
@@ -134,12 +155,17 @@ function MultiSelectMenu<TValue extends string>({
             return (
               <label
                 key={option.value}
-                className="flex cursor-pointer items-center justify-between gap-3 rounded-[0.85rem] px-3 py-2 text-sm hover:bg-muted/60"
+                className={joinClasses(
+                  "flex cursor-pointer items-center justify-between gap-3 rounded-[0.85rem] px-3 py-2 text-sm transition",
+                  isChecked
+                    ? "bg-[rgba(33,95,84,0.08)] text-foreground"
+                    : "text-foreground hover:bg-muted/60"
+                )}
               >
                 <span>{option.label}</span>
                 <input
                   checked={isChecked}
-                  className="h-4 w-4 rounded border-border"
+                  className="h-4 w-4 rounded border-border text-primary accent-primary"
                   onChange={() => {
                     const nextValue = isChecked
                       ? value.filter((item) => item !== option.value)
@@ -184,10 +210,9 @@ export function WorkspaceFilters({
             <button
               key={option.value}
               className={joinClasses(
-                "inline-flex h-10 items-center justify-center rounded-full px-3.5 text-sm font-medium text-center transition",
-                option.value === queue
-                  ? "bg-primary text-primary-foreground shadow-[0_10px_25px_-16px_rgba(33,95,84,0.8)]"
-                  : "bg-muted text-foreground hover:bg-accent"
+                basePillClasses,
+                "text-center",
+                getPillStateClasses(option.value === queue)
               )}
               onClick={() => onChange({ queue: option.value })}
               type="button"
@@ -200,13 +225,13 @@ export function WorkspaceFilters({
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex flex-wrap gap-2">
             <FilterButton
-              className={view === "list" ? "border-primary bg-primary text-primary-foreground" : ""}
+              active={view === "list"}
               onClick={() => onChange({ view: "list" })}
             >
               List
             </FilterButton>
             <FilterButton
-              className={view === "board" ? "border-primary bg-primary text-primary-foreground" : ""}
+              active={view === "board"}
               onClick={() => onChange({ view: "board" })}
             >
               Board
@@ -216,10 +241,8 @@ export function WorkspaceFilters({
           <div className="flex flex-wrap gap-2">
             {(["active", "archived", "all"] as const).map((value) => (
               <FilterButton
+                active={archived === value}
                 key={value}
-                className={
-                  archived === value ? "border-primary bg-primary text-primary-foreground" : ""
-                }
                 onClick={() => onChange({ archived: value })}
               >
                 {value}
@@ -227,7 +250,7 @@ export function WorkspaceFilters({
             ))}
           </div>
 
-          <FilterButton className="text-muted-foreground" onClick={onReset}>
+          <FilterButton className="border-border/80 bg-white text-foreground" onClick={onReset}>
             Reset
           </FilterButton>
         </div>
@@ -235,7 +258,7 @@ export function WorkspaceFilters({
 
       <div className="flex flex-wrap items-center gap-2">
         <input
-          className="h-10 min-w-[16rem] flex-1 rounded-full border border-border bg-white px-4 text-sm"
+          className="h-10 min-w-[16rem] flex-1 rounded-full border border-border/80 bg-white px-4 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary/35 focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2"
           onChange={(event) => onChange({ q: event.target.value })}
           placeholder="Search titles, notes, or descriptions"
           type="search"
@@ -290,10 +313,10 @@ export function WorkspaceFilters({
           value={priority}
         />
 
-        <label className="flex items-center gap-2 rounded-full border border-border bg-white px-3.5 text-sm text-foreground">
-          <span className="text-muted-foreground">Sort</span>
+        <label className="flex h-10 items-center gap-2 rounded-full border border-border/80 bg-white px-3.5 text-sm text-foreground transition focus-within:border-primary/35 focus-within:ring-2 focus-within:ring-primary/30 focus-within:ring-offset-2 hover:border-primary/25 hover:bg-[rgba(248,246,241,0.95)]">
+          <span className="text-sm font-medium text-foreground">Sort</span>
           <select
-            className="h-10 bg-transparent pr-2 outline-none"
+            className="h-10 bg-transparent pr-2 text-sm text-foreground outline-none"
             onChange={(event) => onChange({ sort: event.target.value as TaskSort })}
             value={sort}
           >
@@ -305,6 +328,7 @@ export function WorkspaceFilters({
         </label>
 
         <FilterButton
+          active={false}
           className="min-w-[5.25rem]"
           onClick={() => onChange({ order: order === "asc" ? "desc" : "asc" })}
         >
@@ -312,7 +336,7 @@ export function WorkspaceFilters({
         </FilterButton>
 
         <FilterButton
-          className={group === "section" ? "border-primary bg-primary text-primary-foreground" : ""}
+          active={group === "section"}
           onClick={() => onChange({ group: group === "section" ? "none" : "section" })}
         >
           Group by section
