@@ -1,5 +1,5 @@
 import type { PropsWithChildren } from "react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   NavLink,
@@ -56,11 +56,6 @@ const navigationItems: NavigationItem[] = [
     label: "Setup",
     description: "Owner controls",
     ownerOnly: true
-  },
-  {
-    to: "/settings/account",
-    label: "Account",
-    description: "Profile and access"
   }
 ];
 
@@ -155,6 +150,38 @@ function BellIcon() {
   );
 }
 
+function ProfileIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="1.8"
+      viewBox="0 0 24 24"
+    >
+      <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Z" />
+      <path d="M4.5 19.5a8.5 8.5 0 0 1 15 0" />
+    </svg>
+  );
+}
+
+function getInitials(name?: string | null) {
+  const tokens = name
+    ?.trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2);
+
+  if (!tokens || tokens.length === 0) {
+    return "AC";
+  }
+
+  return tokens.map((token) => token[0]?.toUpperCase() ?? "").join("");
+}
+
 function getRouteMeta(pathname: string) {
   return (
     routeMeta.find((entry) => matchPath(entry.pattern, pathname)) ?? {
@@ -172,6 +199,8 @@ export function AppShellLayout({ children }: PropsWithChildren) {
   const { data } = useAuthSessionQuery();
   const activityQuery = useDashboardActivityQuery();
   const [activityOpen, setActivityOpen] = useState(false);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const accountMenuRef = useRef<HTMLDivElement | null>(null);
   const logoutMutation = useMutation({
     mutationFn: logout,
     onSuccess: () => {
@@ -185,6 +214,38 @@ export function AppShellLayout({ children }: PropsWithChildren) {
     (item) => !item.ownerOnly || data?.user.role === "OWNER_ADMIN"
   );
   const activityCount = activityQuery.data?.activities.length ?? 0;
+  const initials = getInitials(data?.user.name);
+  const accountLabel = data?.user.role === "OWNER_ADMIN" ? "Owner admin" : "Collaborator";
+
+  useEffect(() => {
+    setAccountMenuOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (!accountMenuOpen) {
+      return undefined;
+    }
+
+    function handlePointerDown(event: MouseEvent) {
+      if (!accountMenuRef.current?.contains(event.target as Node)) {
+        setAccountMenuOpen(false);
+      }
+    }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setAccountMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [accountMenuOpen]);
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(41,128,110,0.18),transparent_24%),radial-gradient(circle_at_top_right,rgba(245,166,35,0.12),transparent_18%),linear-gradient(180deg,rgba(253,250,244,0.98),rgba(244,239,229,1))]">
@@ -222,27 +283,6 @@ export function AppShellLayout({ children }: PropsWithChildren) {
                 </NavLink>
               ))}
             </nav>
-
-            <div className="mt-6 rounded-[1.5rem] border border-white/65 bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(255,250,244,0.82))] p-4 shadow-[0_20px_50px_-38px_rgba(15,23,42,0.35)] ring-1 ring-slate-950/5">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-                Signed in
-              </p>
-              <p className="mt-2 font-medium text-foreground">{data?.user.name}</p>
-              <p className="text-sm text-muted-foreground">{data?.user.email}</p>
-              <p className="text-sm text-muted-foreground">
-                {data?.user.role === "OWNER_ADMIN" ? "Owner admin" : "Collaborator"}
-              </p>
-              <button
-                className="mt-4 w-full rounded-[1rem] border border-border bg-white px-4 py-3 text-sm font-medium text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-70"
-                disabled={logoutMutation.isPending}
-                onClick={async () => {
-                  await logoutMutation.mutateAsync();
-                }}
-                type="button"
-              >
-                {logoutMutation.isPending ? "Signing out..." : "Sign out"}
-              </button>
-            </div>
           </div>
         </aside>
 
@@ -263,20 +303,81 @@ export function AppShellLayout({ children }: PropsWithChildren) {
                 </div>
               </div>
 
-              <button
-                aria-label="Open recent activity"
-                className="relative inline-flex items-center gap-2 rounded-full border border-border bg-white px-4 py-2 text-sm font-medium text-foreground transition hover:bg-muted"
-                onClick={() => setActivityOpen(true)}
-                type="button"
-              >
-                <BellIcon />
-                <span className="hidden sm:inline">Activity</span>
-                {activityCount > 0 ? (
-                  <span className="inline-flex min-w-6 items-center justify-center rounded-full bg-primary px-1.5 py-0.5 text-[11px] font-semibold text-primary-foreground">
-                    {activityCount > 9 ? "9+" : activityCount}
-                  </span>
-                ) : null}
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  aria-label="Open recent activity"
+                  className="relative inline-flex items-center gap-2 rounded-full border border-border bg-white px-4 py-2 text-sm font-medium text-foreground transition hover:bg-muted"
+                  onClick={() => setActivityOpen(true)}
+                  type="button"
+                >
+                  <BellIcon />
+                  <span className="hidden sm:inline">Activity</span>
+                  {activityCount > 0 ? (
+                    <span className="inline-flex min-w-6 items-center justify-center rounded-full bg-primary px-1.5 py-0.5 text-[11px] font-semibold text-primary-foreground">
+                      {activityCount > 9 ? "9+" : activityCount}
+                    </span>
+                  ) : null}
+                </button>
+
+                <div className="relative" ref={accountMenuRef}>
+                  <button
+                    aria-expanded={accountMenuOpen}
+                    aria-haspopup="menu"
+                    aria-label="Open account menu"
+                    className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-border bg-white text-sm font-semibold text-foreground transition hover:bg-muted"
+                    onClick={() => setAccountMenuOpen((open) => !open)}
+                    type="button"
+                  >
+                    <span className="sr-only">Account</span>
+                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[linear-gradient(135deg,rgba(33,95,84,0.16),rgba(245,166,35,0.22))]">
+                      {data?.user.name ? (
+                        <span aria-hidden="true">{initials}</span>
+                      ) : (
+                        <ProfileIcon />
+                      )}
+                    </span>
+                  </button>
+
+                  {accountMenuOpen ? (
+                    <div className="absolute right-0 z-40 mt-2 w-[18rem] rounded-[1.2rem] border border-border bg-white p-3 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.35)]">
+                      <div className="rounded-[1rem] bg-[linear-gradient(180deg,rgba(248,246,241,0.96),rgba(255,255,255,0.98))] px-3 py-3">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                          Signed in
+                        </p>
+                        <p className="mt-2 text-sm font-semibold text-foreground">
+                          {data?.user.name ?? "Account"}
+                        </p>
+                        <p className="text-sm text-muted-foreground">{data?.user.email}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">{accountLabel}</p>
+                      </div>
+
+                      <div className="mt-3 space-y-2">
+                        <NavLink
+                          className="flex items-center justify-between rounded-[0.95rem] border border-border px-3 py-2.5 text-sm text-foreground transition hover:bg-muted"
+                          onClick={() => setAccountMenuOpen(false)}
+                          to="/settings/account"
+                        >
+                          <span>Account settings</span>
+                          <span className="text-xs text-muted-foreground">Profile and access</span>
+                        </NavLink>
+
+                        <button
+                          className="flex w-full items-center justify-between rounded-[0.95rem] border border-border px-3 py-2.5 text-sm text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-70"
+                          disabled={logoutMutation.isPending}
+                          onClick={async () => {
+                            setAccountMenuOpen(false);
+                            await logoutMutation.mutateAsync();
+                          }}
+                          type="button"
+                        >
+                          <span>{logoutMutation.isPending ? "Signing out..." : "Sign out"}</span>
+                          <span className="text-xs text-muted-foreground">End session</span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
             </div>
           </header>
 
