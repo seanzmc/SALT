@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import type {
   TimelinePhaseRecord,
   TimelinePhaseStatus,
@@ -49,6 +49,39 @@ function InfoCard({
       </p>
       <p className="mt-2 font-medium text-foreground">{value}</p>
     </div>
+  );
+}
+
+function CollapsibleBlock({
+  title,
+  description,
+  defaultOpen = true,
+  children
+}: {
+  title: string;
+  description: string;
+  defaultOpen?: boolean;
+  children: ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+
+  return (
+    <section className="rounded-[1.25rem] border border-border/70 bg-white p-4">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="font-semibold text-foreground">{title}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+        </div>
+        <button
+          className="rounded-full border border-border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground hover:bg-muted"
+          onClick={() => setOpen((current) => !current)}
+          type="button"
+        >
+          {open ? "Hide" : "Show"}
+        </button>
+      </div>
+      {open ? <div className="mt-4">{children}</div> : null}
+    </section>
   );
 }
 
@@ -113,12 +146,11 @@ export function TimelinePhaseCard({
           </div>
         </div>
 
-        <section className="rounded-[1.25rem] border border-border/70 bg-white p-4">
-          <p className="font-semibold text-foreground">Milestones in this phase</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Milestones are the planning checkpoints that explain what “done” means for this stage.
-          </p>
-          <div className="mt-4 space-y-3">
+        <CollapsibleBlock
+          description="Milestones are the planning checkpoints that explain what done means for this stage."
+          title="Milestones in this phase"
+        >
+          <div className="space-y-3">
             {phase.milestones.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-border bg-muted/30 p-4 text-sm text-muted-foreground">
                 No milestones are defined for this phase yet.
@@ -147,14 +179,13 @@ export function TimelinePhaseCard({
               ))
             )}
           </div>
-        </section>
+        </CollapsibleBlock>
 
-        <section className="rounded-[1.25rem] border border-border/70 bg-white p-4">
-          <p className="font-semibold text-foreground">Linked tasks</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            These task links open the universal task shelf inside the task workspace.
-          </p>
-          <div className="mt-4 space-y-3">
+        <CollapsibleBlock
+          description="These task links open the universal task shelf inside the task workspace."
+          title="Linked tasks"
+        >
+          <div className="space-y-3">
             {phase.tasks.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-border bg-muted/30 p-4 text-sm text-muted-foreground">
                 No linked tasks in this phase yet.
@@ -184,7 +215,7 @@ export function TimelinePhaseCard({
               ))
             )}
           </div>
-        </section>
+        </CollapsibleBlock>
       </div>
 
       <form
@@ -206,6 +237,10 @@ export function TimelinePhaseCard({
           <p className="mt-1 text-sm text-muted-foreground">
             These fields define the official operating status for this opening stage.
           </p>
+          <div className="mt-3 rounded-[1rem] border border-border/70 bg-white/78 px-4 py-3 text-sm leading-6 text-muted-foreground">
+            Edit phase status, dates, notes, and blockers here. Linked tasks stay editable in the
+            task workspace so phase planning and task execution remain connected but distinct.
+          </div>
         </div>
 
         <label className="space-y-2">

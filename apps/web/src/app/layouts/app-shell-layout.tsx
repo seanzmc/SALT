@@ -187,9 +187,9 @@ export function AppShellLayout({ children }: PropsWithChildren) {
   const activityCount = activityQuery.data?.activities.length ?? 0;
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(190,222,212,0.75),transparent_30%),linear-gradient(180deg,rgba(255,252,246,0.96),rgba(245,240,230,1))]">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(41,128,110,0.18),transparent_24%),radial-gradient(circle_at_top_right,rgba(245,166,35,0.12),transparent_18%),linear-gradient(180deg,rgba(253,250,244,0.98),rgba(244,239,229,1))]">
       <div className="lg:grid lg:min-h-screen lg:grid-cols-[17rem_minmax(0,1fr)]">
-        <aside className="border-b border-border/80 bg-white/70 px-4 py-4 backdrop-blur lg:border-b-0 lg:border-r lg:px-5 lg:py-6">
+        <aside className="border-b border-white/55 bg-[rgba(255,255,255,0.58)] px-4 py-4 backdrop-blur-xl lg:border-b-0 lg:border-r lg:px-5 lg:py-6">
           <div className="lg:sticky lg:top-0 lg:flex lg:h-[calc(100vh-3rem)] lg:flex-col">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
@@ -223,7 +223,7 @@ export function AppShellLayout({ children }: PropsWithChildren) {
               ))}
             </nav>
 
-            <div className="mt-6 rounded-[1.5rem] border border-border/80 bg-white/80 p-4 shadow-[0_20px_50px_-38px_rgba(15,23,42,0.4)]">
+            <div className="mt-6 rounded-[1.5rem] border border-white/65 bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(255,250,244,0.82))] p-4 shadow-[0_20px_50px_-38px_rgba(15,23,42,0.35)] ring-1 ring-slate-950/5">
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
                 Signed in
               </p>
@@ -247,7 +247,7 @@ export function AppShellLayout({ children }: PropsWithChildren) {
         </aside>
 
         <div className="min-w-0 flex min-h-screen flex-col">
-          <header className="sticky top-0 z-30 border-b border-border/70 bg-[rgba(255,252,246,0.88)] backdrop-blur">
+          <header className="sticky top-0 z-30 border-b border-white/55 bg-[rgba(255,251,245,0.74)] backdrop-blur-xl">
             <div className="mx-auto flex w-full max-w-[112rem] items-center justify-between gap-4 px-4 py-4 sm:px-6 xl:px-8">
               <div className="min-w-0">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
@@ -284,7 +284,7 @@ export function AppShellLayout({ children }: PropsWithChildren) {
             <div className="mx-auto flex w-full max-w-[112rem] flex-col gap-6">{children}</div>
           </main>
 
-          <footer className="border-t border-border/70 bg-white/55 px-4 py-4 backdrop-blur sm:px-6 xl:px-8">
+          <footer className="border-t border-white/55 bg-[rgba(255,255,255,0.44)] px-4 py-4 backdrop-blur-xl sm:px-6 xl:px-8">
             <div className="mx-auto flex w-full max-w-[112rem] flex-col gap-1 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
               <p>SALT rebuild workspace</p>
               <p>Protected internal operations environment for planning, execution, and audit review.</p>

@@ -141,7 +141,7 @@ export function BudgetWorkspacePage() {
   return (
     <div className="space-y-6">
       <WorkspacePageHeader
-        description="Budget lines are grouped into structured financial records instead of unlabeled edit cells. Category filtering stays attached to the spend list, and row updates clearly separate context from editable fields."
+        description="Budget lines stay grouped by category, edits are clearly labeled, and the workspace leads with spend signal before row-level updates."
         eyebrow="Budget"
         title="Budget workspace"
       />
@@ -181,7 +181,7 @@ export function BudgetWorkspacePage() {
               </span>
             }
             bodyClassName="space-y-6"
-            description="Each line shows its current financial signal on the left and a structured update form on the right."
+            description="Category groups can collapse when you want less page length. Each line separates the financial signal from the owner-only update controls."
             title="Budget lines"
             toolbar={
               <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto]">
@@ -211,6 +211,11 @@ export function BudgetWorkspacePage() {
               </div>
             }
           >
+            <div className="rounded-[1.25rem] border border-border/75 bg-[rgba(255,251,244,0.78)] px-5 py-4 text-sm leading-6 text-muted-foreground shadow-[0_18px_50px_-44px_rgba(15,23,42,0.3)]">
+              Read left to right: first confirm the line’s estimate, actuals, and variance, then
+              use the update controls to capture vendor and payment movement. This keeps budget work
+              labeled and intentional instead of feeling like an afterthought.
+            </div>
             <BudgetSummaryCards totals={budgetQuery.data.totals} />
             <BudgetTable
               items={budgetQuery.data.items}

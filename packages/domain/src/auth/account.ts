@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@salt/db";
 import type {
   AccountEmailUpdateInput,
+  AccountNameUpdateInput,
   AccountPasswordUpdateInput,
   SessionPayload
 } from "@salt/types";
@@ -10,6 +11,36 @@ import type {
 import { DomainError } from "../shared/domain-error.js";
 
 type Actor = SessionPayload["user"];
+
+export async function updateAccountNameCommand(input: {
+  actor: Actor;
+  payload: AccountNameUpdateInput;
+}) {
+  const name = input.payload.name.trim();
+  const user = await prisma.user.findUnique({
+    where: { id: input.actor.id },
+    select: { name: true }
+  });
+
+  if (!user) {
+    throw new DomainError(404, "NOT_FOUND", "User account not found.");
+  }
+
+  if (user.name === name) {
+    return {
+      message: "Name is already up to date."
+    };
+  }
+
+  await prisma.user.update({
+    where: { id: input.actor.id },
+    data: { name }
+  });
+
+  return {
+    message: "Name updated."
+  };
+}
 
 export async function updateAccountEmailCommand(input: {
   actor: Actor;

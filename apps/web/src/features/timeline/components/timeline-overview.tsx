@@ -12,7 +12,7 @@ function OverviewTile({
   value: string;
 }) {
   return (
-    <div className="rounded-[1rem] border border-border/70 bg-white px-4 py-4">
+    <div className="rounded-[1rem] border border-border/70 bg-[rgba(255,255,255,0.82)] px-4 py-4 shadow-[0_18px_50px_-44px_rgba(15,23,42,0.32)]">
       <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
         {label}
       </p>
@@ -26,9 +26,11 @@ export function TimelineOverview({ phases }: { phases: TimelinePhaseRecord[] }) 
   const totalTasks = phases.reduce((sum, phase) => sum + phase.tasks.length, 0);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 rounded-[1.25rem] border border-border/75 bg-[rgba(255,251,244,0.7)] p-5">
       <div>
-        <p className="font-medium text-foreground">Opening phase model</p>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          Opening phase model
+        </p>
         <p className="text-sm leading-6 text-muted-foreground">
           A phase is one major opening stage. Each phase groups milestones, linked tasks, dates,
           notes, and blockers so the timeline stays connected to day-to-day execution.

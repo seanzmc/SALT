@@ -1,8 +1,16 @@
 import { Router } from "express";
 
-import { updateAccountEmailCommand, updateAccountPasswordCommand } from "@salt/domain";
-import type { AccountEmailUpdateInput, AccountPasswordUpdateInput } from "@salt/types";
-import { accountEmailSchema, accountPasswordSchema } from "@salt/validation";
+import {
+  updateAccountEmailCommand,
+  updateAccountNameCommand,
+  updateAccountPasswordCommand
+} from "@salt/domain";
+import type {
+  AccountEmailUpdateInput,
+  AccountNameUpdateInput,
+  AccountPasswordUpdateInput
+} from "@salt/types";
+import { accountEmailSchema, accountNameSchema, accountPasswordSchema } from "@salt/validation";
 
 import { AppError } from "../../lib/app-error.js";
 import { asyncHandler } from "../../lib/async-handler.js";
@@ -15,6 +23,31 @@ function validationError(message: string, fieldErrors?: Record<string, string[] 
 }
 
 accountRouter.use(requireSession);
+
+accountRouter.patch(
+  "/name",
+  asyncHandler(async (request, response) => {
+    const parsed = accountNameSchema.safeParse(request.body);
+
+    if (!parsed.success) {
+      throw validationError(
+        "Please enter a valid name.",
+        parsed.error.flatten().fieldErrors
+      );
+    }
+
+    const payload: AccountNameUpdateInput = {
+      name: parsed.data.name
+    };
+
+    response.status(200).json(
+      await updateAccountNameCommand({
+        actor: request.authSession!.user,
+        payload
+      })
+    );
+  })
+);
 
 accountRouter.patch(
   "/email",

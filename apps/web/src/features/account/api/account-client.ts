@@ -1,10 +1,18 @@
 import type {
   AccountEmailUpdateInput,
+  AccountNameUpdateInput,
   AccountPasswordUpdateInput,
   MessageResponse
 } from "@salt/types";
 
 import { apiClient } from "../../../lib/api-client";
+
+export function updateAccountName(payload: AccountNameUpdateInput) {
+  return apiClient<MessageResponse>("/api/account/name", {
+    method: "PATCH",
+    body: JSON.stringify(payload)
+  });
+}
 
 export function updateAccountEmail(payload: AccountEmailUpdateInput) {
   return apiClient<MessageResponse>("/api/account/email", {

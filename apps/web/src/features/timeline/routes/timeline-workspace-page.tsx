@@ -37,6 +37,19 @@ function patchTimelineWorkspace(
   };
 }
 
+function phaseStatusClasses(status: TimelinePhaseRecord["status"]) {
+  switch (status) {
+    case "COMPLETE":
+      return "bg-emerald-100 text-emerald-700";
+    case "BLOCKED":
+      return "bg-rose-100 text-rose-700";
+    case "IN_PROGRESS":
+      return "bg-amber-100 text-amber-800";
+    default:
+      return "bg-slate-100 text-slate-700";
+  }
+}
+
 export function TimelineWorkspacePage() {
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -106,7 +119,7 @@ export function TimelineWorkspacePage() {
   return (
     <div className="space-y-6">
       <WorkspacePageHeader
-        description="Treat phases as opening stages, not isolated cards. Select one stage at a time, edit it in a dedicated panel, and keep linked tasks connected to the task shelf."
+        description="Treat phases as opening stages, not isolated cards. Select one stage at a time, see its identity clearly, and keep linked tasks connected to execution."
         eyebrow="Timeline"
         title="Opening timeline"
       />
@@ -141,26 +154,31 @@ export function TimelineWorkspacePage() {
         ) : (
           <WorkspaceSurface
             bodyClassName="space-y-6"
-            description="A phase groups the milestones, task links, dates, notes, and blockers for one opening stage."
+            description="A phase groups milestones, linked tasks, dates, and blockers for one opening stage. The navigator is built to feel like a true sequence, not a generic sidebar."
             title="Opening phases"
           >
             <TimelineOverview phases={timelineQuery.data.phases} />
 
             <div className="grid gap-6 lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start">
-              <aside className="rounded-[1.25rem] border border-border/70 bg-white">
-                <div className="border-b border-border/70 px-4 py-3">
-                  <p className="font-medium text-foreground">Phase navigator</p>
+              <aside className="rounded-[1.4rem] border border-border/75 bg-[linear-gradient(180deg,rgba(230,244,239,0.9),rgba(255,255,255,0.82))] shadow-[0_18px_50px_-42px_rgba(15,23,42,0.35)]">
+                <div className="border-b border-border/70 px-4 py-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                    Phase navigator
+                  </p>
+                  <p className="mt-2 font-medium text-foreground">Opening sequence</p>
                   <p className="text-sm text-muted-foreground">
                     Select the stage you want to review or update.
                   </p>
                 </div>
-                <div className="divide-y divide-border/70">
+                <div className="divide-y divide-border/60">
                   {phases.map((phase, index) => (
                     <button
                       key={phase.id}
                       className={[
                         "flex w-full items-start gap-3 px-4 py-4 text-left transition",
-                        activePhase?.id === phase.id ? "bg-primary/5" : "hover:bg-muted/35"
+                        activePhase?.id === phase.id
+                          ? "bg-white/70 shadow-[inset_0_0_0_1px_rgba(18,78,68,0.12)]"
+                          : "hover:bg-white/55"
                       ].join(" ")}
                       onClick={() => {
                         const next = new URLSearchParams(searchParams);
@@ -169,13 +187,27 @@ export function TimelineWorkspacePage() {
                       }}
                       type="button"
                     >
-                      <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-muted text-sm font-medium text-foreground">
+                      <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-white text-sm font-medium text-foreground shadow-sm">
                         {index + 1}
                       </span>
                       <div className="min-w-0">
-                        <p className="font-medium text-foreground">{phase.title}</p>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="font-medium text-foreground">{phase.title}</p>
+                          <span
+                            className={[
+                              "rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]",
+                              phaseStatusClasses(phase.status)
+                            ].join(" ")}
+                          >
+                            {phase.status.replaceAll("_", " ")}
+                          </span>
+                        </div>
                         <p className="mt-1 text-sm text-muted-foreground">
                           {phase.tasks.length} tasks • {phase.milestones.length} milestones
+                        </p>
+                        <p className="mt-1 text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                          {phase.startDate ? phase.startDate.slice(0, 10) : "No start"} to{" "}
+                          {phase.endDate ? phase.endDate.slice(0, 10) : "No end"}
                         </p>
                       </div>
                     </button>

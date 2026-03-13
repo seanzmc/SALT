@@ -25,6 +25,10 @@ export type AccountEmailUpdateInput = {
   email: string;
 };
 
+export type AccountNameUpdateInput = {
+  name: string;
+};
+
 export type AccountPasswordUpdateInput = {
   currentPassword: string;
   newPassword: string;

@@ -13,6 +13,10 @@ import type {
 } from "@salt/types";
 
 import { ApiClientError } from "../../../lib/api-client";
+import {
+  WorkspacePageHeader,
+  WorkspaceSurface
+} from "../../../app/components/workspace-page";
 import { useToast } from "../../../app/providers/toast-provider";
 import { useAuthSessionQuery } from "../../auth/hooks/use-auth-session-query";
 import {
@@ -59,17 +63,38 @@ async function invalidateOperationalQueries(queryClient: ReturnType<typeof useQu
 function SectionCard({
   title,
   description,
+  collapsible = false,
+  defaultOpen = true,
   children
 }: {
   title: string;
   description: string;
+  collapsible?: boolean;
+  defaultOpen?: boolean;
   children: ReactNode;
 }) {
+  const [open, setOpen] = useState(defaultOpen);
+
   return (
-    <section className="rounded-[1.75rem] border border-border bg-white/85 p-6 shadow-sm backdrop-blur">
-      <h3 className="text-xl font-semibold">{title}</h3>
-      <p className="mt-1 text-sm text-muted-foreground">{description}</p>
-      <div className="mt-5">{children}</div>
+    <section className="rounded-[1.5rem] border border-border/80 bg-white/78 shadow-[0_20px_50px_-42px_rgba(15,23,42,0.35)] backdrop-blur">
+      <div className="flex items-start justify-between gap-4 px-5 py-5">
+        <div className="min-w-0">
+          <h3 className="break-words text-lg font-semibold">{title}</h3>
+          <p className="mt-1 text-sm leading-6 text-muted-foreground">{description}</p>
+        </div>
+        {collapsible ? (
+          <button
+            className="rounded-full border border-border bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground hover:bg-muted"
+            onClick={() => setOpen((current) => !current)}
+            type="button"
+          >
+            {open ? "Hide" : "Show"}
+          </button>
+        ) : null}
+      </div>
+      {!collapsible || open ? (
+        <div className="border-t border-border/70 px-5 py-5">{children}</div>
+      ) : null}
     </section>
   );
 }
@@ -89,6 +114,26 @@ function Notice({
     <p className={`text-sm ${tone === "error" ? "text-red-700" : "text-emerald-700"}`}>
       {message}
     </p>
+  );
+}
+
+function SummaryTile({
+  label,
+  value,
+  detail
+}: {
+  label: string;
+  value: string;
+  detail: string;
+}) {
+  return (
+    <div className="rounded-[1.15rem] border border-border/75 bg-[rgba(232,244,241,0.68)] px-4 py-4 shadow-[0_18px_50px_-42px_rgba(15,23,42,0.35)]">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+        {label}
+      </p>
+      <p className="mt-2 text-2xl font-semibold text-foreground">{value}</p>
+      <p className="mt-1 text-sm text-muted-foreground">{detail}</p>
+    </div>
   );
 }
 
@@ -714,26 +759,165 @@ export function AdminSetupPage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[2rem] border border-border bg-white/85 p-6 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.4)] backdrop-blur">
-        <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Admin v2</p>
-        <h2 className="mt-2 text-3xl font-semibold">Operational setup workspace</h2>
-        <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-          Owner-only controls for resets, user lifecycle, assignments, and pre-launch setup on the rebuilt SALT stack.
-        </p>
-      </section>
+      <WorkspacePageHeader
+        description="Owner-only workspace for user lifecycle, setup context, and operational safeguards. High-frequency task editing now lives in the task workflow, so this page focuses on exceptions and administration."
+        eyebrow="Setup"
+        title="Operational setup workspace"
+      />
 
       {adminQuery.isLoading ? (
-        <section className="rounded-[1.75rem] border border-border bg-white/85 p-6 text-sm text-muted-foreground shadow-sm backdrop-blur">
-          Loading setup workspace…
-        </section>
+        <WorkspaceSurface bodyClassName="text-sm text-muted-foreground" title="Owner controls">
+          Loading setup workspace...
+        </WorkspaceSurface>
       ) : adminQuery.error instanceof ApiClientError ? (
-        <section className="rounded-[1.75rem] border border-rose-200 bg-rose-50 p-6 text-sm text-rose-700">
-          {adminQuery.error.message}
-        </section>
+        <WorkspaceSurface bodyClassName="p-0" title="Owner controls">
+          <div className="rounded-[1.25rem] border border-rose-200 bg-rose-50 px-4 py-4 text-sm text-rose-700">
+            {adminQuery.error.message}
+          </div>
+        </WorkspaceSurface>
       ) : setupData ? (
-        <>
+        <WorkspaceSurface
+          bodyClassName="space-y-5"
+          description="Collapse lower-frequency controls until you need them. User management stays prominent, checklist overrides stay available, and destructive resets are isolated at the bottom."
+          title="Owner controls"
+        >
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <SummaryTile
+              detail="Visible in this owner workspace"
+              label="Users"
+              value={String(setupData.users.length)}
+            />
+            <SummaryTile
+              detail="Can receive assignments"
+              label="Active assignees"
+              value={String(activeAssignmentUsers.length)}
+            />
+            <SummaryTile
+              detail="Now edited in the task workflow"
+              label="Tasks"
+              value={String(setupData.tasks.length)}
+            />
+            <SummaryTile
+              detail="Owner-only override area"
+              label="Checklist overrides"
+              value={String(setupData.subtasks.length)}
+            />
+          </div>
+
+          <div className="rounded-[1.25rem] border border-border/75 bg-[rgba(255,251,244,0.76)] px-5 py-4 text-sm leading-6 text-muted-foreground shadow-[0_18px_50px_-42px_rgba(15,23,42,0.35)]">
+            Direct task assignment and due-date setup were removed from this page because those
+            edits are clearer inside the task workflow itself. This setup surface remains for
+            owner-only overrides, user lifecycle work, and operational resets.
+          </div>
+
+          <CreateUserForm
+            onCreated={async () => {
+              await refreshAdminAfterMutation();
+              toast.success("User created");
+            }}
+          />
+
           <SectionCard
+            description="Update names, emails, roles, and passwords without editing the database directly."
+            title="Manage users"
+          >
+            {sortedUsers.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-border bg-muted/35 p-4 text-sm text-muted-foreground">
+                No users are available yet.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {sortedUsers.map((user) => (
+                  <UserRowForm
+                    currentUserId={currentUserId}
+                    key={user.id}
+                    onSaved={async (updatedUser) => {
+                      await refreshAdminAfterMutation();
+                      toast.success("User updated", updatedUser.name);
+                    }}
+                    user={user}
+                  />
+                ))}
+              </div>
+            )}
+          </SectionCard>
+
+          <SectionCard
+            collapsible
+            description="Deactivate users without deleting them, or reactivate former users when they need access again."
+            defaultOpen={false}
+            title="User lifecycle"
+          >
+            <div className="space-y-4">
+              {sortedUsers.some((user) => user.isActive && user.id !== currentUserId) ? (
+                sortedUsers.map((user) => (
+                  <DeactivateUserForm
+                    currentUserId={currentUserId}
+                    key={user.id}
+                    onDeactivated={async () => {
+                      await refreshAdminAfterMutation();
+                      toast.success("User deactivated", user.name);
+                    }}
+                    replacementUsers={activeAssignmentUsers}
+                    user={user}
+                  />
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  No additional active users are available for deactivation.
+                </p>
+              )}
+
+              {sortedUsers.some((user) => !user.isActive) ? (
+                sortedUsers.map((user) => (
+                  <ReactivateUserForm
+                    key={`reactivate-${user.id}`}
+                    onReactivated={async () => {
+                      await refreshAdminAfterMutation();
+                      toast.success("User reactivated", user.name);
+                    }}
+                    user={user}
+                  />
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  No inactive users are waiting for reactivation.
+                </p>
+              )}
+            </div>
+          </SectionCard>
+
+          <SectionCard
+            collapsible
+            description="Checklist items support direct assignment and due dates for operational handoff."
+            defaultOpen={false}
+            title="Checklist item overrides"
+          >
+            {setupData.subtasks.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-border bg-muted/35 p-4 text-sm text-muted-foreground">
+                No active checklist items are available for setup.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {setupData.subtasks.map((subtask) => (
+                  <SubtaskSetupRow
+                    key={subtask.id}
+                    onSaved={async (updatedSubtask) => {
+                      await refreshAdminAfterMutation();
+                      toast.success("Checklist item setup saved", updatedSubtask.title);
+                    }}
+                    subtask={subtask}
+                    users={activeAssignmentUsers}
+                  />
+                ))}
+              </div>
+            )}
+          </SectionCard>
+
+          <SectionCard
+            collapsible
             description="Clear seeded completion state before handing the workspace to a live team."
+            defaultOpen={false}
             title="Operational resets"
           >
             <div className="grid gap-4 xl:grid-cols-3">
@@ -787,132 +971,7 @@ export function AdminSetupPage() {
               />
             </div>
           </SectionCard>
-
-          <CreateUserForm
-            onCreated={async () => {
-              await refreshAdminAfterMutation();
-              toast.success("User created");
-            }}
-          />
-
-          <SectionCard
-            description="Update names, emails, roles, and passwords without editing the database directly."
-            title="Manage users"
-          >
-            {sortedUsers.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-border bg-muted/35 p-4 text-sm text-muted-foreground">
-                No users are available yet.
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {sortedUsers.map((user) => (
-                  <UserRowForm
-                    currentUserId={currentUserId}
-                    key={user.id}
-                    onSaved={async (updatedUser) => {
-                      await refreshAdminAfterMutation();
-                      toast.success("User updated", updatedUser.name);
-                    }}
-                    user={user}
-                  />
-                ))}
-              </div>
-            )}
-          </SectionCard>
-
-          <SectionCard
-            description="Deactivate users without deleting them, or reactivate former users when they need access again."
-            title="User lifecycle"
-          >
-            <div className="space-y-4">
-              {sortedUsers.some((user) => user.isActive && user.id !== currentUserId) ? (
-                sortedUsers.map((user) => (
-                  <DeactivateUserForm
-                    currentUserId={currentUserId}
-                    key={user.id}
-                    onDeactivated={async () => {
-                      await refreshAdminAfterMutation();
-                      toast.success("User deactivated", user.name);
-                    }}
-                    replacementUsers={activeAssignmentUsers}
-                    user={user}
-                  />
-                ))
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  No additional active users are available for deactivation.
-                </p>
-              )}
-
-              {sortedUsers.some((user) => !user.isActive) ? (
-                sortedUsers.map((user) => (
-                  <ReactivateUserForm
-                    key={`reactivate-${user.id}`}
-                    onReactivated={async () => {
-                      await refreshAdminAfterMutation();
-                      toast.success("User reactivated", user.name);
-                    }}
-                    user={user}
-                  />
-                ))
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  No inactive users are waiting for reactivation.
-                </p>
-              )}
-            </div>
-          </SectionCard>
-
-          <SectionCard
-            description="Assign task owners and due dates in one place. Full task editing stays in the tasks workspace."
-            title="Task setup"
-          >
-            {setupData.tasks.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-border bg-muted/35 p-4 text-sm text-muted-foreground">
-                No active tasks are available for setup.
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {setupData.tasks.map((task) => (
-                  <TaskSetupRow
-                    key={task.id}
-                    onSaved={async (updatedTask) => {
-                      await refreshAdminAfterMutation();
-                      toast.success("Task setup saved", updatedTask.title);
-                    }}
-                    task={task}
-                    users={activeAssignmentUsers}
-                  />
-                ))}
-              </div>
-            )}
-          </SectionCard>
-
-          <SectionCard
-            description="Checklist items support direct assignment and due dates for operational handoff."
-            title="Checklist item setup"
-          >
-            {setupData.subtasks.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-border bg-muted/35 p-4 text-sm text-muted-foreground">
-                No active checklist items are available for setup.
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {setupData.subtasks.map((subtask) => (
-                  <SubtaskSetupRow
-                    key={subtask.id}
-                    onSaved={async (updatedSubtask) => {
-                      await refreshAdminAfterMutation();
-                      toast.success("Checklist item setup saved", updatedSubtask.title);
-                    }}
-                    subtask={subtask}
-                    users={activeAssignmentUsers}
-                  />
-                ))}
-              </div>
-            )}
-          </SectionCard>
-        </>
+        </WorkspaceSurface>
       ) : null}
     </div>
   );
