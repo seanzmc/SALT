@@ -75,6 +75,7 @@ tasksRouter.get(
       queue: parsed.data.queue,
       archived: parsed.data.archived,
       sort: parsed.data.sort,
+      order: parsed.data.order,
       currentUserId: request.authSession!.user.id
     };
 
