@@ -4,16 +4,18 @@ if (!apiOrigin) {
   throw new Error("SALT_API_ORIGIN must be set for @salt/web Vercel rewrites.");
 }
 
+const normalizedApiOrigin = apiOrigin.replace(/\/+$/, "");
+
 export const config = {
   buildCommand: "npm run build",
   outputDirectory: "dist",
   rewrites: [
     {
-      source: "/api/(.*)",
-      destination: `${apiOrigin}/api/$1`
+      source: "/api/:path*",
+      destination: `${normalizedApiOrigin}/api/:path*`
     },
     {
-      source: "/(.*)",
+      source: "/:path*",
       destination: "/index.html"
     }
   ]
