@@ -37,7 +37,7 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
   const staleLimit = new Date(now);
   staleLimit.setDate(staleLimit.getDate() - 7);
 
-  const [tasks, recentDocuments, recentMessages] = await Promise.all([
+  const [tasks, recentDocuments, recentMessages, phases, budgetItems] = await Promise.all([
     prisma.task.findMany({
       where: { archivedAt: null },
       select: {
@@ -122,10 +122,42 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
       },
       orderBy: { createdAt: "desc" },
       take: 5
+    }),
+    prisma.timelinePhase.findMany({
+      select: {
+        id: true,
+        title: true,
+        status: true,
+        startDate: true,
+        endDate: true,
+        milestones: {
+          select: {
+            id: true
+          }
+        },
+        tasks: {
+          where: {
+            archivedAt: null
+          },
+          select: {
+            id: true
+          }
+        }
+      },
+      orderBy: { sortOrder: "asc" }
+    }),
+    prisma.budgetItem.findMany({
+      select: {
+        estimate: true,
+        actual: true,
+        openingPriority: true
+      }
     })
   ]);
 
   const completedTasks = tasks.filter((task) => task.status === TaskStatus.COMPLETE).length;
+  const inProgressTasks = tasks.filter((task) => task.status === TaskStatus.IN_PROGRESS).length;
+  const notStartedTasks = tasks.filter((task) => task.status === TaskStatus.NOT_STARTED).length;
   const overdueTasks = tasks.filter(
     (task) => task.dueDate && task.dueDate < now && task.status !== TaskStatus.COMPLETE
   );
@@ -143,22 +175,64 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
   const staleTasks = tasks.filter(
     (task) => task.updatedAt < staleLimit && task.status !== TaskStatus.COMPLETE
   );
-  const recentlyCompletedTasks = tasks.filter((task) => task.status === TaskStatus.COMPLETE);
   const overdueByAssignee = overdueTasks.reduce<Record<string, number>>((acc, task) => {
     const key = task.assignedTo?.name ?? "Unassigned";
     acc[key] = (acc[key] ?? 0) + 1;
     return acc;
   }, {});
+  const estimatedTotal = budgetItems.reduce((sum, item) => sum + Number(item.estimate), 0);
+  const actualTotal = budgetItems.reduce((sum, item) => sum + Number(item.actual), 0);
+  const mustHaveTotal = budgetItems
+    .filter((item) => item.openingPriority === "MUST_HAVE_BEFORE_OPENING")
+    .reduce((sum, item) => sum + Number(item.estimate), 0);
+  const optionalTotal = budgetItems
+    .filter((item) => item.openingPriority !== "MUST_HAVE_BEFORE_OPENING")
+    .reduce((sum, item) => sum + Number(item.estimate), 0);
+  const completePhases = phases.filter((phase) => phase.status === "COMPLETE").length;
+  const inProgressPhases = phases.filter((phase) => phase.status === "IN_PROGRESS").length;
+  const blockedPhases = phases.filter((phase) => phase.status === "BLOCKED").length;
+  const currentPhase = phases.find((phase) => phase.status !== "COMPLETE") ?? null;
 
   return {
     overallCompletion: tasks.length ? (completedTasks / tasks.length) * 100 : 0,
-    recentlyCompletedCount: recentlyCompletedTasks.length,
+    progress: {
+      totalTasks: tasks.length,
+      completedTasks,
+      activeTasks: tasks.length - completedTasks,
+      inProgressTasks,
+      notStartedTasks
+    },
     queueCounts: {
       overdue: overdueTasks.length,
       upcoming: upcomingTasks.length,
       blocked: blockedTasks.length,
       unassigned: unassignedTasks.length,
       stale: staleTasks.length
+    },
+    budget: {
+      itemCount: budgetItems.length,
+      estimatedTotal,
+      actualTotal,
+      variance: actualTotal - estimatedTotal,
+      mustHaveTotal,
+      optionalTotal
+    },
+    timeline: {
+      totalPhases: phases.length,
+      completePhases,
+      inProgressPhases,
+      blockedPhases,
+      currentPhase: currentPhase
+        ? {
+            id: currentPhase.id,
+            title: currentPhase.title,
+            status: currentPhase.status,
+            startDate: currentPhase.startDate?.toISOString() ?? null,
+            endDate: currentPhase.endDate?.toISOString() ?? null,
+            taskCount: currentPhase.tasks.length,
+            milestoneCount: currentPhase.milestones.length
+          }
+        : null
     },
     attention: {
       overdue: {

@@ -1,6 +1,7 @@
 import type { DocumentRecord } from "./documents.js";
 import type { MessageThreadSummary } from "./messages.js";
 import type { TaskSummary } from "./tasks.js";
+import type { TimelinePhaseStatus } from "./timeline.js";
 
 export type DashboardTaskPreview = {
   id: string;
@@ -26,9 +27,42 @@ export type DashboardAttentionQueue = {
   breakdown?: DashboardBreakdownItem[];
 };
 
+export type DashboardProgressSnapshot = {
+  totalTasks: number;
+  completedTasks: number;
+  activeTasks: number;
+  inProgressTasks: number;
+  notStartedTasks: number;
+};
+
+export type DashboardBudgetSnapshot = {
+  itemCount: number;
+  estimatedTotal: number;
+  actualTotal: number;
+  variance: number;
+  mustHaveTotal: number;
+  optionalTotal: number;
+};
+
+export type DashboardTimelineSnapshot = {
+  totalPhases: number;
+  completePhases: number;
+  inProgressPhases: number;
+  blockedPhases: number;
+  currentPhase: {
+    id: string;
+    title: string;
+    status: TimelinePhaseStatus;
+    startDate: string | null;
+    endDate: string | null;
+    taskCount: number;
+    milestoneCount: number;
+  } | null;
+};
+
 export type DashboardSummary = {
   overallCompletion: number;
-  recentlyCompletedCount: number;
+  progress: DashboardProgressSnapshot;
   queueCounts: {
     overdue: number;
     upcoming: number;
@@ -36,6 +70,8 @@ export type DashboardSummary = {
     unassigned: number;
     stale: number;
   };
+  budget: DashboardBudgetSnapshot;
+  timeline: DashboardTimelineSnapshot;
   attention: {
     overdue: DashboardAttentionQueue;
     upcoming: DashboardAttentionQueue;
