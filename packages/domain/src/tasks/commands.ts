@@ -6,6 +6,7 @@ import type {
   TaskArchiveInput,
   TaskBulkActionInput,
   TaskBulkActionResult,
+  TaskCreateInput,
   TaskCommentCreateInput,
   TaskDependencyCreateInput,
   TaskDependencyDeleteInput,
@@ -58,6 +59,50 @@ function assertOwner(actor: Actor) {
   if (actor.role !== "OWNER_ADMIN") {
     throw new DomainError(403, "FORBIDDEN", "Owner access is required.");
   }
+}
+
+export async function createTaskCommand(input: {
+  actor: Actor;
+  payload: TaskCreateInput;
+}): Promise<TaskWorkspaceData> {
+  assertOwner(input.actor);
+
+  const task = await prisma.task.create({
+    data: {
+      sectionId: input.payload.sectionId,
+      phaseId: input.payload.phaseId,
+      createdById: input.actor.id,
+      assignedToId: input.payload.assignedToId,
+      title: input.payload.title.trim(),
+      description: input.payload.description?.trim() || null,
+      notes: input.payload.notes?.trim() || null,
+      priority: input.payload.priority,
+      openingPriority: input.payload.openingPriority,
+      dueDate: parseOptionalDate(input.payload.dueDate)
+    }
+  });
+
+  await logActivity({
+    actorId: input.actor.id,
+    taskId: task.id,
+    type: "TASK_CREATED",
+    entityType: "Task",
+    entityId: task.id,
+    description: `Created task "${task.title}".`
+  });
+
+  if (task.assignedToId) {
+    await logActivity({
+      actorId: input.actor.id,
+      taskId: task.id,
+      type: "TASK_ASSIGNED",
+      entityType: "Task",
+      entityId: task.id,
+      description: "Assigned task during creation."
+    });
+  }
+
+  return getTaskWorkspace(task.id);
 }
 
 async function getTaskPermissionContext(taskId: string): Promise<TaskPermissionContext> {

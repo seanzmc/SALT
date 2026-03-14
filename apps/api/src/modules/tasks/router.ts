@@ -4,6 +4,7 @@ import {
   archiveSubtaskCommand,
   archiveTaskCommand,
   bulkUpdateTasksCommand,
+  createTaskCommand,
   createSubtaskCommand,
   createTaskCommentCommand,
   createTaskDependencyCommand,
@@ -19,6 +20,7 @@ import {
 import type {
   TaskArchiveInput,
   TaskBulkActionInput,
+  TaskCreateInput,
   TaskCommentCreateInput,
   TaskDependencyCreateInput,
   TaskDependencyDeleteInput,
@@ -33,6 +35,7 @@ import {
   subtaskArchiveSchema,
   subtaskCreateSchema,
   subtaskDeleteSchema,
+  taskCreateSchema,
   subtaskIdParamSchema,
   subtaskUpdateSchema,
   taskArchiveSchema,
@@ -56,6 +59,39 @@ function validationError(message: string, fieldErrors?: Record<string, string[] 
 }
 
 tasksRouter.use(requireSession);
+
+tasksRouter.post(
+  "/",
+  asyncHandler(async (request, response) => {
+    const parsed = taskCreateSchema.safeParse(request.body);
+
+    if (!parsed.success) {
+      throw validationError(
+        "Please correct the highlighted task fields.",
+        parsed.error.flatten().fieldErrors
+      );
+    }
+
+    const payload: TaskCreateInput = {
+      sectionId: parsed.data.sectionId,
+      phaseId: parsed.data.phaseId || null,
+      title: parsed.data.title,
+      description: parsed.data.description || null,
+      notes: parsed.data.notes || null,
+      priority: parsed.data.priority,
+      openingPriority: parsed.data.openingPriority,
+      dueDate: parsed.data.dueDate || null,
+      assignedToId: parsed.data.assignedToId || null
+    };
+
+    const data = await createTaskCommand({
+      actor: request.authSession!.user,
+      payload
+    });
+
+    response.status(201).json(data);
+  })
+);
 
 tasksRouter.get(
   "/",

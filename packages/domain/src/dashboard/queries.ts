@@ -209,8 +209,15 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
   };
 }
 
-export async function getDashboardActivity(): Promise<DashboardActivityResponse> {
+export async function getDashboardActivity(currentUserId: string): Promise<DashboardActivityResponse> {
   const activities = await prisma.activityLog.findMany({
+    where: {
+      dismissals: {
+        none: {
+          userId: currentUserId
+        }
+      }
+    },
     include: {
       actor: {
         select: {

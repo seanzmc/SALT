@@ -1,11 +1,13 @@
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
+  ApiErrorResponse,
   DocumentWorkspaceData,
   SessionPayload,
   TaskArchiveInput,
   TaskBulkActionInput,
   TaskBulkActionResult,
+  TaskCreateInput,
   TaskCommentCreateInput,
   TaskDependencyCreateInput,
   TaskDependencyDeleteInput,
@@ -35,6 +37,7 @@ import {
   archiveSubtask,
   archiveTask,
   bulkUpdateTasks,
+  createTask,
   createSubtask,
   createTaskComment,
   createTaskDependency,
@@ -49,12 +52,14 @@ import {
 } from "../api/tasks-client";
 import { BulkActionsPanel } from "../components/bulk-actions-panel";
 import { TaskBoardPanel } from "../components/task-board-panel";
+import { TaskCreatePanel } from "../components/task-create-panel";
 import { TaskChecklistPreviewPanel } from "../components/task-checklist-preview-panel";
 import { TaskListPanel } from "../components/task-list-panel";
 import { TaskShelf } from "../components/task-shelf";
 import { WorkspaceFilters } from "../components/workspace-filters";
 import { taskQueryKeys } from "../lib/query-keys";
 import {
+  DEFAULT_TASK_WORKSPACE_STATE,
   buildTaskSearchParams,
   getTaskWorkspaceSearchState,
   toTaskListFilters,
@@ -367,6 +372,11 @@ export function TasksWorkspacePage() {
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
+  const [createTaskOpen, setCreateTaskOpen] = useState(false);
+  const [createTaskError, setCreateTaskError] = useState<string>();
+  const [createTaskFieldErrors, setCreateTaskFieldErrors] = useState<
+    ApiErrorResponse["error"]["fieldErrors"]
+  >();
   const [taskError, setTaskError] = useState<string>();
   const [commentError, setCommentError] = useState<string>();
   const [subtaskError, setSubtaskError] = useState<string>();
@@ -463,6 +473,53 @@ export function TasksWorkspacePage() {
     queryClient.setQueryData(taskQueryKeys.detail(data.task.id), data);
     replaceCurrentListTask(data.task);
   }
+
+  const createTaskMutation = useMutation({
+    mutationFn: createTask,
+    onMutate: async () => {
+      setCreateTaskError(undefined);
+      setCreateTaskFieldErrors(undefined);
+    },
+    onError: (error) => {
+      const message =
+        error instanceof ApiClientError ? error.message : "Unable to create task.";
+      setCreateTaskError(message);
+      setCreateTaskFieldErrors(
+        error instanceof ApiClientError ? error.payload?.error.fieldErrors : undefined
+      );
+      toast.error("Task creation failed", message);
+    },
+    onSuccess: (data) => {
+      if (!data.task) {
+        return;
+      }
+
+      const nextState = matchesTaskFilters(data.task, activeFilters, currentUser?.id)
+        ? searchState
+        : DEFAULT_TASK_WORKSPACE_STATE;
+      const nextFilters = toTaskListFilters(nextState);
+      const nextSearch = buildTaskSearchParams(nextState).toString();
+
+      setCreateTaskOpen(false);
+      setCreateTaskError(undefined);
+      setCreateTaskFieldErrors(undefined);
+      queryClient.setQueryData(taskQueryKeys.detail(data.task.id), data);
+      queryClient.setQueryData<TaskListResponse>(taskQueryKeys.list(nextFilters), (current) =>
+        current
+          ? replaceTaskInList(current, data.task!, nextFilters, currentUser?.id)
+          : current
+      );
+      void queryClient.invalidateQueries({ queryKey: taskQueryKeys.lists() });
+      toast.success(
+        "Task created",
+        nextState === searchState ? data.task.title : `${data.task.title} opened in All tasks.`
+      );
+      navigate({
+        pathname: `/tasks/${data.task.id}`,
+        search: nextSearch ? `?${nextSearch}` : ""
+      });
+    }
+  });
 
   function patchCurrentListTask(taskId: string, patch: Parameters<typeof patchTaskSummary>[1]) {
     queryClient.setQueryData<TaskListResponse>(currentListKey, (current) => {
@@ -1354,21 +1411,7 @@ export function TasksWorkspacePage() {
   }
 
   function handleReset() {
-    setSearchParams(
-      buildTaskSearchParams({
-        q: "",
-        status: [],
-        section: [],
-        priority: [],
-        assignee: [],
-        queue: "all",
-        archived: "active",
-        sort: "dueDate",
-        order: "asc",
-        view: "list",
-        group: "none"
-      })
-    );
+    setSearchParams(buildTaskSearchParams(DEFAULT_TASK_WORKSPACE_STATE));
   }
 
   function handleSortChange(nextSort: TaskSort) {
@@ -1436,6 +1479,21 @@ export function TasksWorkspacePage() {
         toolbar={
           <div className="space-y-3">
             <WorkspaceFilters
+              actions={
+                currentUser?.role === "OWNER_ADMIN" ? (
+                  <button
+                    className="inline-flex h-10 items-center justify-center rounded-full border border-border/80 bg-white px-4 text-sm font-medium text-foreground transition hover:border-primary/35 hover:bg-[rgba(248,246,241,0.95)]"
+                    onClick={() => {
+                      setCreateTaskError(undefined);
+                      setCreateTaskFieldErrors(undefined);
+                      setCreateTaskOpen((current) => !current);
+                    }}
+                    type="button"
+                  >
+                    {createTaskOpen ? "Hide form" : "New task"}
+                  </button>
+                ) : null
+              }
               archived={searchState.archived}
               assignee={searchState.assignee}
               currentUserId={currentUser?.id ?? ""}
@@ -1464,6 +1522,22 @@ export function TasksWorkspacePage() {
               users={taskListQuery.data?.users ?? []}
               view={searchState.view}
             />
+
+            {currentUser?.role === "OWNER_ADMIN" ? (
+              <TaskCreatePanel
+                error={createTaskError}
+                fieldErrors={createTaskFieldErrors}
+                isPending={createTaskMutation.isPending}
+                onOpenChange={setCreateTaskOpen}
+                onSubmit={async (payload: TaskCreateInput) => {
+                  await createTaskMutation.mutateAsync(payload);
+                }}
+                open={createTaskOpen}
+                phases={taskListQuery.data?.phases ?? []}
+                sections={taskListQuery.data?.sections ?? []}
+                users={taskListQuery.data?.users ?? []}
+              />
+            ) : null}
 
             {currentUser?.role === "OWNER_ADMIN" && selectedTaskIds.length > 0 ? (
               <BulkActionsPanel

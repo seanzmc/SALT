@@ -82,3 +82,11 @@ export type DashboardActivityItem = {
 export type DashboardActivityResponse = {
   activities: DashboardActivityItem[];
 };
+
+export type DashboardActivityDismissInput = {
+  activityId: string;
+};
+
+export type DashboardActivityDismissResponse = {
+  activityId: string;
+};

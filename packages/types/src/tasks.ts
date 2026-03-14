@@ -233,6 +233,18 @@ export type TaskWorkspaceUpdateInput = {
   blockedReason: string | null;
 };
 
+export type TaskCreateInput = {
+  sectionId: string;
+  phaseId: string | null;
+  title: string;
+  description: string | null;
+  notes: string | null;
+  priority: TaskPriority;
+  openingPriority: TaskOpeningPriority;
+  dueDate: string | null;
+  assignedToId: string | null;
+};
+
 export type TaskCommentCreateInput = {
   taskId: string;
   content: string;

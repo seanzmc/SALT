@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import {
+  OPENING_PRIORITY_VALUES,
   PRIORITY_VALUES,
   TASK_GROUP_VALUES,
   TASK_BULK_ACTION_VALUES,
@@ -94,6 +95,18 @@ export const taskWorkspaceUpdateSchema = z
       });
     }
   });
+
+export const taskCreateSchema = z.object({
+  sectionId: z.string().cuid(),
+  phaseId: z.string().cuid().optional().nullable().or(z.literal("")),
+  title: z.string().trim().min(3).max(180),
+  description: z.string().max(4000).optional().nullable().or(z.literal("")),
+  notes: z.string().max(4000).optional().nullable().or(z.literal("")),
+  priority: z.enum(PRIORITY_VALUES),
+  openingPriority: z.enum(OPENING_PRIORITY_VALUES),
+  dueDate: z.string().optional().nullable().or(z.literal("")),
+  assignedToId: z.string().cuid().optional().nullable().or(z.literal(""))
+});
 
 export const taskCommentCreateSchema = z.object({
   taskId: z.string().cuid(),

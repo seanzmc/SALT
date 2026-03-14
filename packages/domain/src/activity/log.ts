@@ -4,6 +4,7 @@ export async function logActivity(input: {
   actorId?: string | null;
   taskId?: string | null;
   type:
+    | "TASK_CREATED"
     | "TASK_UPDATED"
     | "TASK_STATUS_CHANGED"
     | "TASK_ASSIGNED"

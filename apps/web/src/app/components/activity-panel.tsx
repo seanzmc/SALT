@@ -1,5 +1,10 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { DashboardActivityResponse } from "@salt/types";
 import { Link } from "react-router-dom";
 
+import { ApiClientError } from "../../lib/api-client";
+import { useToast } from "../providers/toast-provider";
+import { dismissDashboardActivity } from "../../features/dashboard/api/dashboard-client";
 import { useDashboardActivityQuery } from "../../features/dashboard/hooks/use-dashboard-activity-query";
 import { SlideOverPanel } from "./slide-over-panel";
 
@@ -42,6 +47,41 @@ export function ActivityPanel({
   onClose: () => void;
 }) {
   const activityQuery = useDashboardActivityQuery();
+  const queryClient = useQueryClient();
+  const toast = useToast();
+  const dismissMutation = useMutation({
+    mutationFn: dismissDashboardActivity,
+    onMutate: async (payload) => {
+      await queryClient.cancelQueries({ queryKey: ["dashboard", "activity"] });
+      const previousActivity = queryClient.getQueryData<DashboardActivityResponse>([
+        "dashboard",
+        "activity"
+      ]);
+
+      queryClient.setQueryData<DashboardActivityResponse>(["dashboard", "activity"], (current) =>
+        current
+          ? {
+              ...current,
+              activities: current.activities.filter((activity) => activity.id !== payload.activityId)
+            }
+          : current
+      );
+
+      return { previousActivity };
+    },
+    onError: (error, _payload, context) => {
+      if (context?.previousActivity) {
+        queryClient.setQueryData(["dashboard", "activity"], context.previousActivity);
+      }
+
+      const message =
+        error instanceof ApiClientError ? error.message : "Unable to dismiss notification.";
+      toast.error("Dismiss failed", message);
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: ["dashboard", "activity"] });
+    }
+  });
 
   return (
     <SlideOverPanel className="sm:w-[min(28rem,calc(100vw-1rem))]" onClose={onClose} open={open} zIndexClassName="z-40">
@@ -50,7 +90,7 @@ export function ActivityPanel({
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-                Recent activity
+                Notifications
               </p>
               <h2 className="mt-2 text-xl font-semibold text-foreground">Operational changes</h2>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
@@ -85,51 +125,68 @@ export function ActivityPanel({
             <div className="space-y-3">
               {activityQuery.data.activities.map((activity) => {
                 const href = getActivityHref(activity);
-                const content = (
-                  <>
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
+                const isDismissPending =
+                  dismissMutation.isPending &&
+                  dismissMutation.variables?.activityId === activity.id;
+                const body = (
+                  <div className="min-w-0 flex-1">
+                    {href ? (
+                      <Link
+                        className="block rounded-[1rem] px-1 py-1 transition hover:bg-muted/60"
+                        onClick={onClose}
+                        to={href}
+                      >
                         <p className="font-medium text-foreground">{activity.description}</p>
                         <p className="mt-1 text-sm text-muted-foreground">
                           {activity.actor?.name ?? "System"} · {activity.entityType}
                         </p>
+                      </Link>
+                    ) : (
+                      <>
+                        <p className="font-medium text-foreground">{activity.description}</p>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {activity.actor?.name ?? "System"} · {activity.entityType}
+                        </p>
+                      </>
+                    )}
+                  </div>
+                );
+
+                return (
+                  <article
+                    key={activity.id}
+                    className="rounded-[1.25rem] border border-border/80 bg-white px-4 py-4"
+                  >
+                    <div className="flex items-start gap-3">
+                      {body}
+                      <div className="flex flex-col items-end gap-2">
+                        <span className="rounded-full bg-muted px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+                          {activity.type.replaceAll("_", " ")}
+                        </span>
+                        <button
+                          className="text-xs font-medium text-muted-foreground transition hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
+                          disabled={isDismissPending}
+                          onClick={() => {
+                            void dismissMutation.mutateAsync({ activityId: activity.id });
+                          }}
+                          type="button"
+                        >
+                          {isDismissPending ? "Dismissing..." : "Dismiss"}
+                        </button>
                       </div>
-                      <span className="rounded-full bg-muted px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-                        {activity.type.replaceAll("_", " ")}
-                      </span>
                     </div>
                     <p className="mt-3 text-xs uppercase tracking-[0.16em] text-muted-foreground">
                       {formatDate(activity.createdAt)}
                     </p>
-                  </>
-                );
-
-                if (!href) {
-                  return (
-                    <div
-                      key={activity.id}
-                      className="rounded-[1.25rem] border border-border/80 bg-white px-4 py-4"
-                    >
-                      {content}
-                    </div>
-                  );
-                }
-
-                return (
-                  <Link
-                    key={activity.id}
-                    className="block rounded-[1.25rem] border border-border/80 bg-white px-4 py-4 transition hover:bg-muted/60"
-                    onClick={onClose}
-                    to={href}
-                  >
-                    {content}
-                  </Link>
+                  </article>
                 );
               })}
             </div>
           ) : (
-            <div className="rounded-[1.25rem] border border-dashed border-border bg-muted/30 px-4 py-5 text-sm text-muted-foreground">
-              No recent activity yet.
+            <div
+              className="rounded-[1.25rem] border border-dashed border-border bg-muted/30 px-4 py-5 text-sm text-muted-foreground"
+            >
+              {dismissMutation.isSuccess ? "All caught up. No active notifications." : "No recent activity yet."}
             </div>
           )}
         </div>

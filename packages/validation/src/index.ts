@@ -1,6 +1,7 @@
 export * from "./admin.js";
 export * from "./auth.js";
 export * from "./budget.js";
+export * from "./dashboard.js";
 export * from "./documents.js";
 export * from "./messages.js";
 export * from "./tasks.js";

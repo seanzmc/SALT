@@ -2,6 +2,7 @@ import type {
   TaskArchiveInput,
   TaskBulkActionInput,
   TaskBulkActionResult,
+  TaskCreateInput,
   TaskCommentCreateInput,
   TaskDependencyCreateInput,
   TaskDependencyDeleteInput,
@@ -38,6 +39,13 @@ function buildTaskQuery(filters: TaskListFilters) {
 
   const query = searchParams.toString();
   return query ? `/api/tasks?${query}` : "/api/tasks";
+}
+
+export function createTask(payload: TaskCreateInput) {
+  return apiClient<TaskWorkspaceData>("/api/tasks", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
 }
 
 export function getTaskList(filters: TaskListFilters) {

@@ -7,7 +7,7 @@ import type {
   TaskWorkspaceSearchState
 } from "@salt/types";
 
-const DEFAULT_STATE: TaskWorkspaceSearchState = {
+export const DEFAULT_TASK_WORKSPACE_STATE: TaskWorkspaceSearchState = {
   q: "",
   status: [],
   section: [],
@@ -47,19 +47,28 @@ export function getTaskWorkspaceSearchState(
   searchParams: URLSearchParams
 ): TaskWorkspaceSearchState {
   return {
-    q: searchParams.get("q") ?? DEFAULT_STATE.q,
+    q: searchParams.get("q") ?? DEFAULT_TASK_WORKSPACE_STATE.q,
     status: getMultiValue(searchParams, "status") as TaskStatus[],
     section: getMultiValue(searchParams, "section"),
     priority: getMultiValue(searchParams, "priority") as TaskPriority[],
     assignee: getMultiValue(searchParams, "assignee"),
-    queue: (searchParams.get("queue") as TaskWorkspaceSearchState["queue"] | null) ?? DEFAULT_STATE.queue,
+    queue:
+      (searchParams.get("queue") as TaskWorkspaceSearchState["queue"] | null) ??
+      DEFAULT_TASK_WORKSPACE_STATE.queue,
     archived:
-      (searchParams.get("archived") as TaskWorkspaceSearchState["archived"] | null) ?? DEFAULT_STATE.archived,
-    sort: (searchParams.get("sort") as TaskWorkspaceSearchState["sort"] | null) ?? DEFAULT_STATE.sort,
+      (searchParams.get("archived") as TaskWorkspaceSearchState["archived"] | null) ??
+      DEFAULT_TASK_WORKSPACE_STATE.archived,
+    sort:
+      (searchParams.get("sort") as TaskWorkspaceSearchState["sort"] | null) ??
+      DEFAULT_TASK_WORKSPACE_STATE.sort,
     order:
-      (searchParams.get("order") as TaskSortDirection | null) ?? DEFAULT_STATE.order,
-    view: (searchParams.get("view") as TaskWorkspaceSearchState["view"] | null) ?? DEFAULT_STATE.view,
-    group: (searchParams.get("group") as TaskGroupBy | null) ?? DEFAULT_STATE.group
+      (searchParams.get("order") as TaskSortDirection | null) ??
+      DEFAULT_TASK_WORKSPACE_STATE.order,
+    view:
+      (searchParams.get("view") as TaskWorkspaceSearchState["view"] | null) ??
+      DEFAULT_TASK_WORKSPACE_STATE.view,
+    group:
+      (searchParams.get("group") as TaskGroupBy | null) ?? DEFAULT_TASK_WORKSPACE_STATE.group
   };
 }
 
@@ -96,27 +105,27 @@ export function buildTaskSearchParams(
   state.priority.forEach((value) => searchParams.append("priority", value));
   state.assignee.forEach((value) => searchParams.append("assignee", value));
 
-  if (state.queue !== DEFAULT_STATE.queue) {
+  if (state.queue !== DEFAULT_TASK_WORKSPACE_STATE.queue) {
     searchParams.set("queue", state.queue);
   }
 
-  if (state.archived !== DEFAULT_STATE.archived) {
+  if (state.archived !== DEFAULT_TASK_WORKSPACE_STATE.archived) {
     searchParams.set("archived", state.archived);
   }
 
-  if (state.sort !== DEFAULT_STATE.sort) {
+  if (state.sort !== DEFAULT_TASK_WORKSPACE_STATE.sort) {
     searchParams.set("sort", state.sort);
   }
 
-  if (state.order !== DEFAULT_STATE.order) {
+  if (state.order !== DEFAULT_TASK_WORKSPACE_STATE.order) {
     searchParams.set("order", state.order);
   }
 
-  if (state.view !== DEFAULT_STATE.view) {
+  if (state.view !== DEFAULT_TASK_WORKSPACE_STATE.view) {
     searchParams.set("view", state.view);
   }
 
-  if (state.group !== DEFAULT_STATE.group) {
+  if (state.group !== DEFAULT_TASK_WORKSPACE_STATE.group) {
     searchParams.set("group", state.group);
   }
 

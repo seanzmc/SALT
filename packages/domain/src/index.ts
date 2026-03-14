@@ -8,6 +8,7 @@ export * from "./auth/session-cookie.js";
 export * from "./auth/service.js";
 export * from "./budget/commands.js";
 export * from "./budget/queries.js";
+export * from "./dashboard/commands.js";
 export * from "./dashboard/queries.js";
 export * from "./documents/commands.js";
 export * from "./documents/queries.js";
