@@ -157,6 +157,12 @@ export function DashboardWorkspacePage() {
           : [])
       ]
     : [];
+  const desktopCompletionMetric = desktopActiveMetrics.find(
+    (metric) => metric.key === "overallCompletion"
+  );
+  const desktopSupportingMetrics = desktopActiveMetrics.filter(
+    (metric) => metric.key !== "overallCompletion"
+  );
   const primaryAttentionCards = summaryQuery.data
     ? [
         {
@@ -211,6 +217,8 @@ export function DashboardWorkspacePage() {
         }
       ].filter((item) => item.count > 0)
     : [];
+  const featuredPrimaryAttentionCard = primaryAttentionCards[0] ?? null;
+  const secondaryPrimaryAttentionCards = primaryAttentionCards.slice(1);
   const secondaryAttentionCards = summaryQuery.data
     ? [
         {
@@ -296,44 +304,64 @@ export function DashboardWorkspacePage() {
             />
           </section>
 
-          <section className="hidden xl:block space-y-3">
-            <div
-              className="grid gap-3"
-              style={{
-                gridTemplateColumns: `repeat(${Math.min(
-                  Math.max(desktopActiveMetrics.length, 1),
-                  5
-                )}, minmax(0, 1fr))`
-              }}
-            >
-              {desktopActiveMetrics.map((metric) => (
-                <SummaryMetricCard
-                  key={metric.key}
-                  detail={metric.detail}
-                  title={metric.title}
-                  tone={metric.tone}
-                  value={metric.value}
-                />
-              ))}
+          <section className="hidden xl:grid xl:grid-cols-12 xl:items-start xl:gap-4">
+            <div className={featuredPrimaryAttentionCard ? "col-span-4 space-y-3" : "col-span-12 space-y-3"}>
+              <div className="flex items-start gap-3">
+                {desktopCompletionMetric ? (
+                  <SummaryMetricCard
+                    className="w-[13.5rem] shrink-0"
+                    detail={desktopCompletionMetric.detail}
+                    title={desktopCompletionMetric.title}
+                    tone={desktopCompletionMetric.tone}
+                    value={desktopCompletionMetric.value}
+                  />
+                ) : null}
+
+                {desktopSupportingMetrics.length > 0 ? (
+                  <div
+                    className="grid min-w-0 flex-1 gap-3"
+                    style={{
+                      gridTemplateColumns: `repeat(${Math.min(
+                        desktopSupportingMetrics.length,
+                        2
+                      )}, minmax(0, 1fr))`
+                    }}
+                  >
+                    {desktopSupportingMetrics.map((metric) => (
+                      <SummaryMetricCard
+                        key={metric.key}
+                        detail={metric.detail}
+                        title={metric.title}
+                        tone={metric.tone}
+                        value={metric.value}
+                      />
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+
+              {desktopQuietMetrics.length > 0 ? (
+                <div className="rounded-[1rem] border border-border/70 bg-white/55 px-3.5 py-2 text-muted-foreground backdrop-blur">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/80">
+                      Quiet queues
+                    </span>
+                    {desktopQuietMetrics.map((metric) => (
+                      <span
+                        key={metric.key}
+                        className="inline-flex items-center gap-1.5 rounded-full bg-white/90 px-2.5 py-1 text-xs"
+                      >
+                        <span>{metric.label}</span>
+                        <span className="font-medium text-foreground">{metric.value}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
             </div>
 
-            {desktopQuietMetrics.length > 0 ? (
-              <div className="flex items-center gap-3 rounded-[1.1rem] border border-border/80 bg-white/70 px-4 py-2.5 text-sm text-muted-foreground backdrop-blur">
-                <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                  Quiet queues
-                </span>
-                <div className="flex flex-wrap items-center gap-2">
-                  {desktopQuietMetrics.map((metric) => (
-                    <span
-                      key={metric.key}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-border bg-white/85 px-3 py-1 text-[13px]"
-                    >
-                      <span className="font-medium text-foreground">{metric.label}</span>
-                      <span>{metric.value}</span>
-                    </span>
-                  ))}
-                </div>
-              </div>
+            {featuredPrimaryAttentionCard ? (
+              <div className="col-span-8">{featuredPrimaryAttentionCard.card}</div>
             ) : null}
           </section>
         </>
@@ -354,7 +382,7 @@ export function DashboardWorkspacePage() {
       ) : summaryQuery.data ? (
         <>
           {primaryAttentionCards.length > 0 ? (
-            <section className="grid gap-4 xl:grid-cols-3">
+            <section className="grid gap-4 xl:hidden">
               {primaryAttentionCards.map((item) => (
                 <div key={item.key}>{item.card}</div>
               ))}
@@ -364,6 +392,14 @@ export function DashboardWorkspacePage() {
               No overdue, blocked, or unassigned work needs attention right now.
             </section>
           )}
+
+          {secondaryPrimaryAttentionCards.length > 0 ? (
+            <section className="hidden gap-4 xl:grid xl:grid-cols-2">
+              {secondaryPrimaryAttentionCards.map((item) => (
+                <div key={item.key}>{item.card}</div>
+              ))}
+            </section>
+          ) : null}
 
           {secondaryAttentionCards.length > 0 ? (
             <section className="grid gap-4 xl:grid-cols-2">

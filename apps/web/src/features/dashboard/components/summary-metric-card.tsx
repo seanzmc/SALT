@@ -3,13 +3,15 @@ type SummaryMetricCardProps = {
   value: string;
   detail: string;
   tone?: "default" | "warning";
+  className?: string;
 };
 
 export function SummaryMetricCard({
   title,
   value,
   detail,
-  tone = "default"
+  tone = "default",
+  className
 }: SummaryMetricCardProps) {
   return (
     <section
@@ -18,6 +20,8 @@ export function SummaryMetricCard({
         tone === "warning"
           ? "border-amber-200 bg-amber-50/80"
           : "border-border bg-white/85 backdrop-blur"
+        ,
+        className ?? ""
       ].join(" ")}
     >
       <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">{title}</p>
