@@ -12,7 +12,6 @@ import type {
 } from "@salt/types";
 
 type WorkspaceFiltersProps = {
-  actions?: ReactNode;
   currentUserId: string;
   q: string;
   status: TaskStatus[];
@@ -185,7 +184,6 @@ function MultiSelectMenu<TValue extends string>({
 }
 
 export function WorkspaceFilters({
-  actions,
   currentUserId,
   q,
   status,
@@ -255,7 +253,6 @@ export function WorkspaceFilters({
           <FilterButton className="border-border/80 bg-white text-foreground" onClick={onReset}>
             Reset
           </FilterButton>
-          {actions}
         </div>
       </div>
 

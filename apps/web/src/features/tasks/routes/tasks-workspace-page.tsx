@@ -1484,6 +1484,22 @@ export function TasksWorkspacePage() {
       <WorkspacePageHeader
         description="Search, sort, and review work from a single queue."
         eyebrow="Tasks"
+        actions={
+          currentUser?.role === "OWNER_ADMIN" ? (
+            <button
+              className="inline-flex h-11 items-center justify-center rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground shadow-[0_14px_34px_-18px_rgba(33,95,84,0.7)] transition hover:opacity-95"
+              onClick={() => {
+                setCreatedTaskNotice(null);
+                setCreateTaskError(undefined);
+                setCreateTaskFieldErrors(undefined);
+                setCreateTaskOpen(true);
+              }}
+              type="button"
+            >
+              New task
+            </button>
+          ) : null
+        }
         title="Work queue"
       />
 
@@ -1492,22 +1508,6 @@ export function TasksWorkspacePage() {
         toolbar={
           <div className="space-y-3">
             <WorkspaceFilters
-              actions={
-                currentUser?.role === "OWNER_ADMIN" ? (
-                  <button
-                    className="inline-flex h-10 items-center justify-center rounded-full border border-border/80 bg-white px-4 text-sm font-medium text-foreground transition hover:border-primary/35 hover:bg-[rgba(248,246,241,0.95)]"
-                    onClick={() => {
-                      setCreatedTaskNotice(null);
-                      setCreateTaskError(undefined);
-                      setCreateTaskFieldErrors(undefined);
-                      setCreateTaskOpen((current) => !current);
-                    }}
-                    type="button"
-                  >
-                    New task
-                  </button>
-                ) : null
-              }
               archived={searchState.archived}
               assignee={searchState.assignee}
               currentUserId={currentUser?.id ?? ""}
