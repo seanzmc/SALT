@@ -358,47 +358,38 @@ export function DashboardWorkspacePage() {
             description="Use this as the stable top snapshot for task completion, active load, and the task states most likely to slow the launch down."
             title="Workspace progress"
           >
-            <div className="grid gap-5 xl:grid-cols-[minmax(0,1.45fr)_minmax(18rem,0.95fr)] xl:items-start">
+            <div className="grid gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(16rem,0.9fr)] xl:items-end">
               <div className="space-y-4">
-                <div className="flex flex-wrap items-end justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                      Overall completion
-                    </p>
-                    {summary.progress.totalTasks > 0 ? (
-                      <>
-                        <div className="mt-2 flex flex-wrap items-end gap-3">
-                          <p className="text-[2.8rem] font-semibold leading-none text-foreground">
-                            {formatPercent(summary.overallCompletion)}
-                          </p>
-                          <p className="pb-1 text-sm text-muted-foreground">
-                            {summary.progress.completedTasks} of {summary.progress.totalTasks} tasks
-                            complete
-                          </p>
-                        </div>
-                        <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                          {summary.progress.activeTasks} tasks still need work. Use the status tiles
-                          below to jump directly into the active queues.
+                <div className="min-w-0">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                    Overall completion
+                  </p>
+                  {summary.progress.totalTasks > 0 ? (
+                    <>
+                      <div className="mt-2 flex flex-wrap items-end gap-x-3 gap-y-2">
+                        <p className="text-[2.8rem] font-semibold leading-none text-foreground">
+                          {formatPercent(summary.overallCompletion)}
                         </p>
-                      </>
-                    ) : (
-                      <>
-                        <p className="mt-2 text-2xl font-semibold text-foreground">
-                          No active tasks yet
+                        <p className="pb-1 text-sm text-muted-foreground">
+                          {summary.progress.completedTasks} of {summary.progress.totalTasks} tasks
+                          complete
                         </p>
-                        <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                          Create the first launch task to turn this dashboard into a live workspace
-                          snapshot.
-                        </p>
-                      </>
-                    )}
-                  </div>
-
-                  <SummaryPill
-                    label="Active work"
-                    tone={summary.progress.activeTasks > 0 ? "default" : "quiet"}
-                    value={String(summary.progress.activeTasks)}
-                  />
+                      </div>
+                      <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                        {summary.progress.activeTasks} remaining across the active workspace.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="mt-2 text-2xl font-semibold text-foreground">
+                        No active tasks yet
+                      </p>
+                      <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                        Create the first launch task to turn this dashboard into a live workspace
+                        snapshot.
+                      </p>
+                    </>
+                  )}
                 </div>
 
                 <div className="h-3 overflow-hidden rounded-full bg-[rgba(15,23,42,0.08)]">
@@ -408,63 +399,42 @@ export function DashboardWorkspacePage() {
                   />
                 </div>
 
-                <div className="flex flex-wrap gap-2">
-                  <SummaryPill
-                    label="In progress"
-                    value={String(summary.progress.inProgressTasks)}
-                  />
-                  <SummaryPill
-                    label="Not started"
-                    tone={summary.progress.notStartedTasks > 0 ? "default" : "quiet"}
-                    value={String(summary.progress.notStartedTasks)}
-                  />
-                  <SummaryPill
-                    label="Overdue"
-                    tone={summary.queueCounts.overdue > 0 ? "danger" : "quiet"}
-                    value={String(summary.queueCounts.overdue)}
-                  />
-                  <SummaryPill
-                    label="Blocked"
-                    tone={summary.queueCounts.blocked > 0 ? "warning" : "quiet"}
-                    value={String(summary.queueCounts.blocked)}
-                  />
-                  <SummaryPill
-                    label="Due this week"
-                    tone={summary.queueCounts.upcoming > 0 ? "default" : "quiet"}
-                    value={String(summary.queueCounts.upcoming)}
-                  />
-                </div>
               </div>
 
-              <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-1">
-                <SupportingMetric
-                  detail={
-                    summary.progress.activeTasks > 0
-                      ? "Still open across the active workspace."
-                      : "No active tasks are left open."
-                  }
-                  label="Active work"
-                  value={String(summary.progress.activeTasks)}
-                />
-                <SupportingMetric
-                  detail={
-                    summary.progress.inProgressTasks > 0
-                      ? "Already underway right now."
-                      : "Nothing is currently marked in progress."
-                  }
-                  label="In progress"
-                  value={String(summary.progress.inProgressTasks)}
-                />
-                <SupportingMetric
-                  detail={
-                    summary.queueCounts.unassigned > 0
-                      ? "Tasks still need owners."
-                      : "Current active work is assigned."
-                  }
-                  label="Owner gaps"
-                  tone={summary.queueCounts.unassigned > 0 ? "warning" : "default"}
-                  value={String(summary.queueCounts.unassigned)}
-                />
+              <div className="grid gap-3 border-t border-border/70 pt-4 md:grid-cols-3 xl:border-l xl:border-t-0 xl:pl-5 xl:pt-0">
+                <div className="space-y-1">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                    Remaining
+                  </p>
+                  <p className="text-2xl font-semibold leading-none text-foreground">
+                    {summary.progress.activeTasks}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {summary.progress.activeTasks > 0 ? "Still open" : "Nothing open"}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                    In progress
+                  </p>
+                  <p className="text-2xl font-semibold leading-none text-foreground">
+                    {summary.progress.inProgressTasks}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {summary.progress.inProgressTasks > 0 ? "Underway now" : "No work started"}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                    Unassigned
+                  </p>
+                  <p className="text-2xl font-semibold leading-none text-foreground">
+                    {summary.queueCounts.unassigned}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {summary.queueCounts.unassigned > 0 ? "Need owners" : "Ownership set"}
+                  </p>
+                </div>
               </div>
             </div>
           </WorkspaceSurface>
