@@ -27,7 +27,7 @@ export function AttentionQueueCard({
   return (
     <section
       className={[
-        "rounded-[1.5rem] border p-5 shadow-sm",
+        "rounded-[1.35rem] border p-4 shadow-sm lg:p-4",
         tone === "danger"
           ? "border-rose-200 bg-rose-50/80"
           : tone === "warning"
@@ -37,38 +37,38 @@ export function AttentionQueueCard({
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-lg font-semibold">{title}</p>
-          <p className="mt-1 text-sm text-muted-foreground">{detail}</p>
+          <p className="text-base font-semibold lg:text-[1.05rem]">{title}</p>
+          <p className="mt-1 text-xs leading-5 text-muted-foreground lg:text-[13px]">{detail}</p>
         </div>
         <Link
-          className="inline-flex min-h-10 items-center justify-center rounded-full border border-border px-3 py-2 text-center text-sm text-muted-foreground hover:bg-muted"
+          className="inline-flex min-h-9 items-center justify-center rounded-full border border-border px-3 py-1.5 text-center text-sm text-muted-foreground hover:bg-muted"
           to={href}
         >
           {linkLabel}
         </Link>
       </div>
 
-      <div className="mt-4 space-y-3">
+      <div className="mt-3 space-y-2.5">
         {items.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-border bg-muted/35 p-4 text-sm text-muted-foreground">
+          <div className="rounded-2xl border border-dashed border-border bg-muted/35 p-3 text-sm text-muted-foreground">
             Nothing in this queue right now.
           </div>
         ) : (
           items.map((task) => (
             <Link
               key={task.id}
-              className="block rounded-2xl border border-border bg-white/80 p-4 hover:bg-muted/60"
+              className="block rounded-2xl border border-border bg-white/80 p-3.5 hover:bg-muted/60"
               to={itemHref(task.id)}
             >
               <p className="font-medium">{task.title}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{itemMeta(task)}</p>
+              <p className="mt-1 text-sm leading-5 text-muted-foreground">{itemMeta(task)}</p>
             </Link>
           ))
         )}
       </div>
 
       {breakdown && breakdown.length > 0 ? (
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-3 flex flex-wrap gap-2">
           {breakdown.map((item) => (
             <span
               key={item.label}

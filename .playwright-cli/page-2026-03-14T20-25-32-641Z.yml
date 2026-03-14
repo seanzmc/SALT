@@ -1,0 +1,228 @@
+- generic [ref=e4]:
+  - complementary [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - paragraph [ref=e8]: SALT Business Planner
+        - heading "Workspace" [level=1] [ref=e9]
+      - navigation [ref=e10]:
+        - link "Dashboard Control surface" [ref=e11] [cursor=pointer]:
+          - /url: /dashboard
+          - paragraph [ref=e12]: Dashboard
+          - paragraph [ref=e13]: Control surface
+        - link "Tasks Queue and shelf" [ref=e14] [cursor=pointer]:
+          - /url: /tasks
+          - paragraph [ref=e15]: Tasks
+          - paragraph [ref=e16]: Queue and shelf
+        - link "Timeline Opening phases" [ref=e17] [cursor=pointer]:
+          - /url: /timeline
+          - paragraph [ref=e18]: Timeline
+          - paragraph [ref=e19]: Opening phases
+        - link "Budget Spend tracking" [ref=e20] [cursor=pointer]:
+          - /url: /budget
+          - paragraph [ref=e21]: Budget
+          - paragraph [ref=e22]: Spend tracking
+        - link "Documents Protected vault" [ref=e23] [cursor=pointer]:
+          - /url: /documents
+          - paragraph [ref=e24]: Documents
+          - paragraph [ref=e25]: Protected vault
+        - link "Messages Thread workspace" [ref=e26] [cursor=pointer]:
+          - /url: /messages
+          - paragraph [ref=e27]: Messages
+          - paragraph [ref=e28]: Thread workspace
+        - link "Setup Owner controls" [ref=e29] [cursor=pointer]:
+          - /url: /settings/setup
+          - paragraph [ref=e30]: Setup
+          - paragraph [ref=e31]: Owner controls
+  - generic [ref=e32]:
+    - banner [ref=e33]:
+      - generic [ref=e34]:
+        - generic [ref=e35]:
+          - paragraph [ref=e36]: Workspace
+          - generic [ref=e37]:
+            - heading "Dashboard" [level=2] [ref=e38]
+            - paragraph [ref=e39]: Cross-workspace signals, active queues, and recent movement.
+        - generic [ref=e40]:
+          - button "Open activity feed" [ref=e41] [cursor=pointer]:
+            - img [ref=e42]
+            - generic [ref=e45]: Activity
+            - generic [ref=e46]: "8"
+          - button "Open account menu" [ref=e48] [cursor=pointer]:
+            - generic [ref=e49]: Account
+            - generic [ref=e51]: CH
+    - main [ref=e52]:
+      - generic [ref=e54]:
+        - generic [ref=e56]:
+          - paragraph [ref=e57]: Dashboard
+          - heading "Launch control surface" [level=1] [ref=e58]
+          - paragraph [ref=e59]: Triage active work and jump directly into task, document, message, budget, and timeline queues.
+        - generic [ref=e60]:
+          - generic [ref=e61]:
+            - paragraph [ref=e62]: Overall completion
+            - paragraph [ref=e63]: 7%
+            - paragraph [ref=e64]: 6 completed recently
+          - generic [ref=e65]:
+            - paragraph [ref=e66]: Overdue tasks
+            - paragraph [ref=e67]: "0"
+            - paragraph [ref=e68]: 0 overdue items
+          - generic [ref=e69]:
+            - paragraph [ref=e70]: Unassigned tasks
+            - paragraph [ref=e71]: "0"
+            - paragraph [ref=e72]: 0 tasks need owners
+          - generic [ref=e73]:
+            - paragraph [ref=e74]: Due this week
+            - paragraph [ref=e75]: "0"
+            - paragraph [ref=e76]: Due in the next 7 days
+          - generic [ref=e77]:
+            - paragraph [ref=e78]: Needs update
+            - paragraph [ref=e79]: "0"
+            - paragraph [ref=e80]: No updates in 7+ days
+        - generic [ref=e83]:
+          - generic [ref=e84]:
+            - generic [ref=e85]:
+              - paragraph [ref=e86]: Blocked Tasks (5)
+              - paragraph [ref=e87]: Tasks marked blocked and needing owner attention.
+            - link "Open blocked queue" [ref=e88] [cursor=pointer]:
+              - /url: /tasks?queue=blocked&archived=active&view=list&sort=status
+          - generic [ref=e89]:
+            - link "Confirm treatment-room sink plan Space Planning & Layout • Awaiting service-scope and supervision-model confirmation to finalize room sink requirements." [ref=e90] [cursor=pointer]:
+              - /url: /tasks/cmmmgl5dl004h7b4yo5yunk6o?queue=blocked&archived=active&view=list&sort=status
+              - paragraph [ref=e91]: Confirm treatment-room sink plan
+              - paragraph [ref=e92]: Space Planning & Layout • Awaiting service-scope and supervision-model confirmation to finalize room sink requirements.
+            - link "Confirm Florida laser licensure and supervision requirements Florida / Lakeland Verification Notes • Waiting on final confirmation from Florida-specific regulatory resources and retained advisors." [ref=e93] [cursor=pointer]:
+              - /url: /tasks/cmmmglq2200b27b4ycmyt2jnt?queue=blocked&archived=active&view=list&sort=status
+              - paragraph [ref=e94]: Confirm Florida laser licensure and supervision requirements
+              - paragraph [ref=e95]: Florida / Lakeland Verification Notes • Waiting on final confirmation from Florida-specific regulatory resources and retained advisors.
+            - link "Verify licensure, supervision, and Florida laser rules Licensing, Compliance & Business Setup • Awaiting counsel and Florida Department of Health guidance confirmation for the final service mix." [ref=e96] [cursor=pointer]:
+              - /url: /tasks/cmmmglcf7006q7b4yia551u8x?queue=blocked&archived=active&view=list&sort=status
+              - paragraph [ref=e97]: Verify licensure, supervision, and Florida laser rules
+              - paragraph [ref=e98]: Licensing, Compliance & Business Setup • Awaiting counsel and Florida Department of Health guidance confirmation for the final service mix.
+            - link "Lock device electrical requirements before rough-in Construction & Build-Out • Primary hair-removal platform selection is pending final quote and service coverage comparison." [ref=e99] [cursor=pointer]:
+              - /url: /tasks/cmmmgl6im004s7b4y218lenl4?queue=blocked&archived=active&view=list&sort=status
+              - paragraph [ref=e100]: Lock device electrical requirements before rough-in
+              - paragraph [ref=e101]: Construction & Build-Out • Primary hair-removal platform selection is pending final quote and service coverage comparison.
+        - generic [ref=e102]:
+          - generic [ref=e103]:
+            - generic [ref=e104]:
+              - generic [ref=e105]:
+                - paragraph [ref=e106]: Recent Documents
+                - paragraph [ref=e107]: Open the protected document shelf directly.
+              - link "Open vault" [ref=e108] [cursor=pointer]:
+                - /url: /documents
+            - generic [ref=e109]:
+              - link "skill heif check 2 OTHER Added by Sean D IT on Mar 13, 2026" [ref=e110] [cursor=pointer]:
+                - /url: /documents/cmmpnm25b000d7biyosxrrdg6
+                - generic [ref=e111]:
+                  - paragraph [ref=e112]: skill heif check 2
+                  - generic [ref=e113]: OTHER
+                - paragraph [ref=e114]: Added by Sean D IT on Mar 13, 2026
+              - link "skill heic check 2 OTHER Added by Sean D IT on Mar 13, 2026" [ref=e115] [cursor=pointer]:
+                - /url: /documents/cmmpnm1ky00097biyxlo81civ
+                - generic [ref=e116]:
+                  - paragraph [ref=e117]: skill heic check 2
+                  - generic [ref=e118]: OTHER
+                - paragraph [ref=e119]: Added by Sean D IT on Mar 13, 2026
+              - link "skill xlsx check 2 OTHER Added by Sean D IT on Mar 13, 2026" [ref=e120] [cursor=pointer]:
+                - /url: /documents/cmmpnm0xb00057biyt5zrofhz
+                - generic [ref=e121]:
+                  - paragraph [ref=e122]: skill xlsx check 2
+                  - generic [ref=e123]: OTHER
+                - paragraph [ref=e124]: Added by Sean D IT on Mar 13, 2026
+              - link "skill md check 2 OTHER Added by Sean D IT on Mar 13, 2026" [ref=e125] [cursor=pointer]:
+                - /url: /documents/cmmpnm07k00017biykmglm0l1
+                - generic [ref=e126]:
+                  - paragraph [ref=e127]: skill md check 2
+                  - generic [ref=e128]: OTHER
+                - paragraph [ref=e129]: Added by Sean D IT on Mar 13, 2026
+              - link "sample PERMIT Added by Sean D IT on Mar 13, 2026" [ref=e130] [cursor=pointer]:
+                - /url: /documents/cmmpnjjfm00017b95vb8oygm0
+                - generic [ref=e131]:
+                  - paragraph [ref=e132]: sample
+                  - generic [ref=e133]: PERMIT
+                - paragraph [ref=e134]: Added by Sean D IT on Mar 13, 2026
+          - generic [ref=e135]:
+            - generic [ref=e136]:
+              - generic [ref=e137]:
+                - paragraph [ref=e138]: Message Activity
+                - paragraph [ref=e139]: Jump into the related task or the focused message thread.
+              - link "Open board" [ref=e140] [cursor=pointer]:
+                - /url: /messages
+            - generic [ref=e141]:
+              - 'link "Task thread: Final room plan approval Sean D IT Still working on cleaning up the ui and making the functionality make sense." [ref=e142] [cursor=pointer]':
+                - /url: /messages/cmmmgltfp00dx7b4y9ko8e1po
+                - generic [ref=e143]:
+                  - paragraph [ref=e144]: "Task thread: Final room plan approval"
+                  - generic [ref=e145]: Sean D IT
+                - paragraph [ref=e146]: Still working on cleaning up the ui and making the functionality make sense.
+              - 'link "Task thread: Final room plan approval Operations Collaborator Acoustic insulation and provider-workroom storage are the two current layout revisions under review." [ref=e147] [cursor=pointer]':
+                - /url: /messages/cmmmgltfp00dx7b4y9ko8e1po
+                - generic [ref=e148]:
+                  - paragraph [ref=e149]: "Task thread: Final room plan approval"
+                  - generic [ref=e150]: Operations Collaborator
+                - paragraph [ref=e151]: Acoustic insulation and provider-workroom storage are the two current layout revisions under review.
+              - 'link "Task thread: Final room plan approval Sean D IT Use this thread for designer, GC, and owner notes tied directly to the room plan approval task." [ref=e152] [cursor=pointer]':
+                - /url: /messages/cmmmgltfp00dx7b4y9ko8e1po
+                - generic [ref=e153]:
+                  - paragraph [ref=e154]: "Task thread: Final room plan approval"
+                  - generic [ref=e155]: Sean D IT
+                - paragraph [ref=e156]: Use this thread for designer, GC, and owner notes tied directly to the room plan approval task.
+              - link "Compliance verification Operations Collaborator Regulatory items remain reminders and tracked tasks until local counsel, contractors, and authorities confirm the final requirements." [ref=e157] [cursor=pointer]:
+                - /url: /messages/cmmmgltb000dr7b4ykb0gp7vc
+                - generic [ref=e158]:
+                  - paragraph [ref=e159]: Compliance verification
+                  - generic [ref=e160]: Operations Collaborator
+                - paragraph [ref=e161]: Regulatory items remain reminders and tracked tasks until local counsel, contractors, and authorities confirm the final requirements.
+              - link "Compliance verification Sean D IT This thread is for permit, occupancy, laser supervision, and policy-manual verification follow-up." [ref=e162] [cursor=pointer]:
+                - /url: /messages/cmmmgltb000dr7b4ykb0gp7vc
+                - generic [ref=e163]:
+                  - paragraph [ref=e164]: Compliance verification
+                  - generic [ref=e165]: Sean D IT
+                - paragraph [ref=e166]: This thread is for permit, occupancy, laser supervision, and policy-manual verification follow-up.
+          - generic [ref=e167]:
+            - generic [ref=e169]:
+              - paragraph [ref=e170]: Recent Audit Activity
+              - paragraph [ref=e171]: Latest operational changes across the active workspace.
+            - generic [ref=e172]:
+              - link "Bulk archived tasks. Sean D IT • Mar 14, 2026" [ref=e173] [cursor=pointer]:
+                - /url: /tasks/cmmqhpec600017bcsbh9gkouw
+                - generic [ref=e174]:
+                  - paragraph [ref=e175]: Bulk archived tasks.
+                  - paragraph [ref=e176]: Sean D IT • Mar 14, 2026
+              - link "Archived task \"Codex task creation smoke check\". Sean D IT • Mar 14, 2026" [ref=e177] [cursor=pointer]:
+                - /url: /tasks/cmmqbwd8s00017bhoze8qrg0t
+                - generic [ref=e178]:
+                  - paragraph [ref=e179]: Archived task "Codex task creation smoke check".
+                  - paragraph [ref=e180]: Sean D IT • Mar 14, 2026
+              - link "Created task \"Hidden task UX smoke check\". Sean D IT • Mar 14, 2026" [ref=e181] [cursor=pointer]:
+                - /url: /tasks/cmmqhpec600017bcsbh9gkouw
+                - generic [ref=e182]:
+                  - paragraph [ref=e183]: Created task "Hidden task UX smoke check".
+                  - paragraph [ref=e184]: Sean D IT • Mar 14, 2026
+              - link "Created task \"Codex task creation smoke check\". Sean D IT • Mar 14, 2026" [ref=e185] [cursor=pointer]:
+                - /url: /tasks/cmmqbwd8s00017bhoze8qrg0t
+                - generic [ref=e186]:
+                  - paragraph [ref=e187]: Created task "Codex task creation smoke check".
+                  - paragraph [ref=e188]: Sean D IT • Mar 14, 2026
+              - link "Uploaded document \"skill heif check 2\". Sean D IT • Mar 13, 2026" [ref=e189] [cursor=pointer]:
+                - /url: /documents/cmmpnm25b000d7biyosxrrdg6
+                - generic [ref=e190]:
+                  - paragraph [ref=e191]: Uploaded document "skill heif check 2".
+                  - paragraph [ref=e192]: Sean D IT • Mar 13, 2026
+              - link "Uploaded document \"skill heic check 2\". Sean D IT • Mar 13, 2026" [ref=e193] [cursor=pointer]:
+                - /url: /documents/cmmpnm1ky00097biyxlo81civ
+                - generic [ref=e194]:
+                  - paragraph [ref=e195]: Uploaded document "skill heic check 2".
+                  - paragraph [ref=e196]: Sean D IT • Mar 13, 2026
+              - link "Uploaded document \"skill xlsx check 2\". Sean D IT • Mar 13, 2026" [ref=e197] [cursor=pointer]:
+                - /url: /documents/cmmpnm0xb00057biyt5zrofhz
+                - generic [ref=e198]:
+                  - paragraph [ref=e199]: Uploaded document "skill xlsx check 2".
+                  - paragraph [ref=e200]: Sean D IT • Mar 13, 2026
+              - link "Uploaded document \"skill md check 2\". Sean D IT • Mar 13, 2026" [ref=e201] [cursor=pointer]:
+                - /url: /documents/cmmpnm07k00017biykmglm0l1
+                - generic [ref=e202]:
+                  - paragraph [ref=e203]: Uploaded document "skill md check 2".
+                  - paragraph [ref=e204]: Sean D IT • Mar 13, 2026
+    - contentinfo [ref=e205]:
+      - generic [ref=e206]:
+        - paragraph [ref=e207]: SALT Business Planner
+        - paragraph [ref=e208]: Protected internal operations environment for planning, execution, and audit review.

@@ -14,15 +14,15 @@ export function SummaryMetricCard({
   return (
     <section
       className={[
-        "rounded-[1.5rem] border p-5 shadow-sm",
+        "rounded-[1.35rem] border p-4 shadow-sm lg:p-4",
         tone === "warning"
           ? "border-amber-200 bg-amber-50/80"
           : "border-border bg-white/85 backdrop-blur"
       ].join(" ")}
     >
       <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">{title}</p>
-      <p className="mt-3 text-3xl font-semibold">{value}</p>
-      <p className="mt-2 text-sm text-muted-foreground">{detail}</p>
+      <p className="mt-2 text-[1.85rem] font-semibold leading-none lg:text-[2rem]">{value}</p>
+      <p className="mt-1.5 text-xs leading-5 text-muted-foreground lg:text-[13px]">{detail}</p>
     </section>
   );
 }

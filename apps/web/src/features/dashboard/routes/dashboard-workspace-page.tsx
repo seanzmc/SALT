@@ -184,28 +184,29 @@ export function DashboardWorkspacePage() {
     : [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 xl:space-y-5">
       <WorkspacePageHeader
-        description="Active-work queues, recent operational movement, and direct deep links into the rebuilt task, document, message, budget, and timeline workspaces."
+        compact
+        description="Triage active work and jump directly into task, document, message, budget, and timeline queues."
         eyebrow="Dashboard"
         title="Launch control surface"
       />
 
       {summaryQuery.isLoading ? (
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+        <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
           {Array.from({ length: 5 }).map((_, index) => (
-            <LoadingBlock key={index} className="h-36" />
+            <LoadingBlock key={index} className="h-28" />
           ))}
         </section>
       ) : summaryQuery.data ? (
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+        <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
           <SummaryMetricCard
-            detail={`${summaryQuery.data.recentlyCompletedCount} recently completed tasks`}
+            detail={`${summaryQuery.data.recentlyCompletedCount} completed recently`}
             title="Overall completion"
             value={formatPercent(summaryQuery.data.overallCompletion)}
           />
           <SummaryMetricCard
-            detail={`${summaryQuery.data.queueCounts.overdue} overdue items need attention`}
+            detail={`${summaryQuery.data.queueCounts.overdue} overdue items`}
             title="Overdue tasks"
             tone="warning"
             value={String(summaryQuery.data.queueCounts.overdue)}
@@ -216,12 +217,12 @@ export function DashboardWorkspacePage() {
             value={String(summaryQuery.data.queueCounts.unassigned)}
           />
           <SummaryMetricCard
-            detail="Active tasks due in the next 7 days"
+            detail="Due in the next 7 days"
             title="Due this week"
             value={String(summaryQuery.data.queueCounts.upcoming)}
           />
           <SummaryMetricCard
-            detail="Incomplete active tasks not touched in 7+ days"
+            detail="No updates in 7+ days"
             title="Needs update"
             value={String(summaryQuery.data.queueCounts.stale)}
           />
@@ -235,15 +236,15 @@ export function DashboardWorkspacePage() {
       ) : null}
 
       {summaryQuery.isLoading ? (
-        <section className="grid gap-6 xl:grid-cols-3">
+        <section className="grid gap-4 xl:grid-cols-3">
           {Array.from({ length: 3 }).map((_, index) => (
-            <LoadingBlock key={index} className="h-80" />
+            <LoadingBlock key={index} className="h-72" />
           ))}
         </section>
       ) : summaryQuery.data ? (
         <>
           {primaryAttentionCards.length > 0 ? (
-            <section className="grid gap-6 xl:grid-cols-3">
+            <section className="grid gap-4 xl:grid-cols-3">
               {primaryAttentionCards.map((item) => (
                 <div key={item.key}>{item.card}</div>
               ))}
@@ -255,14 +256,14 @@ export function DashboardWorkspacePage() {
           )}
 
           {secondaryAttentionCards.length > 0 ? (
-            <section className="grid gap-6 xl:grid-cols-2">
+            <section className="grid gap-4 xl:grid-cols-2">
               {secondaryAttentionCards.map((item) => (
                 <div key={item.key}>{item.card}</div>
               ))}
             </section>
           ) : null}
 
-          <section className="grid gap-6 xl:grid-cols-3">
+          <section className="grid gap-5 xl:grid-cols-3">
             <section className="rounded-[1.5rem] border border-border bg-white/85 p-5 shadow-sm backdrop-blur">
               <div className="flex items-center justify-between gap-3">
                 <div>

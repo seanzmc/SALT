@@ -9,24 +9,41 @@ type WorkspacePageHeaderProps = {
   title: string;
   description: string;
   actions?: ReactNode;
+  compact?: boolean;
 };
 
 export function WorkspacePageHeader({
   eyebrow,
   title,
   description,
-  actions
+  actions,
+  compact = false
 }: WorkspacePageHeaderProps) {
   return (
-    <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <header
+      className={joinClasses(
+        "flex flex-col lg:flex-row lg:items-end lg:justify-between",
+        compact ? "gap-2 lg:gap-3" : "gap-4"
+      )}
+    >
       <div className="max-w-4xl min-w-0">
         <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
           {eyebrow}
         </p>
-        <h1 className="mt-2 break-words text-3xl font-semibold tracking-[-0.03em] text-foreground md:text-[2.15rem]">
+        <h1
+          className={joinClasses(
+            "break-words font-semibold tracking-[-0.03em] text-foreground",
+            compact ? "mt-1 text-[1.9rem] md:text-[2rem]" : "mt-2 text-3xl md:text-[2.15rem]"
+          )}
+        >
           {title}
         </h1>
-        <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground [text-wrap:pretty]">
+        <p
+          className={joinClasses(
+            "max-w-3xl text-sm text-muted-foreground [text-wrap:pretty]",
+            compact ? "mt-2 leading-5 lg:max-w-2xl" : "mt-3 leading-6"
+          )}
+        >
           {description}
         </p>
       </div>
