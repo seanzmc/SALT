@@ -463,6 +463,7 @@ export function TaskShelf({
   const [showUploadForm, setShowUploadForm] = useState(false);
   const [showArchivedSubtasks, setShowArchivedSubtasks] = useState(false);
   const [isEditingTask, setIsEditingTask] = useState(false);
+  const [isMobileHeaderCondensed, setIsMobileHeaderCondensed] = useState(false);
   const [quickStatus, setQuickStatus] = useState<TaskFormValues["status"]>("NOT_STARTED");
   const [quickBlockedReason, setQuickBlockedReason] = useState("");
   const editSectionRef = useRef<HTMLElement | null>(null);
@@ -544,6 +545,7 @@ export function TaskShelf({
     setShowUploadForm(false);
     setShowArchivedSubtasks(false);
     setIsEditingTask(false);
+    setIsMobileHeaderCondensed(false);
   }, [commentForm, createSubtaskForm, dependencyForm, documentForm, task?.id]);
 
   useEffect(() => {
@@ -634,17 +636,30 @@ export function TaskShelf({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="relative border-b border-border/80 px-5 py-5">
+      <div
+        className={joinClasses(
+          "relative border-b border-border/80 transition-[padding] duration-200",
+          isMobileHeaderCondensed ? "px-4 py-3 sm:px-5 sm:py-5" : "px-5 py-5"
+        )}
+      >
         <button
           aria-label="Close"
-          className="absolute right-5 top-5 inline-flex h-9 w-9 items-center justify-center rounded-full border border-border text-sm text-muted-foreground hover:bg-muted"
+          className={joinClasses(
+            "absolute inline-flex h-9 w-9 items-center justify-center rounded-full border border-border text-sm text-muted-foreground transition-all duration-200 hover:bg-muted",
+            isMobileHeaderCondensed ? "right-4 top-3 sm:right-5 sm:top-5" : "right-5 top-5"
+          )}
           onClick={onClose}
           type="button"
         >
           X
         </button>
 
-        <div className="space-y-4 pr-12">
+        <div
+          className={joinClasses(
+            "pr-12 transition-[gap,padding] duration-200",
+            isMobileHeaderCondensed ? "space-y-3 pr-11 sm:space-y-4 sm:pr-12" : "space-y-4"
+          )}
+        >
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <span className="rounded-full bg-muted px-3 py-1 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
@@ -656,10 +671,29 @@ export function TaskShelf({
                 </span>
               ) : null}
             </div>
-            <h3 className="mt-2 break-words text-2xl font-semibold">{task.title}</h3>
-            <p className="mt-2 break-words text-sm text-muted-foreground">{shelfMeta}</p>
+            <h3
+              className={joinClasses(
+                "mt-2 break-words font-semibold transition-[font-size] duration-200",
+                isMobileHeaderCondensed ? "text-xl sm:text-2xl" : "text-2xl"
+              )}
+            >
+              {task.title}
+            </h3>
+            <p
+              className={joinClasses(
+                "mt-2 break-words text-sm text-muted-foreground",
+                isMobileHeaderCondensed ? "hidden sm:block" : ""
+              )}
+            >
+              {shelfMeta}
+            </p>
 
-            <div className="mt-3 flex flex-wrap items-center gap-2">
+            <div
+              className={joinClasses(
+                "mt-3 flex flex-wrap items-center gap-2",
+                isMobileHeaderCondensed ? "hidden sm:flex" : ""
+              )}
+            >
               {canEditTask ? (
                 <button
                   aria-expanded={isEditingTask}
@@ -703,14 +737,19 @@ export function TaskShelf({
 
           <div className="flex flex-wrap items-center gap-2">
             <button
-              className="min-h-[2.75rem] min-w-[7.5rem] rounded-full border border-border px-3 py-2 text-sm text-muted-foreground hover:bg-muted"
+              className="hidden min-h-[2.75rem] min-w-[7.5rem] rounded-full border border-border px-3 py-2 text-sm text-muted-foreground hover:bg-muted sm:inline-flex sm:items-center sm:justify-center"
               onClick={onToggleExpanded}
               type="button"
             >
               {isExpanded ? "Standard view" : "Expanded view"}
             </button>
             <button
-              className="min-h-[2.75rem] min-w-[7.5rem] rounded-full border border-border px-3 py-2 text-sm text-muted-foreground hover:bg-muted disabled:opacity-50"
+              className={joinClasses(
+                "rounded-full border border-border text-muted-foreground hover:bg-muted disabled:opacity-50",
+                isMobileHeaderCondensed
+                  ? "min-h-9 min-w-[5.5rem] px-3 py-1.5 text-xs sm:min-h-[2.75rem] sm:min-w-[7.5rem] sm:px-3 sm:py-2 sm:text-sm"
+                  : "min-h-[2.75rem] min-w-[7.5rem] px-3 py-2 text-sm"
+              )}
               disabled={!onPrevious}
               onClick={onPrevious}
               type="button"
@@ -718,7 +757,12 @@ export function TaskShelf({
               Previous
             </button>
             <button
-              className="min-h-[2.75rem] min-w-[7.5rem] rounded-full border border-border px-3 py-2 text-sm text-muted-foreground hover:bg-muted disabled:opacity-50"
+              className={joinClasses(
+                "rounded-full border border-border text-muted-foreground hover:bg-muted disabled:opacity-50",
+                isMobileHeaderCondensed
+                  ? "min-h-9 min-w-[5.5rem] px-3 py-1.5 text-xs sm:min-h-[2.75rem] sm:min-w-[7.5rem] sm:px-3 sm:py-2 sm:text-sm"
+                  : "min-h-[2.75rem] min-w-[7.5rem] px-3 py-2 text-sm"
+              )}
               disabled={!onNext}
               onClick={onNext}
               type="button"
@@ -729,7 +773,12 @@ export function TaskShelf({
         </div>
       </div>
 
-      <div className="flex-1 space-y-5 overflow-y-auto p-5">
+      <div
+        className="flex-1 space-y-5 overflow-y-auto p-5"
+        onScroll={(event) => {
+          setIsMobileHeaderCondensed(event.currentTarget.scrollTop > 24);
+        }}
+      >
         <section className="space-y-4 rounded-[1.5rem] border border-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.97),rgba(247,243,235,0.86))] p-4 shadow-[0_22px_50px_-44px_rgba(15,23,42,0.3)]">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>

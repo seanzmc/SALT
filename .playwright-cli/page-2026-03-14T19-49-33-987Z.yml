@@ -1,0 +1,14 @@
+- generic [ref=e6]:
+  - paragraph [ref=e7]: SALT Business Planner
+  - heading "Sign in" [level=1] [ref=e8]
+  - generic [ref=e9]:
+    - generic [ref=e10]:
+      - text: Email
+      - textbox "Email" [ref=e11]: seanzmc9613@gmail.com
+    - generic [ref=e12]:
+      - text: Password
+      - textbox "Password" [ref=e13]: ChangeMe123!
+    - paragraph [ref=e18]: Invalid email or password.
+    - button "Sign in" [ref=e14] [cursor=pointer]
+  - link "Forgot password?" [ref=e16] [cursor=pointer]:
+    - /url: /forgot-password

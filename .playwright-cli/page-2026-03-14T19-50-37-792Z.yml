@@ -1,0 +1,1609 @@
+- generic [ref=e1]:
+  - generic [ref=e6]:
+    - complementary [ref=e7]:
+      - generic [ref=e8]:
+        - generic [ref=e9]:
+          - paragraph [ref=e10]: SALT Business Planner
+          - heading "Workspace" [level=1] [ref=e11]
+        - navigation [ref=e12]:
+          - link "Dashboard Control surface" [ref=e13] [cursor=pointer]:
+            - /url: /dashboard
+            - paragraph [ref=e14]: Dashboard
+            - paragraph [ref=e15]: Control surface
+          - link "Tasks Queue and shelf" [ref=e16] [cursor=pointer]:
+            - /url: /tasks
+            - paragraph [ref=e17]: Tasks
+            - paragraph [ref=e18]: Queue and shelf
+          - link "Timeline Opening phases" [ref=e19] [cursor=pointer]:
+            - /url: /timeline
+            - paragraph [ref=e20]: Timeline
+            - paragraph [ref=e21]: Opening phases
+          - link "Budget Spend tracking" [ref=e22] [cursor=pointer]:
+            - /url: /budget
+            - paragraph [ref=e23]: Budget
+            - paragraph [ref=e24]: Spend tracking
+          - link "Documents Protected vault" [ref=e25] [cursor=pointer]:
+            - /url: /documents
+            - paragraph [ref=e26]: Documents
+            - paragraph [ref=e27]: Protected vault
+          - link "Messages Thread workspace" [ref=e28] [cursor=pointer]:
+            - /url: /messages
+            - paragraph [ref=e29]: Messages
+            - paragraph [ref=e30]: Thread workspace
+          - link "Setup Owner controls" [ref=e31] [cursor=pointer]:
+            - /url: /settings/setup
+            - paragraph [ref=e32]: Setup
+            - paragraph [ref=e33]: Owner controls
+    - generic [ref=e34]:
+      - banner [ref=e35]:
+        - generic [ref=e36]:
+          - generic [ref=e37]:
+            - paragraph [ref=e38]: Workspace
+            - heading "Tasks" [level=2] [ref=e40]
+          - generic [ref=e41]:
+            - button "Open activity feed" [ref=e42] [cursor=pointer]:
+              - img [ref=e43]
+              - generic [ref=e46]: "8"
+            - button "Open account menu" [ref=e48] [cursor=pointer]:
+              - generic [ref=e49]: Account
+              - generic [ref=e51]: CH
+      - main [ref=e52]:
+        - generic [ref=e54]:
+          - generic [ref=e55]:
+            - generic [ref=e56]:
+              - paragraph [ref=e57]: Tasks
+              - heading "Work queue" [level=1] [ref=e58]
+              - paragraph [ref=e59]: Search, sort, and review work from a single queue.
+            - button "New task" [ref=e61] [cursor=pointer]
+          - generic [ref=e62]:
+            - generic [ref=e66]:
+              - generic [ref=e67]:
+                - generic [ref=e68]:
+                  - button "All 89" [ref=e118] [cursor=pointer]
+                  - button "My work 38" [ref=e119] [cursor=pointer]
+                  - button "Overdue 0" [ref=e71] [cursor=pointer]
+                  - button "Upcoming 0" [ref=e72] [cursor=pointer]
+                  - button "Blocked 5" [ref=e120] [cursor=pointer]
+                  - button "Unassigned 0" [ref=e74] [cursor=pointer]
+                  - button "Stale 0" [ref=e75] [cursor=pointer]
+                - generic [ref=e76]:
+                  - generic [ref=e77]:
+                    - button "List" [ref=e78] [cursor=pointer]
+                    - button "Board" [ref=e79] [cursor=pointer]
+                  - generic [ref=e80]:
+                    - button "active" [ref=e81] [cursor=pointer]
+                    - button "archived" [ref=e82] [cursor=pointer]
+                    - button "all" [ref=e83] [cursor=pointer]
+                  - button "Reset" [ref=e84] [cursor=pointer]
+              - generic [ref=e85]:
+                - searchbox "Search titles, notes, or descriptions" [ref=e86]
+                - group [ref=e87]:
+                  - generic "Status All" [ref=e88]:
+                    - generic [ref=e89]:
+                      - generic [ref=e90]: Status
+                      - generic [ref=e91]: All
+                - group [ref=e92]:
+                  - generic "Section All" [ref=e93]:
+                    - generic [ref=e94]:
+                      - generic [ref=e95]: Section
+                      - generic [ref=e96]: All
+                - group [ref=e97]:
+                  - generic "Assignee All" [ref=e98]:
+                    - generic [ref=e99]:
+                      - generic [ref=e100]: Assignee
+                      - generic [ref=e101]: All
+                - group [ref=e102]:
+                  - generic "Priority All" [ref=e103]:
+                    - generic [ref=e104]:
+                      - generic [ref=e105]: Priority
+                      - generic [ref=e106]: All
+                - generic [ref=e107]:
+                  - generic [ref=e108]: Sort
+                  - combobox "Sort" [ref=e109]:
+                    - option "Due date" [selected]
+                    - option "Priority"
+                    - option "Title"
+                    - option "Status"
+                - button "Asc" [ref=e110] [cursor=pointer]
+                - button "Group by section" [ref=e111] [cursor=pointer]
+            - generic [ref=e121]:
+              - generic [ref=e122]:
+                - generic [ref=e123]: 89 visible tasks
+                - button "Select visible" [ref=e124] [cursor=pointer]
+              - table [ref=e126]:
+                - rowgroup [ref=e127]:
+                  - row "Select all visible tasks Work item sort Due asc Status sort Checklist" [ref=e128]:
+                    - columnheader "Select all visible tasks" [ref=e129]:
+                      - checkbox "Select all visible tasks" [ref=e130]
+                    - columnheader "Work item sort" [ref=e131]:
+                      - button "Work item sort" [ref=e132] [cursor=pointer]:
+                        - generic [ref=e133]: Work item
+                        - generic [ref=e134]: sort
+                    - columnheader "Due asc" [ref=e135]:
+                      - button "Due asc" [ref=e136] [cursor=pointer]:
+                        - generic [ref=e137]: Due
+                        - generic [ref=e138]: asc
+                    - columnheader "Status sort" [ref=e139]:
+                      - button "Status sort" [ref=e140] [cursor=pointer]:
+                        - generic [ref=e141]: Status
+                        - generic [ref=e142]: sort
+                    - columnheader "Checklist" [ref=e143]
+                - rowgroup [ref=e144]:
+                  - row "Lease fully executed and permitted use confirmed Pre-lease / immediately after securing space · Master Opening Checklist Ready Apr 2 COMPLETE None" [ref=e145]:
+                    - cell [ref=e146]:
+                      - checkbox [ref=e147]
+                    - cell "Lease fully executed and permitted use confirmed Pre-lease / immediately after securing space · Master Opening Checklist Ready" [ref=e148]:
+                      - generic [ref=e150]:
+                        - generic [ref=e151]:
+                          - link "Lease fully executed and permitted use confirmed" [active] [ref=e152] [cursor=pointer]:
+                            - /url: /tasks/cmmmgli9000907b4ymnfmrujy
+                          - paragraph [ref=e153]: Pre-lease / immediately after securing space · Master Opening Checklist
+                        - generic [ref=e155]: Ready
+                    - cell "Apr 2" [ref=e156]
+                    - cell "COMPLETE" [ref=e157]:
+                      - generic [ref=e158]: COMPLETE
+                    - cell "None" [ref=e159]
+                  - row "Confirm Lakeland use approval and local business tax requirements Pre-lease / immediately after securing space · Florida / Lakeland Verification Notes Ready Apr 3 COMPLETE None" [ref=e160]:
+                    - cell [ref=e161]:
+                      - checkbox [ref=e162]
+                    - cell "Confirm Lakeland use approval and local business tax requirements Pre-lease / immediately after securing space · Florida / Lakeland Verification Notes Ready" [ref=e163]:
+                      - generic [ref=e165]:
+                        - generic [ref=e166]:
+                          - link "Confirm Lakeland use approval and local business tax requirements" [ref=e167] [cursor=pointer]:
+                            - /url: /tasks/cmmmglpkh00ay7b4yut2fi2a4
+                          - paragraph [ref=e168]: Pre-lease / immediately after securing space · Florida / Lakeland Verification Notes
+                        - generic [ref=e170]: Ready
+                    - cell "Apr 3" [ref=e171]
+                    - cell "COMPLETE" [ref=e172]:
+                      - generic [ref=e173]: COMPLETE
+                    - cell "None" [ref=e174]
+                  - row "Confirm zoning, permitted use, and landlord restrictions Pre-lease / immediately after securing space · Licensing, Compliance & Business Setup Ready Apr 3 COMPLETE None" [ref=e175]:
+                    - cell [ref=e176]:
+                      - checkbox [ref=e177]
+                    - cell "Confirm zoning, permitted use, and landlord restrictions Pre-lease / immediately after securing space · Licensing, Compliance & Business Setup Ready" [ref=e178]:
+                      - generic [ref=e180]:
+                        - generic [ref=e181]:
+                          - link "Confirm zoning, permitted use, and landlord restrictions" [ref=e182] [cursor=pointer]:
+                            - /url: /tasks/cmmmglby3006m7b4ymqnaqs6d
+                          - paragraph [ref=e183]: Pre-lease / immediately after securing space · Licensing, Compliance & Business Setup
+                        - generic [ref=e185]: Ready
+                    - cell "Apr 3" [ref=e186]
+                    - cell "COMPLETE" [ref=e187]:
+                      - generic [ref=e188]: COMPLETE
+                    - cell "None" [ref=e189]
+                  - row "Confirm launch room program Pre-lease / immediately after securing space · Space Planning & Layout Ready Apr 5 COMPLETE 0/3" [ref=e190]:
+                    - cell [ref=e191]:
+                      - checkbox [ref=e192]
+                    - cell "Confirm launch room program Pre-lease / immediately after securing space · Space Planning & Layout Ready" [ref=e193]:
+                      - generic [ref=e195]:
+                        - generic [ref=e196]:
+                          - link "Confirm launch room program" [ref=e197] [cursor=pointer]:
+                            - /url: /tasks/cmmmgl4c300457b4y6iukhux8
+                          - paragraph [ref=e198]: Pre-lease / immediately after securing space · Space Planning & Layout
+                        - generic [ref=e200]: Ready
+                    - cell "Apr 5" [ref=e201]
+                    - cell "COMPLETE" [ref=e202]:
+                      - generic [ref=e203]: COMPLETE
+                    - cell "0/3" [ref=e204]:
+                      - button "0/3" [ref=e205] [cursor=pointer]
+                  - row "Draft lean-opening layout with future room capacity Pre-lease / immediately after securing space · Space Planning & Layout Ready Apr 9 IN PROGRESS 0/3" [ref=e206]:
+                    - cell [ref=e207]:
+                      - checkbox [ref=e208]
+                    - cell "Draft lean-opening layout with future room capacity Pre-lease / immediately after securing space · Space Planning & Layout Ready" [ref=e209]:
+                      - generic [ref=e211]:
+                        - generic [ref=e212]:
+                          - link "Draft lean-opening layout with future room capacity" [ref=e213] [cursor=pointer]:
+                            - /url: /tasks/cmmmgl4s7004a7b4yjq6fqpi7
+                          - paragraph [ref=e214]: Pre-lease / immediately after securing space · Space Planning & Layout
+                        - generic [ref=e216]: Ready
+                    - cell "Apr 9" [ref=e217]
+                    - cell "IN PROGRESS" [ref=e218]:
+                      - generic [ref=e219]: IN PROGRESS
+                    - cell "0/3" [ref=e220]:
+                      - button "0/3" [ref=e221] [cursor=pointer]
+                  - row "Complete entity, banking, and bookkeeping setup Pre-lease / immediately after securing space · Licensing, Compliance & Business Setup Ready Apr 11 COMPLETE None" [ref=e222]:
+                    - cell [ref=e223]:
+                      - checkbox [ref=e224]
+                    - cell "Complete entity, banking, and bookkeeping setup Pre-lease / immediately after securing space · Licensing, Compliance & Business Setup Ready" [ref=e225]:
+                      - generic [ref=e227]:
+                        - generic [ref=e228]:
+                          - link "Complete entity, banking, and bookkeeping setup" [ref=e229] [cursor=pointer]:
+                            - /url: /tasks/cmmmglbok006k7b4yhfmpfvt0
+                          - paragraph [ref=e230]: Pre-lease / immediately after securing space · Licensing, Compliance & Business Setup
+                        - generic [ref=e232]: Ready
+                    - cell "Apr 11" [ref=e233]
+                    - cell "COMPLETE" [ref=e234]:
+                      - generic [ref=e235]: COMPLETE
+                    - cell "None" [ref=e236]
+                  - row "Business entity, banking, merchant processing, and bookkeeping are live Pre-lease / immediately after securing space · Master Opening Checklist Ready Apr 13 COMPLETE None" [ref=e237]:
+                    - cell [ref=e238]:
+                      - checkbox [ref=e239]
+                    - cell "Business entity, banking, merchant processing, and bookkeeping are live Pre-lease / immediately after securing space · Master Opening Checklist Ready" [ref=e240]:
+                      - generic [ref=e242]:
+                        - generic [ref=e243]:
+                          - link "Business entity, banking, merchant processing, and bookkeeping are live" [ref=e244] [cursor=pointer]:
+                            - /url: /tasks/cmmmgljgp009c7b4yvmjye3rt
+                          - paragraph [ref=e245]: Pre-lease / immediately after securing space · Master Opening Checklist
+                        - generic [ref=e247]: Ready
+                    - cell "Apr 13" [ref=e248]
+                    - cell "COMPLETE" [ref=e249]:
+                      - generic [ref=e250]: COMPLETE
+                    - cell "None" [ref=e251]
+                  - row "Review speech and screen privacy at check-in and consult Design and due diligence · Space Planning & Layout Ready Apr 13 IN PROGRESS None" [ref=e252]:
+                    - cell [ref=e253]:
+                      - checkbox [ref=e254]
+                    - cell "Review speech and screen privacy at check-in and consult Design and due diligence · Space Planning & Layout Ready" [ref=e255]:
+                      - generic [ref=e257]:
+                        - generic [ref=e258]:
+                          - link "Review speech and screen privacy at check-in and consult" [ref=e259] [cursor=pointer]:
+                            - /url: /tasks/cmmmgl53l004f7b4yyjmqx39k
+                          - paragraph [ref=e260]: Design and due diligence · Space Planning & Layout
+                        - generic [ref=e262]: Ready
+                    - cell "Apr 13" [ref=e263]
+                    - cell "IN PROGRESS" [ref=e264]:
+                      - generic [ref=e265]: IN PROGRESS
+                    - cell "None" [ref=e266]
+                  - row "Baseline opening timeline and dependencies Pre-lease / immediately after securing space · Opening Timeline Ready Apr 15 IN PROGRESS 0/4" [ref=e267]:
+                    - cell [ref=e268]:
+                      - checkbox [ref=e269]
+                    - cell "Baseline opening timeline and dependencies Pre-lease / immediately after securing space · Opening Timeline Ready" [ref=e270]:
+                      - generic [ref=e272]:
+                        - generic [ref=e273]:
+                          - link "Baseline opening timeline and dependencies" [ref=e274] [cursor=pointer]:
+                            - /url: /tasks/cmmmglfb5007y7b4yau0pdjyp
+                          - paragraph [ref=e275]: Pre-lease / immediately after securing space · Opening Timeline
+                        - generic [ref=e277]: Ready
+                    - cell "Apr 15" [ref=e278]
+                    - cell "IN PROGRESS" [ref=e279]:
+                      - generic [ref=e280]: IN PROGRESS
+                    - cell "0/4" [ref=e281]:
+                      - button "0/4" [ref=e282] [cursor=pointer]
+                  - row "Set launch contingency budget Pre-lease / immediately after securing space · Missing-Items Risk List Ready Apr 15 IN PROGRESS None" [ref=e283]:
+                    - cell [ref=e284]:
+                      - checkbox [ref=e285]
+                    - cell "Set launch contingency budget Pre-lease / immediately after securing space · Missing-Items Risk List Ready" [ref=e286]:
+                      - generic [ref=e288]:
+                        - generic [ref=e289]:
+                          - link "Set launch contingency budget" [ref=e290] [cursor=pointer]:
+                            - /url: /tasks/cmmmglo5a00am7b4yfw19cu6o
+                          - paragraph [ref=e291]: Pre-lease / immediately after securing space · Missing-Items Risk List
+                        - generic [ref=e293]: Ready
+                    - cell "Apr 15" [ref=e294]
+                    - cell "IN PROGRESS" [ref=e295]:
+                      - generic [ref=e296]: IN PROGRESS
+                    - cell "None" [ref=e297]
+                  - row "Confirm treatment-room sink plan Design and due diligence · Space Planning & Layout Ready Apr 17 BLOCKED 0/3" [ref=e298]:
+                    - cell [ref=e299]:
+                      - checkbox [ref=e300]
+                    - cell "Confirm treatment-room sink plan Design and due diligence · Space Planning & Layout Ready" [ref=e301]:
+                      - generic [ref=e303]:
+                        - generic [ref=e304]:
+                          - link "Confirm treatment-room sink plan" [ref=e305] [cursor=pointer]:
+                            - /url: /tasks/cmmmgl5dl004h7b4yo5yunk6o
+                          - paragraph [ref=e306]: Design and due diligence · Space Planning & Layout
+                        - generic [ref=e308]: Ready
+                    - cell "Apr 17" [ref=e309]
+                    - cell "BLOCKED" [ref=e310]:
+                      - generic [ref=e311]: BLOCKED
+                    - cell "0/3" [ref=e312]:
+                      - button "0/3" [ref=e313] [cursor=pointer]
+                  - row "Build opening budget tracker by priority tier Pre-lease / immediately after securing space · Budget Framework Ready Apr 19 IN PROGRESS 0/4" [ref=e314]:
+                    - cell [ref=e315]:
+                      - checkbox [ref=e316]
+                    - cell "Build opening budget tracker by priority tier Pre-lease / immediately after securing space · Budget Framework Ready" [ref=e317]:
+                      - generic [ref=e319]:
+                        - generic [ref=e320]:
+                          - link "Build opening budget tracker by priority tier" [ref=e321] [cursor=pointer]:
+                            - /url: /tasks/cmmmglf1w007s7b4yotq7nezm
+                          - paragraph [ref=e322]: Pre-lease / immediately after securing space · Budget Framework
+                        - generic [ref=e324]: Ready
+                    - cell "Apr 19" [ref=e325]
+                    - cell "IN PROGRESS" [ref=e326]:
+                      - generic [ref=e327]: IN PROGRESS
+                    - cell "0/4" [ref=e328]:
+                      - button "0/4" [ref=e329] [cursor=pointer]
+                  - row "Confirm Lakeland permit, inspection, and occupancy sequence Design and due diligence · Florida / Lakeland Verification Notes Ready Apr 19 NOT STARTED None" [ref=e330]:
+                    - cell [ref=e331]:
+                      - checkbox [ref=e332]
+                    - cell "Confirm Lakeland permit, inspection, and occupancy sequence Design and due diligence · Florida / Lakeland Verification Notes Ready" [ref=e333]:
+                      - generic [ref=e335]:
+                        - generic [ref=e336]:
+                          - link "Confirm Lakeland permit, inspection, and occupancy sequence" [ref=e337] [cursor=pointer]:
+                            - /url: /tasks/cmmmglpsa00b07b4y2yor6pgi
+                          - paragraph [ref=e338]: Design and due diligence · Florida / Lakeland Verification Notes
+                        - generic [ref=e340]: Ready
+                    - cell "Apr 19" [ref=e341]
+                    - cell "NOT STARTED" [ref=e342]:
+                      - generic [ref=e343]: NOT STARTED
+                    - cell "None" [ref=e344]
+                  - row "Confirm storage plan before millwork is released Design and due diligence · Missing-Items Risk List Ready Apr 19 NOT STARTED None" [ref=e345]:
+                    - cell [ref=e346]:
+                      - checkbox [ref=e347]
+                    - cell "Confirm storage plan before millwork is released Design and due diligence · Missing-Items Risk List Ready" [ref=e348]:
+                      - generic [ref=e350]:
+                        - generic [ref=e351]:
+                          - link "Confirm storage plan before millwork is released" [ref=e352] [cursor=pointer]:
+                            - /url: /tasks/cmmmglmzp00ac7b4yjjsfy3t6
+                          - paragraph [ref=e353]: Design and due diligence · Missing-Items Risk List
+                        - generic [ref=e355]: Ready
+                    - cell "Apr 19" [ref=e356]
+                    - cell "NOT STARTED" [ref=e357]:
+                      - generic [ref=e358]: NOT STARTED
+                    - cell "None" [ref=e359]
+                  - row "Approve final room plan Design and due diligence · Master Opening Checklist Ready Apr 20 IN PROGRESS None" [ref=e360]:
+                    - cell [ref=e361]:
+                      - checkbox [ref=e362]
+                    - cell "Approve final room plan Design and due diligence · Master Opening Checklist Ready" [ref=e363]:
+                      - generic [ref=e365]:
+                        - generic [ref=e366]:
+                          - link "Approve final room plan" [ref=e367] [cursor=pointer]:
+                            - /url: /tasks/cmmmglif400927b4y8p8vasxg
+                          - paragraph [ref=e368]: Design and due diligence · Master Opening Checklist
+                        - generic [ref=e370]: Ready
+                    - cell "Apr 20" [ref=e371]
+                    - cell "IN PROGRESS" [ref=e372]:
+                      - generic [ref=e373]: IN PROGRESS
+                    - cell "None" [ref=e374]
+                  - row "Approve Phase 1 opening scope Design and due diligence · Phase 1 vs Phase 2 Build-Out Ready Apr 21 NOT STARTED 0/3" [ref=e375]:
+                    - cell [ref=e376]:
+                      - checkbox [ref=e377]
+                    - cell "Approve Phase 1 opening scope Design and due diligence · Phase 1 vs Phase 2 Build-Out Ready" [ref=e378]:
+                      - generic [ref=e380]:
+                        - generic [ref=e381]:
+                          - link "Approve Phase 1 opening scope" [ref=e382] [cursor=pointer]:
+                            - /url: /tasks/cmmmglfmo00847b4ylbto015y
+                          - paragraph [ref=e383]: Design and due diligence · Phase 1 vs Phase 2 Build-Out
+                        - generic [ref=e385]: Ready
+                    - cell "Apr 21" [ref=e386]
+                    - cell "NOT STARTED" [ref=e387]:
+                      - generic [ref=e388]: NOT STARTED
+                    - cell "0/3" [ref=e389]:
+                      - button "0/3" [ref=e390] [cursor=pointer]
+                  - row "Confirm permit, inspection, and occupancy pathway Design and due diligence · Licensing, Compliance & Business Setup Ready Apr 23 IN PROGRESS None" [ref=e391]:
+                    - cell [ref=e392]:
+                      - checkbox [ref=e393]
+                    - cell "Confirm permit, inspection, and occupancy pathway Design and due diligence · Licensing, Compliance & Business Setup Ready" [ref=e394]:
+                      - generic [ref=e396]:
+                        - generic [ref=e397]:
+                          - link "Confirm permit, inspection, and occupancy pathway" [ref=e398] [cursor=pointer]:
+                            - /url: /tasks/cmmmglc83006o7b4ydewqmpf7
+                          - paragraph [ref=e399]: Design and due diligence · Licensing, Compliance & Business Setup
+                        - generic [ref=e401]: Ready
+                    - cell "Apr 23" [ref=e402]
+                    - cell "IN PROGRESS" [ref=e403]:
+                      - generic [ref=e404]: IN PROGRESS
+                    - cell "None" [ref=e405]
+                  - row "Confirm Florida laser licensure and supervision requirements Design and due diligence · Florida / Lakeland Verification Notes Ready Apr 25 BLOCKED None" [ref=e406]:
+                    - cell [ref=e407]:
+                      - checkbox [ref=e408]
+                    - cell "Confirm Florida laser licensure and supervision requirements Design and due diligence · Florida / Lakeland Verification Notes Ready" [ref=e409]:
+                      - generic [ref=e411]:
+                        - generic [ref=e412]:
+                          - link "Confirm Florida laser licensure and supervision requirements" [ref=e413] [cursor=pointer]:
+                            - /url: /tasks/cmmmglq2200b27b4ycmyt2jnt
+                          - paragraph [ref=e414]: Design and due diligence · Florida / Lakeland Verification Notes
+                        - generic [ref=e416]: Ready
+                    - cell "Apr 25" [ref=e417]
+                    - cell "BLOCKED" [ref=e418]:
+                      - generic [ref=e419]: BLOCKED
+                    - cell "None" [ref=e420]
+                  - row "Verify licensure, supervision, and Florida laser rules Design and due diligence · Licensing, Compliance & Business Setup Ready Apr 27 BLOCKED None" [ref=e421]:
+                    - cell [ref=e422]:
+                      - checkbox [ref=e423]
+                    - cell "Verify licensure, supervision, and Florida laser rules Design and due diligence · Licensing, Compliance & Business Setup Ready" [ref=e424]:
+                      - generic [ref=e426]:
+                        - generic [ref=e427]:
+                          - link "Verify licensure, supervision, and Florida laser rules" [ref=e428] [cursor=pointer]:
+                            - /url: /tasks/cmmmglcf7006q7b4yia551u8x
+                          - paragraph [ref=e429]: Design and due diligence · Licensing, Compliance & Business Setup
+                        - generic [ref=e431]: Ready
+                    - cell "Apr 27" [ref=e432]
+                    - cell "BLOCKED" [ref=e433]:
+                      - generic [ref=e434]: BLOCKED
+                    - cell "None" [ref=e435]
+                  - row "Set photo station location and lighting standard Design and due diligence · Space Planning & Layout Ready Apr 29 NOT STARTED None" [ref=e436]:
+                    - cell [ref=e437]:
+                      - checkbox [ref=e438]
+                    - cell "Set photo station location and lighting standard Design and due diligence · Space Planning & Layout Ready" [ref=e439]:
+                      - generic [ref=e441]:
+                        - generic [ref=e442]:
+                          - link "Set photo station location and lighting standard" [ref=e443] [cursor=pointer]:
+                            - /url: /tasks/cmmmgl5r1004m7b4yxb34bs0u
+                          - paragraph [ref=e444]: Design and due diligence · Space Planning & Layout
+                        - generic [ref=e446]: Ready
+                    - cell "Apr 29" [ref=e447]
+                    - cell "NOT STARTED" [ref=e448]:
+                      - generic [ref=e449]: NOT STARTED
+                    - cell "None" [ref=e450]
+                  - row "Confirm launch service menu beyond hair removal Design and due diligence · Laser Hair Removal & Aesthetic Equipment Ready May 1 NOT STARTED None" [ref=e451]:
+                    - cell [ref=e452]:
+                      - checkbox [ref=e453]
+                    - cell "Confirm launch service menu beyond hair removal Design and due diligence · Laser Hair Removal & Aesthetic Equipment Ready" [ref=e454]:
+                      - generic [ref=e456]:
+                        - generic [ref=e457]:
+                          - link "Confirm launch service menu beyond hair removal" [ref=e458] [cursor=pointer]:
+                            - /url: /tasks/cmmmgl93v005k7b4yr307hirq
+                          - paragraph [ref=e459]: Design and due diligence · Laser Hair Removal & Aesthetic Equipment
+                        - generic [ref=e461]: Ready
+                    - cell "May 1" [ref=e462]
+                    - cell "NOT STARTED" [ref=e463]:
+                      - generic [ref=e464]: NOT STARTED
+                    - cell "None" [ref=e465]
+                  - row "Obtain final device electrical specs before permit release Design and due diligence · Missing-Items Risk List Ready May 1 NOT STARTED None" [ref=e466]:
+                    - cell [ref=e467]:
+                      - checkbox [ref=e468]
+                    - cell "Obtain final device electrical specs before permit release Design and due diligence · Missing-Items Risk List Ready" [ref=e469]:
+                      - generic [ref=e471]:
+                        - generic [ref=e472]:
+                          - link "Obtain final device electrical specs before permit release" [ref=e473] [cursor=pointer]:
+                            - /url: /tasks/cmmmglms600aa7b4yea3v6tb7
+                          - paragraph [ref=e474]: Design and due diligence · Missing-Items Risk List
+                        - generic [ref=e476]: Ready
+                    - cell "May 1" [ref=e477]
+                    - cell "NOT STARTED" [ref=e478]:
+                      - generic [ref=e479]: NOT STARTED
+                    - cell "None" [ref=e480]
+                  - row "Verify acoustic privacy details before wall close-up Design and due diligence · Missing-Items Risk List Ready May 5 NOT STARTED None" [ref=e481]:
+                    - cell [ref=e482]:
+                      - checkbox [ref=e483]
+                    - cell "Verify acoustic privacy details before wall close-up Design and due diligence · Missing-Items Risk List Ready" [ref=e484]:
+                      - generic [ref=e486]:
+                        - generic [ref=e487]:
+                          - link "Verify acoustic privacy details before wall close-up" [ref=e488] [cursor=pointer]:
+                            - /url: /tasks/cmmmgln9n00ae7b4yedrhxxid
+                          - paragraph [ref=e489]: Design and due diligence · Missing-Items Risk List
+                        - generic [ref=e491]: Ready
+                    - cell "May 5" [ref=e492]
+                    - cell "NOT STARTED" [ref=e493]:
+                      - generic [ref=e494]: NOT STARTED
+                    - cell "None" [ref=e495]
+                  - row "Select primary laser platform Design and due diligence · Laser Hair Removal & Aesthetic Equipment Ready May 7 IN PROGRESS 0/4" [ref=e496]:
+                    - cell [ref=e497]:
+                      - checkbox [ref=e498]
+                    - cell "Select primary laser platform Design and due diligence · Laser Hair Removal & Aesthetic Equipment Ready" [ref=e499]:
+                      - generic [ref=e501]:
+                        - generic [ref=e502]:
+                          - link "Select primary laser platform" [ref=e503] [cursor=pointer]:
+                            - /url: /tasks/cmmmgl8r8005e7b4ywedcjztw
+                          - paragraph [ref=e504]: Design and due diligence · Laser Hair Removal & Aesthetic Equipment
+                        - generic [ref=e506]: Ready
+                    - cell "May 7" [ref=e507]
+                    - cell "IN PROGRESS" [ref=e508]:
+                      - generic [ref=e509]: IN PROGRESS
+                    - cell "0/4" [ref=e510]:
+                      - button "0/4" [ref=e511] [cursor=pointer]
+                  - row "Incorporate device requirements into drawings Design and due diligence · Master Opening Checklist Blocked May 9 NOT STARTED None" [ref=e512]:
+                    - cell [ref=e513]:
+                      - checkbox [ref=e514]
+                    - cell "Incorporate device requirements into drawings Design and due diligence · Master Opening Checklist Blocked" [ref=e515]:
+                      - generic [ref=e517]:
+                        - generic [ref=e518]:
+                          - link "Incorporate device requirements into drawings" [ref=e519] [cursor=pointer]:
+                            - /url: /tasks/cmmmglinl00947b4y6n2ojqny
+                          - paragraph [ref=e520]: Design and due diligence · Master Opening Checklist
+                        - generic [ref=e522]: Blocked
+                    - cell "May 9" [ref=e523]
+                    - cell "NOT STARTED" [ref=e524]:
+                      - generic [ref=e525]: NOT STARTED
+                    - cell "None" [ref=e526]
+                  - row "Approve framing layout and wall backing schedule Permitting and bidding · Construction & Build-Out Blocked May 12 NOT STARTED None" [ref=e527]:
+                    - cell [ref=e528]:
+                      - checkbox [ref=e529]
+                    - cell "Approve framing layout and wall backing schedule Permitting and bidding · Construction & Build-Out Blocked" [ref=e530]:
+                      - generic [ref=e532]:
+                        - generic [ref=e533]:
+                          - link "Approve framing layout and wall backing schedule" [ref=e534] [cursor=pointer]:
+                            - /url: /tasks/cmmmgl5yn004o7b4y3yk02cq7
+                          - paragraph [ref=e535]: Permitting and bidding · Construction & Build-Out
+                        - generic [ref=e537]: Blocked
+                    - cell "May 12" [ref=e538]
+                    - cell "NOT STARTED" [ref=e539]:
+                      - generic [ref=e540]: NOT STARTED
+                    - cell "None" [ref=e541]
+                  - row "Permit applications submitted and tracked Permitting and bidding · Master Opening Checklist Blocked May 13 NOT STARTED None" [ref=e542]:
+                    - cell [ref=e543]:
+                      - checkbox [ref=e544]
+                    - cell "Permit applications submitted and tracked Permitting and bidding · Master Opening Checklist Blocked" [ref=e545]:
+                      - generic [ref=e547]:
+                        - generic [ref=e548]:
+                          - link "Permit applications submitted and tracked" [ref=e549] [cursor=pointer]:
+                            - /url: /tasks/cmmmglitj00967b4yq2avgalr
+                          - paragraph [ref=e550]: Permitting and bidding · Master Opening Checklist
+                        - generic [ref=e552]: Blocked
+                    - cell "May 13" [ref=e553]
+                    - cell "NOT STARTED" [ref=e554]:
+                      - generic [ref=e555]: NOT STARTED
+                    - cell "None" [ref=e556]
+                  - row "Specify acoustic privacy package for consult and treatment rooms Permitting and bidding · Construction & Build-Out Ready May 16 NOT STARTED None" [ref=e557]:
+                    - cell [ref=e558]:
+                      - checkbox [ref=e559]
+                    - cell "Specify acoustic privacy package for consult and treatment rooms Permitting and bidding · Construction & Build-Out Ready" [ref=e560]:
+                      - generic [ref=e562]:
+                        - generic [ref=e563]:
+                          - link "Specify acoustic privacy package for consult and treatment rooms" [ref=e564] [cursor=pointer]:
+                            - /url: /tasks/cmmmgl68p004q7b4yr5kk24hl
+                          - paragraph [ref=e565]: Permitting and bidding · Construction & Build-Out
+                        - generic [ref=e567]: Ready
+                    - cell "May 16" [ref=e568]
+                    - cell "NOT STARTED" [ref=e569]:
+                      - generic [ref=e570]: NOT STARTED
+                    - cell "None" [ref=e571]
+                  - row "Long-lead items ordered Permitting and bidding · Master Opening Checklist Ready May 19 NOT STARTED None" [ref=e572]:
+                    - cell [ref=e573]:
+                      - checkbox [ref=e574]
+                    - cell "Long-lead items ordered Permitting and bidding · Master Opening Checklist Ready" [ref=e575]:
+                      - generic [ref=e577]:
+                        - generic [ref=e578]:
+                          - link "Long-lead items ordered" [ref=e579] [cursor=pointer]:
+                            - /url: /tasks/cmmmglj2100987b4ylkk0u6nq
+                          - paragraph [ref=e580]: Permitting and bidding · Master Opening Checklist
+                        - generic [ref=e582]: Ready
+                    - cell "May 19" [ref=e583]
+                    - cell "NOT STARTED" [ref=e584]:
+                      - generic [ref=e585]: NOT STARTED
+                    - cell "None" [ref=e586]
+                  - row "Lock device electrical requirements before rough-in Permitting and bidding · Construction & Build-Out Blocked May 21 BLOCKED None" [ref=e587]:
+                    - cell [ref=e588]:
+                      - checkbox [ref=e589]
+                    - cell "Lock device electrical requirements before rough-in Permitting and bidding · Construction & Build-Out Blocked" [ref=e590]:
+                      - generic [ref=e592]:
+                        - generic [ref=e593]:
+                          - link "Lock device electrical requirements before rough-in" [ref=e594] [cursor=pointer]:
+                            - /url: /tasks/cmmmgl6im004s7b4y218lenl4
+                          - paragraph [ref=e595]: Permitting and bidding · Construction & Build-Out
+                        - generic [ref=e597]: Blocked
+                    - cell "May 21" [ref=e598]
+                    - cell "BLOCKED" [ref=e599]:
+                      - generic [ref=e600]: BLOCKED
+                    - cell "None" [ref=e601]
+                  - row "Add Phase 2 rough-ins during Phase 1 buildout Construction rough-in · Phase 1 vs Phase 2 Build-Out Blocked Jun 12 NOT STARTED None" [ref=e602]:
+                    - cell [ref=e603]:
+                      - checkbox [ref=e604]
+                    - cell "Add Phase 2 rough-ins during Phase 1 buildout Construction rough-in · Phase 1 vs Phase 2 Build-Out Blocked" [ref=e605]:
+                      - generic [ref=e607]:
+                        - generic [ref=e608]:
+                          - link "Add Phase 2 rough-ins during Phase 1 buildout" [ref=e609] [cursor=pointer]:
+                            - /url: /tasks/cmmmglfwa00897b4y1qn0gwj5
+                          - paragraph [ref=e610]: Construction rough-in · Phase 1 vs Phase 2 Build-Out
+                        - generic [ref=e612]: Blocked
+                    - cell "Jun 12" [ref=e613]
+                    - cell "NOT STARTED" [ref=e614]:
+                      - generic [ref=e615]: NOT STARTED
+                    - cell "None" [ref=e616]
+                  - row "Release signage approvals before production window slips Construction rough-in · Missing-Items Risk List Ready Jun 14 NOT STARTED None" [ref=e617]:
+                    - cell [ref=e618]:
+                      - checkbox [ref=e619]
+                    - cell "Release signage approvals before production window slips Construction rough-in · Missing-Items Risk List Ready" [ref=e620]:
+                      - generic [ref=e622]:
+                        - generic [ref=e623]:
+                          - link "Release signage approvals before production window slips" [ref=e624] [cursor=pointer]:
+                            - /url: /tasks/cmmmglp1p00au7b4yunpl1gip
+                          - paragraph [ref=e625]: Construction rough-in · Missing-Items Risk List
+                        - generic [ref=e627]: Ready
+                    - cell "Jun 14" [ref=e628]
+                    - cell "NOT STARTED" [ref=e629]:
+                      - generic [ref=e630]: NOT STARTED
+                    - cell "None" [ref=e631]
+                  - row "Pre-wire security, phones, and extra data drops Construction rough-in · Construction & Build-Out Ready Jun 16 NOT STARTED None" [ref=e632]:
+                    - cell [ref=e633]:
+                      - checkbox [ref=e634]
+                    - cell "Pre-wire security, phones, and extra data drops Construction rough-in · Construction & Build-Out Ready" [ref=e635]:
+                      - generic [ref=e637]:
+                        - generic [ref=e638]:
+                          - link "Pre-wire security, phones, and extra data drops" [ref=e639] [cursor=pointer]:
+                            - /url: /tasks/cmmmgl6r3004u7b4yz1uiffw3
+                          - paragraph [ref=e640]: Construction rough-in · Construction & Build-Out
+                        - generic [ref=e642]: Ready
+                    - cell "Jun 16" [ref=e643]
+                    - cell "NOT STARTED" [ref=e644]:
+                      - generic [ref=e645]: NOT STARTED
+                    - cell "None" [ref=e646]
+                  - row "Order front desk millwork and cable-managed check-in counter Finishes and fixture install · Furniture, Fixtures & Equipment Ready Jun 27 NOT STARTED 0/3" [ref=e647]:
+                    - cell [ref=e648]:
+                      - checkbox [ref=e649]
+                    - cell "Order front desk millwork and cable-managed check-in counter Finishes and fixture install · Furniture, Fixtures & Equipment Ready" [ref=e650]:
+                      - generic [ref=e652]:
+                        - generic [ref=e653]:
+                          - link "Order front desk millwork and cable-managed check-in counter" [ref=e654] [cursor=pointer]:
+                            - /url: /tasks/cmmmgl7ho00507b4ym2s96uxj
+                          - paragraph [ref=e655]: Finishes and fixture install · Furniture, Fixtures & Equipment
+                        - generic [ref=e657]: Ready
+                    - cell "Jun 27" [ref=e658]
+                    - cell "NOT STARTED" [ref=e659]:
+                      - generic [ref=e660]: NOT STARTED
+                    - cell "0/3" [ref=e661]:
+                      - button "0/3" [ref=e662] [cursor=pointer]
+                  - row "Confirm opening staffing plan Finishes and fixture install · Staffing & Operations Setup Ready Jun 30 NOT STARTED None" [ref=e663]:
+                    - cell [ref=e664]:
+                      - checkbox [ref=e665]
+                    - cell "Confirm opening staffing plan Finishes and fixture install · Staffing & Operations Setup Ready" [ref=e666]:
+                      - generic [ref=e668]:
+                        - generic [ref=e669]:
+                          - link "Confirm opening staffing plan" [ref=e670] [cursor=pointer]:
+                            - /url: /tasks/cmmmgldba00707b4yntgf30il
+                          - paragraph [ref=e671]: Finishes and fixture install · Staffing & Operations Setup
+                        - generic [ref=e673]: Ready
+                    - cell "Jun 30" [ref=e674]
+                    - cell "NOT STARTED" [ref=e675]:
+                      - generic [ref=e676]: NOT STARTED
+                    - cell "None" [ref=e677]
+                  - row "Approve lighting zones and controls by room type Finishes and fixture install · Construction & Build-Out Ready Jul 6 NOT STARTED None" [ref=e678]:
+                    - cell [ref=e679]:
+                      - checkbox [ref=e680]
+                    - cell "Approve lighting zones and controls by room type Finishes and fixture install · Construction & Build-Out Ready" [ref=e681]:
+                      - generic [ref=e683]:
+                        - generic [ref=e684]:
+                          - link "Approve lighting zones and controls by room type" [ref=e685] [cursor=pointer]:
+                            - /url: /tasks/cmmmgl6zw004w7b4ynpzsgr4f
+                          - paragraph [ref=e686]: Finishes and fixture install · Construction & Build-Out
+                        - generic [ref=e688]: Ready
+                    - cell "Jul 6" [ref=e689]
+                    - cell "NOT STARTED" [ref=e690]:
+                      - generic [ref=e691]: NOT STARTED
+                    - cell "None" [ref=e692]
+                  - row "Order waiting-room seating and retail fixtures Finishes and fixture install · Furniture, Fixtures & Equipment Ready Jul 13 NOT STARTED None" [ref=e693]:
+                    - cell [ref=e694]:
+                      - checkbox [ref=e695]
+                    - cell "Order waiting-room seating and retail fixtures Finishes and fixture install · Furniture, Fixtures & Equipment Ready" [ref=e696]:
+                      - generic [ref=e698]:
+                        - generic [ref=e699]:
+                          - link "Order waiting-room seating and retail fixtures" [ref=e700] [cursor=pointer]:
+                            - /url: /tasks/cmmmgl7st00557b4yes9j6izz
+                          - paragraph [ref=e701]: Finishes and fixture install · Furniture, Fixtures & Equipment
+                        - generic [ref=e703]: Ready
+                    - cell "Jul 13" [ref=e704]
+                    - cell "NOT STARTED" [ref=e705]:
+                      - generic [ref=e706]: NOT STARTED
+                    - cell "None" [ref=e707]
+                  - row "Check laundry capacity against opening schedule Finishes and fixture install · Missing-Items Risk List Ready Jul 20 NOT STARTED None" [ref=e708]:
+                    - cell [ref=e709]:
+                      - checkbox [ref=e710]
+                    - cell "Check laundry capacity against opening schedule Finishes and fixture install · Missing-Items Risk List Ready" [ref=e711]:
+                      - generic [ref=e713]:
+                        - generic [ref=e714]:
+                          - link "Check laundry capacity against opening schedule" [ref=e715] [cursor=pointer]:
+                            - /url: /tasks/cmmmglnpr00ai7b4yplx2250t
+                          - paragraph [ref=e716]: Finishes and fixture install · Missing-Items Risk List
+                        - generic [ref=e718]: Ready
+                    - cell "Jul 20" [ref=e719]
+                    - cell "NOT STARTED" [ref=e720]:
+                      - generic [ref=e721]: NOT STARTED
+                    - cell "None" [ref=e722]
+                  - row "Procure reception opening package Finishes and fixture install · Room-by-Room Procurement Checklist Ready Jul 20 NOT STARTED 0/3" [ref=e723]:
+                    - cell [ref=e724]:
+                      - checkbox [ref=e725]
+                    - cell "Procure reception opening package Finishes and fixture install · Room-by-Room Procurement Checklist Ready" [ref=e726]:
+                      - generic [ref=e728]:
+                        - generic [ref=e729]:
+                          - link "Procure reception opening package" [ref=e730] [cursor=pointer]:
+                            - /url: /tasks/cmmmglge4008d7b4yigzka7xz
+                          - paragraph [ref=e731]: Finishes and fixture install · Room-by-Room Procurement Checklist
+                        - generic [ref=e733]: Ready
+                    - cell "Jul 20" [ref=e734]
+                    - cell "NOT STARTED" [ref=e735]:
+                      - generic [ref=e736]: NOT STARTED
+                    - cell "0/3" [ref=e737]:
+                      - button "0/3" [ref=e738] [cursor=pointer]
+                  - row "Close ADA, storefront, and fire-safety coordination Finishes and fixture install · Construction & Build-Out Ready Jul 22 NOT STARTED None" [ref=e739]:
+                    - cell [ref=e740]:
+                      - checkbox [ref=e741]
+                    - cell "Close ADA, storefront, and fire-safety coordination Finishes and fixture install · Construction & Build-Out Ready" [ref=e742]:
+                      - generic [ref=e744]:
+                        - generic [ref=e745]:
+                          - link "Close ADA, storefront, and fire-safety coordination" [ref=e746] [cursor=pointer]:
+                            - /url: /tasks/cmmmgl78b004y7b4yhrq6wk9d
+                          - paragraph [ref=e747]: Finishes and fixture install · Construction & Build-Out
+                        - generic [ref=e749]: Ready
+                    - cell "Jul 22" [ref=e750]
+                    - cell "NOT STARTED" [ref=e751]:
+                      - generic [ref=e752]: NOT STARTED
+                    - cell "None" [ref=e753]
+                  - row "Procure consultation-room package Finishes and fixture install · Room-by-Room Procurement Checklist Ready Jul 22 NOT STARTED 0/3" [ref=e754]:
+                    - cell [ref=e755]:
+                      - checkbox [ref=e756]
+                    - cell "Procure consultation-room package Finishes and fixture install · Room-by-Room Procurement Checklist Ready" [ref=e757]:
+                      - generic [ref=e759]:
+                        - generic [ref=e760]:
+                          - link "Procure consultation-room package" [ref=e761] [cursor=pointer]:
+                            - /url: /tasks/cmmmglgnz008i7b4yr1aq2ii1
+                          - paragraph [ref=e762]: Finishes and fixture install · Room-by-Room Procurement Checklist
+                        - generic [ref=e764]: Ready
+                    - cell "Jul 22" [ref=e765]
+                    - cell "NOT STARTED" [ref=e766]:
+                      - generic [ref=e767]: NOT STARTED
+                    - cell "0/3" [ref=e768]:
+                      - button "0/3" [ref=e769] [cursor=pointer]
+                  - row "Verify front-desk cable routing before install Finishes and fixture install · Missing-Items Risk List Ready Jul 22 NOT STARTED None" [ref=e770]:
+                    - cell [ref=e771]:
+                      - checkbox [ref=e772]
+                    - cell "Verify front-desk cable routing before install Finishes and fixture install · Missing-Items Risk List Ready" [ref=e773]:
+                      - generic [ref=e775]:
+                        - generic [ref=e776]:
+                          - link "Verify front-desk cable routing before install" [ref=e777] [cursor=pointer]:
+                            - /url: /tasks/cmmmglny700ak7b4y17w9qbr5
+                          - paragraph [ref=e778]: Finishes and fixture install · Missing-Items Risk List
+                        - generic [ref=e780]: Ready
+                    - cell "Jul 22" [ref=e781]
+                    - cell "NOT STARTED" [ref=e782]:
+                      - generic [ref=e783]: NOT STARTED
+                    - cell "None" [ref=e784]
+                  - row "Procure treatment-room package for each launch room Equipment, IT, and software setup · Room-by-Room Procurement Checklist Ready Jul 28 NOT STARTED 0/3" [ref=e785]:
+                    - cell [ref=e786]:
+                      - checkbox [ref=e787]
+                    - cell "Procure treatment-room package for each launch room Equipment, IT, and software setup · Room-by-Room Procurement Checklist Ready" [ref=e788]:
+                      - generic [ref=e790]:
+                        - generic [ref=e791]:
+                          - link "Procure treatment-room package for each launch room" [ref=e792] [cursor=pointer]:
+                            - /url: /tasks/cmmmglgwy008n7b4yrsf7hwbm
+                          - paragraph [ref=e793]: Equipment, IT, and software setup · Room-by-Room Procurement Checklist
+                        - generic [ref=e795]: Ready
+                    - cell "Jul 28" [ref=e796]
+                    - cell "NOT STARTED" [ref=e797]:
+                      - generic [ref=e798]: NOT STARTED
+                    - cell "0/3" [ref=e799]:
+                      - button "0/3" [ref=e800] [cursor=pointer]
+                  - row "Standardize treatment-room furniture and sanitation setup Equipment, IT, and software setup · Furniture, Fixtures & Equipment Ready Jul 28 NOT STARTED 0/3" [ref=e801]:
+                    - cell [ref=e802]:
+                      - checkbox [ref=e803]
+                    - cell "Standardize treatment-room furniture and sanitation setup Equipment, IT, and software setup · Furniture, Fixtures & Equipment Ready" [ref=e804]:
+                      - generic [ref=e806]:
+                        - generic [ref=e807]:
+                          - link "Standardize treatment-room furniture and sanitation setup" [ref=e808] [cursor=pointer]:
+                            - /url: /tasks/cmmmgl88300577b4yb1x8ljvf
+                          - paragraph [ref=e809]: Equipment, IT, and software setup · Furniture, Fixtures & Equipment
+                        - generic [ref=e811]: Ready
+                    - cell "Jul 28" [ref=e812]
+                    - cell "NOT STARTED" [ref=e813]:
+                      - generic [ref=e814]: NOT STARTED
+                    - cell "0/3" [ref=e815]:
+                      - button "0/3" [ref=e816] [cursor=pointer]
+                  - row "Procure provider workroom package Equipment, IT, and software setup · Room-by-Room Procurement Checklist Ready Jul 29 NOT STARTED None" [ref=e817]:
+                    - cell [ref=e818]:
+                      - checkbox [ref=e819]
+                    - cell "Procure provider workroom package Equipment, IT, and software setup · Room-by-Room Procurement Checklist Ready" [ref=e820]:
+                      - generic [ref=e822]:
+                        - generic [ref=e823]:
+                          - link "Procure provider workroom package" [ref=e824] [cursor=pointer]:
+                            - /url: /tasks/cmmmglh8w008s7b4ya7bnnrxp
+                          - paragraph [ref=e825]: Equipment, IT, and software setup · Room-by-Room Procurement Checklist
+                        - generic [ref=e827]: Ready
+                    - cell "Jul 29" [ref=e828]
+                    - cell "NOT STARTED" [ref=e829]:
+                      - generic [ref=e830]: NOT STARTED
+                    - cell "None" [ref=e831]
+                  - row "Configure practice management system Equipment, IT, and software setup · Technology & Software Ready Jul 30 NOT STARTED 0/4" [ref=e832]:
+                    - cell [ref=e833]:
+                      - checkbox [ref=e834]
+                    - cell "Configure practice management system Equipment, IT, and software setup · Technology & Software Ready" [ref=e835]:
+                      - generic [ref=e837]:
+                        - generic [ref=e838]:
+                          - link "Configure practice management system" [ref=e839] [cursor=pointer]:
+                            - /url: /tasks/cmmmglalg00607b4ynet57npk
+                          - paragraph [ref=e840]: Equipment, IT, and software setup · Technology & Software
+                        - generic [ref=e842]: Ready
+                    - cell "Jul 30" [ref=e843]
+                    - cell "NOT STARTED" [ref=e844]:
+                      - generic [ref=e845]: NOT STARTED
+                    - cell "0/4" [ref=e846]:
+                      - button "0/4" [ref=e847] [cursor=pointer]
+                  - row "Install storefront, room, and menu signage Finishes and fixture install · Marketing & Client Experience Setup Ready Jul 30 NOT STARTED 0/4" [ref=e848]:
+                    - cell [ref=e849]:
+                      - checkbox [ref=e850]
+                    - cell "Install storefront, room, and menu signage Finishes and fixture install · Marketing & Client Experience Setup Ready" [ref=e851]:
+                      - generic [ref=e853]:
+                        - generic [ref=e854]:
+                          - link "Install storefront, room, and menu signage" [ref=e855] [cursor=pointer]:
+                            - /url: /tasks/cmmmgleet007g7b4yty2akchj
+                          - paragraph [ref=e856]: Finishes and fixture install · Marketing & Client Experience Setup
+                        - generic [ref=e858]: Ready
+                    - cell "Jul 30" [ref=e859]
+                    - cell "NOT STARTED" [ref=e860]:
+                      - generic [ref=e861]: NOT STARTED
+                    - cell "0/4" [ref=e862]:
+                      - button "0/4" [ref=e863] [cursor=pointer]
+                  - row "Procure laundry and utility package Equipment, IT, and software setup · Room-by-Room Procurement Checklist Ready Jul 30 NOT STARTED None" [ref=e864]:
+                    - cell [ref=e865]:
+                      - checkbox [ref=e866]
+                    - cell "Procure laundry and utility package Equipment, IT, and software setup · Room-by-Room Procurement Checklist Ready" [ref=e867]:
+                      - generic [ref=e869]:
+                        - generic [ref=e870]:
+                          - link "Procure laundry and utility package" [ref=e871] [cursor=pointer]:
+                            - /url: /tasks/cmmmglhk1008u7b4yzzw1tj37
+                          - paragraph [ref=e872]: Equipment, IT, and software setup · Room-by-Room Procurement Checklist
+                        - generic [ref=e874]: Ready
+                    - cell "Jul 30" [ref=e875]
+                    - cell "NOT STARTED" [ref=e876]:
+                      - generic [ref=e877]: NOT STARTED
+                    - cell "None" [ref=e878]
+                  - row "Standardize before-and-after photo workflow Equipment, IT, and software setup · Missing-Items Risk List Ready Jul 30 NOT STARTED None" [ref=e879]:
+                    - cell [ref=e880]:
+                      - checkbox [ref=e881]
+                    - cell "Standardize before-and-after photo workflow Equipment, IT, and software setup · Missing-Items Risk List Ready" [ref=e882]:
+                      - generic [ref=e884]:
+                        - generic [ref=e885]:
+                          - link "Standardize before-and-after photo workflow" [ref=e886] [cursor=pointer]:
+                            - /url: /tasks/cmmmglnib00ag7b4yoymhj4v7
+                          - paragraph [ref=e887]: Equipment, IT, and software setup · Missing-Items Risk List
+                        - generic [ref=e889]: Ready
+                    - cell "Jul 30" [ref=e890]
+                    - cell "NOT STARTED" [ref=e891]:
+                      - generic [ref=e892]: NOT STARTED
+                    - cell "None" [ref=e893]
+                  - row "Order laser accessories and safety kit Equipment, IT, and software setup · Laser Hair Removal & Aesthetic Equipment Ready Aug 1 NOT STARTED None" [ref=e894]:
+                    - cell [ref=e895]:
+                      - checkbox [ref=e896]
+                    - cell "Order laser accessories and safety kit Equipment, IT, and software setup · Laser Hair Removal & Aesthetic Equipment Ready" [ref=e897]:
+                      - generic [ref=e899]:
+                        - generic [ref=e900]:
+                          - link "Order laser accessories and safety kit" [ref=e901] [cursor=pointer]:
+                            - /url: /tasks/cmmmgl9ch005m7b4y1z6dxwnt
+                          - paragraph [ref=e902]: Equipment, IT, and software setup · Laser Hair Removal & Aesthetic Equipment
+                        - generic [ref=e904]: Ready
+                    - cell "Aug 1" [ref=e905]
+                    - cell "NOT STARTED" [ref=e906]:
+                      - generic [ref=e907]: NOT STARTED
+                    - cell "None" [ref=e908]
+                  - row "Equip laundry, break, office, and janitorial support areas Equipment, IT, and software setup · Furniture, Fixtures & Equipment Ready Aug 2 NOT STARTED None" [ref=e909]:
+                    - cell [ref=e910]:
+                      - checkbox [ref=e911]
+                    - cell "Equip laundry, break, office, and janitorial support areas Equipment, IT, and software setup · Furniture, Fixtures & Equipment Ready" [ref=e912]:
+                      - generic [ref=e914]:
+                        - generic [ref=e915]:
+                          - link "Equip laundry, break, office, and janitorial support areas" [ref=e916] [cursor=pointer]:
+                            - /url: /tasks/cmmmgl8jf005c7b4yoy35iw6p
+                          - paragraph [ref=e917]: Equipment, IT, and software setup · Furniture, Fixtures & Equipment
+                        - generic [ref=e919]: Ready
+                    - cell "Aug 2" [ref=e920]
+                    - cell "NOT STARTED" [ref=e921]:
+                      - generic [ref=e922]: NOT STARTED
+                    - cell "None" [ref=e923]
+                  - row "Configure payments, online booking, and digital forms Equipment, IT, and software setup · Technology & Software Blocked Aug 3 IN PROGRESS 0/4" [ref=e924]:
+                    - cell [ref=e925]:
+                      - checkbox [ref=e926]
+                    - cell "Configure payments, online booking, and digital forms Equipment, IT, and software setup · Technology & Software Blocked" [ref=e927]:
+                      - generic [ref=e929]:
+                        - generic [ref=e930]:
+                          - link "Configure payments, online booking, and digital forms" [ref=e931] [cursor=pointer]:
+                            - /url: /tasks/cmmmglaud00667b4ys0wphn2j
+                          - paragraph [ref=e932]: Equipment, IT, and software setup · Technology & Software
+                        - generic [ref=e934]: Blocked
+                    - cell "Aug 3" [ref=e935]
+                    - cell "IN PROGRESS" [ref=e936]:
+                      - generic [ref=e937]: IN PROGRESS
+                    - cell "0/4" [ref=e938]:
+                      - button "0/4" [ref=e939] [cursor=pointer]
+                  - row "Install phones, Wi-Fi, cameras, and security controls Equipment, IT, and software setup · Technology & Software Ready Aug 5 NOT STARTED None" [ref=e940]:
+                    - cell [ref=e941]:
+                      - checkbox [ref=e942]
+                    - cell "Install phones, Wi-Fi, cameras, and security controls Equipment, IT, and software setup · Technology & Software Ready" [ref=e943]:
+                      - generic [ref=e945]:
+                        - generic [ref=e946]:
+                          - link "Install phones, Wi-Fi, cameras, and security controls" [ref=e947] [cursor=pointer]:
+                            - /url: /tasks/cmmmglb4w006c7b4y9rcghmrf
+                          - paragraph [ref=e948]: Equipment, IT, and software setup · Technology & Software
+                        - generic [ref=e950]: Ready
+                    - cell "Aug 5" [ref=e951]
+                    - cell "NOT STARTED" [ref=e952]:
+                      - generic [ref=e953]: NOT STARTED
+                    - cell "None" [ref=e954]
+                  - row "Procure break nook package Equipment, IT, and software setup · Room-by-Room Procurement Checklist Ready Aug 5 NOT STARTED None" [ref=e955]:
+                    - cell [ref=e956]:
+                      - checkbox [ref=e957]
+                    - cell "Procure break nook package Equipment, IT, and software setup · Room-by-Room Procurement Checklist Ready" [ref=e958]:
+                      - generic [ref=e960]:
+                        - generic [ref=e961]:
+                          - link "Procure break nook package" [ref=e962] [cursor=pointer]:
+                            - /url: /tasks/cmmmglhrl008w7b4y3b7e7ptw
+                          - paragraph [ref=e963]: Equipment, IT, and software setup · Room-by-Room Procurement Checklist
+                        - generic [ref=e965]: Ready
+                    - cell "Aug 5" [ref=e966]
+                    - cell "NOT STARTED" [ref=e967]:
+                      - generic [ref=e968]: NOT STARTED
+                    - cell "None" [ref=e969]
+                  - row "Procure restroom package Equipment, IT, and software setup · Room-by-Room Procurement Checklist Ready Aug 6 NOT STARTED None" [ref=e970]:
+                    - cell [ref=e971]:
+                      - checkbox [ref=e972]
+                    - cell "Procure restroom package Equipment, IT, and software setup · Room-by-Room Procurement Checklist Ready" [ref=e973]:
+                      - generic [ref=e975]:
+                        - generic [ref=e976]:
+                          - link "Procure restroom package" [ref=e977] [cursor=pointer]:
+                            - /url: /tasks/cmmmgli0f008y7b4yek20gen7
+                          - paragraph [ref=e978]: Equipment, IT, and software setup · Room-by-Room Procurement Checklist
+                        - generic [ref=e980]: Ready
+                    - cell "Aug 6" [ref=e981]
+                    - cell "NOT STARTED" [ref=e982]:
+                      - generic [ref=e983]: NOT STARTED
+                    - cell "None" [ref=e984]
+                  - row "Confirm biomedical waste requirements if sharps or regulated waste apply Compliance and staffing · Florida / Lakeland Verification Notes Ready Aug 7 NOT STARTED None" [ref=e985]:
+                    - cell [ref=e986]:
+                      - checkbox [ref=e987]
+                    - cell "Confirm biomedical waste requirements if sharps or regulated waste apply Compliance and staffing · Florida / Lakeland Verification Notes Ready" [ref=e988]:
+                      - generic [ref=e990]:
+                        - generic [ref=e991]:
+                          - link "Confirm biomedical waste requirements if sharps or regulated waste apply" [ref=e992] [cursor=pointer]:
+                            - /url: /tasks/cmmmglq9h00b47b4yogo7lf4m
+                          - paragraph [ref=e993]: Compliance and staffing · Florida / Lakeland Verification Notes
+                        - generic [ref=e995]: Ready
+                    - cell "Aug 7" [ref=e996]
+                    - cell "NOT STARTED" [ref=e997]:
+                      - generic [ref=e998]: NOT STARTED
+                    - cell "None" [ref=e999]
+                  - row "Order treatment consumables and client comfort supplies Equipment, IT, and software setup · Supplies & Consumables Ready Aug 7 NOT STARTED None" [ref=e1000]:
+                    - cell [ref=e1001]:
+                      - checkbox [ref=e1002]
+                    - cell "Order treatment consumables and client comfort supplies Equipment, IT, and software setup · Supplies & Consumables Ready" [ref=e1003]:
+                      - generic [ref=e1005]:
+                        - generic [ref=e1006]:
+                          - link "Order treatment consumables and client comfort supplies" [ref=e1007] [cursor=pointer]:
+                            - /url: /tasks/cmmmgl9uc005u7b4y4pl6u1xd
+                          - paragraph [ref=e1008]: Equipment, IT, and software setup · Supplies & Consumables
+                        - generic [ref=e1010]: Ready
+                    - cell "Aug 7" [ref=e1011]
+                    - cell "NOT STARTED" [ref=e1012]:
+                      - generic [ref=e1013]: NOT STARTED
+                    - cell "None" [ref=e1014]
+                  - row "Stock disinfectants, hand hygiene, waste, and laundry supplies Compliance and staffing · Supplies & Consumables Ready Aug 9 NOT STARTED None" [ref=e1015]:
+                    - cell [ref=e1016]:
+                      - checkbox [ref=e1017]
+                    - cell "Stock disinfectants, hand hygiene, waste, and laundry supplies Compliance and staffing · Supplies & Consumables Ready" [ref=e1018]:
+                      - generic [ref=e1020]:
+                        - generic [ref=e1021]:
+                          - link "Stock disinfectants, hand hygiene, waste, and laundry supplies" [ref=e1022] [cursor=pointer]:
+                            - /url: /tasks/cmmmgla28005w7b4y5pi5f8ro
+                          - paragraph [ref=e1023]: Compliance and staffing · Supplies & Consumables
+                        - generic [ref=e1025]: Ready
+                    - cell "Aug 9" [ref=e1026]
+                    - cell "NOT STARTED" [ref=e1027]:
+                      - generic [ref=e1028]: NOT STARTED
+                    - cell "None" [ref=e1029]
+                  - row "Complete software configuration and testing Equipment, IT, and software setup · Master Opening Checklist Blocked Aug 11 NOT STARTED None" [ref=e1030]:
+                    - cell [ref=e1031]:
+                      - checkbox [ref=e1032]
+                    - cell "Complete software configuration and testing Equipment, IT, and software setup · Master Opening Checklist Blocked" [ref=e1033]:
+                      - generic [ref=e1035]:
+                        - generic [ref=e1036]:
+                          - link "Complete software configuration and testing" [ref=e1037] [cursor=pointer]:
+                            - /url: /tasks/cmmmglk5o009i7b4y4gdvulyf
+                          - paragraph [ref=e1038]: Equipment, IT, and software setup · Master Opening Checklist
+                        - generic [ref=e1040]: Blocked
+                    - cell "Aug 11" [ref=e1041]
+                    - cell "NOT STARTED" [ref=e1042]:
+                      - generic [ref=e1043]: NOT STARTED
+                    - cell "None" [ref=e1044]
+                  - row "Create device downtime response plan Compliance and staffing · Missing-Items Risk List Ready Aug 11 NOT STARTED None" [ref=e1045]:
+                    - cell [ref=e1046]:
+                      - checkbox [ref=e1047]
+                    - cell "Create device downtime response plan Compliance and staffing · Missing-Items Risk List Ready" [ref=e1048]:
+                      - generic [ref=e1050]:
+                        - generic [ref=e1051]:
+                          - link "Create device downtime response plan" [ref=e1052] [cursor=pointer]:
+                            - /url: /tasks/cmmmgloea00ao7b4ysdi6sq7x
+                          - paragraph [ref=e1053]: Compliance and staffing · Missing-Items Risk List
+                        - generic [ref=e1055]: Ready
+                    - cell "Aug 11" [ref=e1056]
+                    - cell "NOT STARTED" [ref=e1057]:
+                      - generic [ref=e1058]: NOT STARTED
+                    - cell "None" [ref=e1059]
+                  - row "Finalize policy manual, logs, and waste procedures Compliance and staffing · Licensing, Compliance & Business Setup Ready Aug 11 NOT STARTED 0/4" [ref=e1060]:
+                    - cell [ref=e1061]:
+                      - checkbox [ref=e1062]
+                    - cell "Finalize policy manual, logs, and waste procedures Compliance and staffing · Licensing, Compliance & Business Setup Ready" [ref=e1063]:
+                      - generic [ref=e1065]:
+                        - generic [ref=e1066]:
+                          - link "Finalize policy manual, logs, and waste procedures" [ref=e1067] [cursor=pointer]:
+                            - /url: /tasks/cmmmglcob006s7b4yph5l4leg
+                          - paragraph [ref=e1068]: Compliance and staffing · Licensing, Compliance & Business Setup
+                        - generic [ref=e1070]: Ready
+                    - cell "Aug 11" [ref=e1071]
+                    - cell "NOT STARTED" [ref=e1072]:
+                      - generic [ref=e1073]: NOT STARTED
+                    - cell "0/4" [ref=e1074]:
+                      - button "0/4" [ref=e1075] [cursor=pointer]
+                  - row "Install IT, phone, and security systems Equipment, IT, and software setup · Master Opening Checklist Blocked Aug 13 NOT STARTED None" [ref=e1076]:
+                    - cell [ref=e1077]:
+                      - checkbox [ref=e1078]
+                    - cell "Install IT, phone, and security systems Equipment, IT, and software setup · Master Opening Checklist Blocked" [ref=e1079]:
+                      - generic [ref=e1081]:
+                        - generic [ref=e1082]:
+                          - link "Install IT, phone, and security systems" [ref=e1083] [cursor=pointer]:
+                            - /url: /tasks/cmmmglkdo009k7b4y540x3jng
+                          - paragraph [ref=e1084]: Equipment, IT, and software setup · Master Opening Checklist
+                        - generic [ref=e1086]: Blocked
+                    - cell "Aug 13" [ref=e1087]
+                    - cell "NOT STARTED" [ref=e1088]:
+                      - generic [ref=e1089]: NOT STARTED
+                    - cell "None" [ref=e1090]
+                  - row "Split opening inventory into launch, 30-day, and reserve buys Compliance and staffing · Supplies & Consumables Ready Aug 13 NOT STARTED None" [ref=e1091]:
+                    - cell [ref=e1092]:
+                      - checkbox [ref=e1093]
+                    - cell "Split opening inventory into launch, 30-day, and reserve buys Compliance and staffing · Supplies & Consumables Ready" [ref=e1094]:
+                      - generic [ref=e1096]:
+                        - generic [ref=e1097]:
+                          - link "Split opening inventory into launch, 30-day, and reserve buys" [ref=e1098] [cursor=pointer]:
+                            - /url: /tasks/cmmmglabq005y7b4yas6dw7c4
+                          - paragraph [ref=e1099]: Compliance and staffing · Supplies & Consumables
+                        - generic [ref=e1101]: Ready
+                    - cell "Aug 13" [ref=e1102]
+                    - cell "NOT STARTED" [ref=e1103]:
+                      - generic [ref=e1104]: NOT STARTED
+                    - cell "None" [ref=e1105]
+                  - row "Finalize device service coverage and training sign-offs Equipment, IT, and software setup · Laser Hair Removal & Aesthetic Equipment Blocked Aug 14 NOT STARTED 0/4" [ref=e1106]:
+                    - cell [ref=e1107]:
+                      - checkbox [ref=e1108]
+                    - cell "Finalize device service coverage and training sign-offs Equipment, IT, and software setup · Laser Hair Removal & Aesthetic Equipment Blocked" [ref=e1109]:
+                      - generic [ref=e1111]:
+                        - generic [ref=e1112]:
+                          - link "Finalize device service coverage and training sign-offs" [ref=e1113] [cursor=pointer]:
+                            - /url: /tasks/cmmmgl9js005o7b4yfffp90sn
+                          - paragraph [ref=e1114]: Equipment, IT, and software setup · Laser Hair Removal & Aesthetic Equipment
+                        - generic [ref=e1116]: Blocked
+                    - cell "Aug 14" [ref=e1117]
+                    - cell "NOT STARTED" [ref=e1118]:
+                      - generic [ref=e1119]: NOT STARTED
+                    - cell "0/4" [ref=e1120]:
+                      - button "0/4" [ref=e1121] [cursor=pointer]
+                  - row "Bind opening insurance coverage Compliance and staffing · Master Opening Checklist Blocked Aug 15 NOT STARTED None" [ref=e1122]:
+                    - cell [ref=e1123]:
+                      - checkbox [ref=e1124]
+                    - cell "Bind opening insurance coverage Compliance and staffing · Master Opening Checklist Blocked" [ref=e1125]:
+                      - generic [ref=e1127]:
+                        - generic [ref=e1128]:
+                          - link "Bind opening insurance coverage" [ref=e1129] [cursor=pointer]:
+                            - /url: /tasks/cmmmglj86009a7b4yir4iixdf
+                          - paragraph [ref=e1130]: Compliance and staffing · Master Opening Checklist
+                        - generic [ref=e1132]: Blocked
+                    - cell "Aug 15" [ref=e1133]
+                    - cell "NOT STARTED" [ref=e1134]:
+                      - generic [ref=e1135]: NOT STARTED
+                    - cell "None" [ref=e1136]
+                  - row "Bind operating insurance for opening Compliance and staffing · Licensing, Compliance & Business Setup Ready Aug 15 NOT STARTED None" [ref=e1137]:
+                    - cell [ref=e1138]:
+                      - checkbox [ref=e1139]
+                    - cell "Bind operating insurance for opening Compliance and staffing · Licensing, Compliance & Business Setup Ready" [ref=e1140]:
+                      - generic [ref=e1142]:
+                        - generic [ref=e1143]:
+                          - link "Bind operating insurance for opening" [ref=e1144] [cursor=pointer]:
+                            - /url: /tasks/cmmmgld3x006y7b4y3w07chgh
+                          - paragraph [ref=e1145]: Compliance and staffing · Licensing, Compliance & Business Setup
+                        - generic [ref=e1147]: Ready
+                    - cell "Aug 15" [ref=e1148]
+                    - cell "NOT STARTED" [ref=e1149]:
+                      - generic [ref=e1150]: NOT STARTED
+                    - cell "None" [ref=e1151]
+                  - row "Install front desk and treatment-room furniture Equipment, IT, and software setup · Master Opening Checklist Blocked Aug 15 NOT STARTED None" [ref=e1152]:
+                    - cell [ref=e1153]:
+                      - checkbox [ref=e1154]
+                    - cell "Install front desk and treatment-room furniture Equipment, IT, and software setup · Master Opening Checklist Blocked" [ref=e1155]:
+                      - generic [ref=e1157]:
+                        - generic [ref=e1158]:
+                          - link "Install front desk and treatment-room furniture" [ref=e1159] [cursor=pointer]:
+                            - /url: /tasks/cmmmglkk3009m7b4yn3rs3m67
+                          - paragraph [ref=e1160]: Equipment, IT, and software setup · Master Opening Checklist
+                        - generic [ref=e1162]: Blocked
+                    - cell "Aug 15" [ref=e1163]
+                    - cell "NOT STARTED" [ref=e1164]:
+                      - generic [ref=e1165]: NOT STARTED
+                    - cell "None" [ref=e1166]
+                  - row "Draft launch SOP library Compliance and staffing · Staffing & Operations Setup Ready Aug 17 NOT STARTED 0/4" [ref=e1167]:
+                    - cell [ref=e1168]:
+                      - checkbox [ref=e1169]
+                    - cell "Draft launch SOP library Compliance and staffing · Staffing & Operations Setup Ready" [ref=e1170]:
+                      - generic [ref=e1172]:
+                        - generic [ref=e1173]:
+                          - link "Draft launch SOP library" [ref=e1174] [cursor=pointer]:
+                            - /url: /tasks/cmmmgldkb00727b4yiaealfgy
+                          - paragraph [ref=e1175]: Compliance and staffing · Staffing & Operations Setup
+                        - generic [ref=e1177]: Ready
+                    - cell "Aug 17" [ref=e1178]
+                    - cell "NOT STARTED" [ref=e1179]:
+                      - generic [ref=e1180]: NOT STARTED
+                    - cell "0/4" [ref=e1181]:
+                      - button "0/4" [ref=e1182] [cursor=pointer]
+                  - row "Finish SOPs before staff drills begin Compliance and staffing · Missing-Items Risk List Ready Aug 17 NOT STARTED None" [ref=e1183]:
+                    - cell [ref=e1184]:
+                      - checkbox [ref=e1185]
+                    - cell "Finish SOPs before staff drills begin Compliance and staffing · Missing-Items Risk List Ready" [ref=e1186]:
+                      - generic [ref=e1188]:
+                        - generic [ref=e1189]:
+                          - link "Finish SOPs before staff drills begin" [ref=e1190] [cursor=pointer]:
+                            - /url: /tasks/cmmmglolv00aq7b4yb4qtg0kk
+                          - paragraph [ref=e1191]: Compliance and staffing · Missing-Items Risk List
+                        - generic [ref=e1193]: Ready
+                    - cell "Aug 17" [ref=e1194]
+                    - cell "NOT STARTED" [ref=e1195]:
+                      - generic [ref=e1196]: NOT STARTED
+                    - cell "None" [ref=e1197]
+                  - row "Install, test, and train on launch device Equipment, IT, and software setup · Master Opening Checklist Blocked Aug 17 NOT STARTED None" [ref=e1198]:
+                    - cell [ref=e1199]:
+                      - checkbox [ref=e1200]
+                    - cell "Install, test, and train on launch device Equipment, IT, and software setup · Master Opening Checklist Blocked" [ref=e1201]:
+                      - generic [ref=e1203]:
+                        - generic [ref=e1204]:
+                          - link "Install, test, and train on launch device" [ref=e1205] [cursor=pointer]:
+                            - /url: /tasks/cmmmglkr8009o7b4y5e2ppvt6
+                          - paragraph [ref=e1206]: Equipment, IT, and software setup · Master Opening Checklist
+                        - generic [ref=e1208]: Blocked
+                    - cell "Aug 17" [ref=e1209]
+                    - cell "NOT STARTED" [ref=e1210]:
+                      - generic [ref=e1211]: NOT STARTED
+                    - cell "None" [ref=e1212]
+                  - row "Verify licensure and supervision for every launch service Compliance and staffing · Master Opening Checklist Ready Aug 17 BLOCKED None" [ref=e1213]:
+                    - cell [ref=e1214]:
+                      - checkbox [ref=e1215]
+                    - cell "Verify licensure and supervision for every launch service Compliance and staffing · Master Opening Checklist Ready" [ref=e1216]:
+                      - generic [ref=e1218]:
+                        - generic [ref=e1219]:
+                          - link "Verify licensure and supervision for every launch service" [ref=e1220] [cursor=pointer]:
+                            - /url: /tasks/cmmmgljmt009e7b4yyy2vvruv
+                          - paragraph [ref=e1221]: Compliance and staffing · Master Opening Checklist
+                        - generic [ref=e1223]: Ready
+                    - cell "Aug 17" [ref=e1224]
+                    - cell "BLOCKED" [ref=e1225]:
+                      - generic [ref=e1226]: BLOCKED
+                    - cell "None" [ref=e1227]
+                  - row "Complete policies, logs, forms, and consent packets Compliance and staffing · Master Opening Checklist Blocked Aug 19 NOT STARTED None" [ref=e1228]:
+                    - cell [ref=e1229]:
+                      - checkbox [ref=e1230]
+                    - cell "Complete policies, logs, forms, and consent packets Compliance and staffing · Master Opening Checklist Blocked" [ref=e1231]:
+                      - generic [ref=e1233]:
+                        - generic [ref=e1234]:
+                          - link "Complete policies, logs, forms, and consent packets" [ref=e1235] [cursor=pointer]:
+                            - /url: /tasks/cmmmgljsh009g7b4yulljze64
+                          - paragraph [ref=e1236]: Compliance and staffing · Master Opening Checklist
+                        - generic [ref=e1238]: Blocked
+                    - cell "Aug 19" [ref=e1239]
+                    - cell "NOT STARTED" [ref=e1240]:
+                      - generic [ref=e1241]: NOT STARTED
+                    - cell "None" [ref=e1242]
+                  - row "Launch website, branded email, and booking path Grand opening and first 30 days · Technology & Software Ready Aug 19 NOT STARTED 0/4" [ref=e1243]:
+                    - cell [ref=e1244]:
+                      - checkbox [ref=e1245]
+                    - cell "Launch website, branded email, and booking path Grand opening and first 30 days · Technology & Software Ready" [ref=e1246]:
+                      - generic [ref=e1248]:
+                        - generic [ref=e1249]:
+                          - link "Launch website, branded email, and booking path" [ref=e1250] [cursor=pointer]:
+                            - /url: /tasks/cmmmglbek006e7b4ybi6wtm8d
+                          - paragraph [ref=e1251]: Grand opening and first 30 days · Technology & Software
+                        - generic [ref=e1253]: Ready
+                    - cell "Aug 19" [ref=e1254]
+                    - cell "NOT STARTED" [ref=e1255]:
+                      - generic [ref=e1256]: NOT STARTED
+                    - cell "0/4" [ref=e1257]:
+                      - button "0/4" [ref=e1258] [cursor=pointer]
+                  - row "Test software and forms before soft opening Equipment, IT, and software setup · Missing-Items Risk List Ready Aug 19 NOT STARTED None" [ref=e1259]:
+                    - cell [ref=e1260]:
+                      - checkbox [ref=e1261]
+                    - cell "Test software and forms before soft opening Equipment, IT, and software setup · Missing-Items Risk List Ready" [ref=e1262]:
+                      - generic [ref=e1264]:
+                        - generic [ref=e1265]:
+                          - link "Test software and forms before soft opening" [ref=e1266] [cursor=pointer]:
+                            - /url: /tasks/cmmmglouf00as7b4yuvgnetbx
+                          - paragraph [ref=e1267]: Equipment, IT, and software setup · Missing-Items Risk List
+                        - generic [ref=e1269]: Ready
+                    - cell "Aug 19" [ref=e1270]
+                    - cell "NOT STARTED" [ref=e1271]:
+                      - generic [ref=e1272]: NOT STARTED
+                    - cell "None" [ref=e1273]
+                  - row "Activate laundry, janitorial, and waste workflows Compliance and staffing · Master Opening Checklist Ready Aug 21 NOT STARTED None" [ref=e1274]:
+                    - cell [ref=e1275]:
+                      - checkbox [ref=e1276]
+                    - cell "Activate laundry, janitorial, and waste workflows Compliance and staffing · Master Opening Checklist Ready" [ref=e1277]:
+                      - generic [ref=e1279]:
+                        - generic [ref=e1280]:
+                          - link "Activate laundry, janitorial, and waste workflows" [ref=e1281] [cursor=pointer]:
+                            - /url: /tasks/cmmmgll4c009s7b4yjwrggauq
+                          - paragraph [ref=e1282]: Compliance and staffing · Master Opening Checklist
+                        - generic [ref=e1284]: Ready
+                    - cell "Aug 21" [ref=e1285]
+                    - cell "NOT STARTED" [ref=e1286]:
+                      - generic [ref=e1287]: NOT STARTED
+                    - cell "None" [ref=e1288]
+                  - row "Receive, label, and stock opening inventory Compliance and staffing · Master Opening Checklist Blocked Aug 21 NOT STARTED None" [ref=e1289]:
+                    - cell [ref=e1290]:
+                      - checkbox [ref=e1291]
+                    - cell "Receive, label, and stock opening inventory Compliance and staffing · Master Opening Checklist Blocked" [ref=e1292]:
+                      - generic [ref=e1294]:
+                        - generic [ref=e1295]:
+                          - link "Receive, label, and stock opening inventory" [ref=e1296] [cursor=pointer]:
+                            - /url: /tasks/cmmmglkx2009q7b4ycny24sbq
+                          - paragraph [ref=e1297]: Compliance and staffing · Master Opening Checklist
+                        - generic [ref=e1299]: Blocked
+                    - cell "Aug 21" [ref=e1300]
+                    - cell "NOT STARTED" [ref=e1301]:
+                      - generic [ref=e1302]: NOT STARTED
+                    - cell "None" [ref=e1303]
+                  - row "Stock and verify client restroom Compliance and staffing · Master Opening Checklist Ready Aug 22 NOT STARTED None" [ref=e1304]:
+                    - cell [ref=e1305]:
+                      - checkbox [ref=e1306]
+                    - cell "Stock and verify client restroom Compliance and staffing · Master Opening Checklist Ready" [ref=e1307]:
+                      - generic [ref=e1309]:
+                        - generic [ref=e1310]:
+                          - link "Stock and verify client restroom" [ref=e1311] [cursor=pointer]:
+                            - /url: /tasks/cmmmgllab009u7b4y9yohcacy
+                          - paragraph [ref=e1312]: Compliance and staffing · Master Opening Checklist
+                        - generic [ref=e1314]: Ready
+                    - cell "Aug 22" [ref=e1315]
+                    - cell "NOT STARTED" [ref=e1316]:
+                      - generic [ref=e1317]: NOT STARTED
+                    - cell "None" [ref=e1318]
+                  - row "Complete room-based training and competency sign-offs Compliance and staffing · Staffing & Operations Setup Blocked Aug 24 NOT STARTED 0/4" [ref=e1319]:
+                    - cell [ref=e1320]:
+                      - checkbox [ref=e1321]
+                    - cell "Complete room-based training and competency sign-offs Compliance and staffing · Staffing & Operations Setup Blocked" [ref=e1322]:
+                      - generic [ref=e1324]:
+                        - generic [ref=e1325]:
+                          - link "Complete room-based training and competency sign-offs" [ref=e1326] [cursor=pointer]:
+                            - /url: /tasks/cmmmgldvm00787b4y42l0x46s
+                          - paragraph [ref=e1327]: Compliance and staffing · Staffing & Operations Setup
+                        - generic [ref=e1329]: Blocked
+                    - cell "Aug 24" [ref=e1330]
+                    - cell "NOT STARTED" [ref=e1331]:
+                      - generic [ref=e1332]: NOT STARTED
+                    - cell "0/4" [ref=e1333]:
+                      - button "0/4" [ref=e1334] [cursor=pointer]
+                  - row "Post and assign operating checklists Soft opening · Master Opening Checklist Blocked Aug 25 NOT STARTED None" [ref=e1335]:
+                    - cell [ref=e1336]:
+                      - checkbox [ref=e1337]
+                    - cell "Post and assign operating checklists Soft opening · Master Opening Checklist Blocked" [ref=e1338]:
+                      - generic [ref=e1340]:
+                        - generic [ref=e1341]:
+                          - link "Post and assign operating checklists" [ref=e1342] [cursor=pointer]:
+                            - /url: /tasks/cmmmgllw100a07b4yxtkz37fc
+                          - paragraph [ref=e1343]: Soft opening · Master Opening Checklist
+                        - generic [ref=e1345]: Blocked
+                    - cell "Aug 25" [ref=e1346]
+                    - cell "NOT STARTED" [ref=e1347]:
+                      - generic [ref=e1348]: NOT STARTED
+                    - cell "None" [ref=e1349]
+                  - row "Test before-and-after photo workflow Soft opening · Master Opening Checklist Blocked Aug 25 NOT STARTED None" [ref=e1350]:
+                    - cell [ref=e1351]:
+                      - checkbox [ref=e1352]
+                    - cell "Test before-and-after photo workflow Soft opening · Master Opening Checklist Blocked" [ref=e1353]:
+                      - generic [ref=e1355]:
+                        - generic [ref=e1356]:
+                          - link "Test before-and-after photo workflow" [ref=e1357] [cursor=pointer]:
+                            - /url: /tasks/cmmmgllom009y7b4y5xxzqew3
+                          - paragraph [ref=e1358]: Soft opening · Master Opening Checklist
+                        - generic [ref=e1360]: Blocked
+                    - cell "Aug 25" [ref=e1361]
+                    - cell "NOT STARTED" [ref=e1362]:
+                      - generic [ref=e1363]: NOT STARTED
+                    - cell "None" [ref=e1364]
+                  - row "Assign opening, closing, cleaning, and inventory routines Compliance and staffing · Staffing & Operations Setup Ready Aug 26 NOT STARTED None" [ref=e1365]:
+                    - cell [ref=e1366]:
+                      - checkbox [ref=e1367]
+                    - cell "Assign opening, closing, cleaning, and inventory routines Compliance and staffing · Staffing & Operations Setup Ready" [ref=e1368]:
+                      - generic [ref=e1370]:
+                        - generic [ref=e1371]:
+                          - link "Assign opening, closing, cleaning, and inventory routines" [ref=e1372] [cursor=pointer]:
+                            - /url: /tasks/cmmmgle4s007e7b4yazv77hib
+                          - paragraph [ref=e1373]: Compliance and staffing · Staffing & Operations Setup
+                        - generic [ref=e1375]: Ready
+                    - cell "Aug 26" [ref=e1376]
+                    - cell "NOT STARTED" [ref=e1377]:
+                      - generic [ref=e1378]: NOT STARTED
+                    - cell "None" [ref=e1379]
+                  - row "Finish retail pricing and merchandising Soft opening · Master Opening Checklist Ready Aug 29 NOT STARTED None" [ref=e1380]:
+                    - cell [ref=e1381]:
+                      - checkbox [ref=e1382]
+                    - cell "Finish retail pricing and merchandising Soft opening · Master Opening Checklist Ready" [ref=e1383]:
+                      - generic [ref=e1385]:
+                        - generic [ref=e1386]:
+                          - link "Finish retail pricing and merchandising" [ref=e1387] [cursor=pointer]:
+                            - /url: /tasks/cmmmglliu009w7b4yghsqmog1
+                          - paragraph [ref=e1388]: Soft opening · Master Opening Checklist
+                        - generic [ref=e1390]: Ready
+                    - cell "Aug 29" [ref=e1391]
+                    - cell "NOT STARTED" [ref=e1392]:
+                      - generic [ref=e1393]: NOT STARTED
+                    - cell "None" [ref=e1394]
+                  - row "Finalize review, referral, and first-visit touchpoints Soft opening · Marketing & Client Experience Setup Ready Aug 31 NOT STARTED 0/4" [ref=e1395]:
+                    - cell [ref=e1396]:
+                      - checkbox [ref=e1397]
+                    - cell "Finalize review, referral, and first-visit touchpoints Soft opening · Marketing & Client Experience Setup Ready" [ref=e1398]:
+                      - generic [ref=e1400]:
+                        - generic [ref=e1401]:
+                          - link "Finalize review, referral, and first-visit touchpoints" [ref=e1402] [cursor=pointer]:
+                            - /url: /tasks/cmmmgleqk007m7b4yu246cswl
+                          - paragraph [ref=e1403]: Soft opening · Marketing & Client Experience Setup
+                        - generic [ref=e1405]: Ready
+                    - cell "Aug 31" [ref=e1406]
+                    - cell "NOT STARTED" [ref=e1407]:
+                      - generic [ref=e1408]: NOT STARTED
+                    - cell "0/4" [ref=e1409]:
+                      - button "0/4" [ref=e1410] [cursor=pointer]
+                  - row "Final inspections complete and occupancy approval received Final inspections and punch list · Master Opening Checklist Ready Sep 4 NOT STARTED None" [ref=e1411]:
+                    - cell [ref=e1412]:
+                      - checkbox [ref=e1413]
+                    - cell "Final inspections complete and occupancy approval received Final inspections and punch list · Master Opening Checklist Ready" [ref=e1414]:
+                      - generic [ref=e1416]:
+                        - generic [ref=e1417]:
+                          - link "Final inspections complete and occupancy approval received" [ref=e1418] [cursor=pointer]:
+                            - /url: /tasks/cmmmglm1n00a27b4yjg1c9vd8
+                          - paragraph [ref=e1419]: Final inspections and punch list · Master Opening Checklist
+                        - generic [ref=e1421]: Ready
+                    - cell "Sep 4" [ref=e1422]
+                    - cell "NOT STARTED" [ref=e1423]:
+                      - generic [ref=e1424]: NOT STARTED
+                    - cell "None" [ref=e1425]
+                  - row "Record Phase 2 activation list Soft opening · Phase 1 vs Phase 2 Build-Out Ready Sep 8 NOT STARTED None" [ref=e1426]:
+                    - cell [ref=e1427]:
+                      - checkbox [ref=e1428]
+                    - cell "Record Phase 2 activation list Soft opening · Phase 1 vs Phase 2 Build-Out Ready" [ref=e1429]:
+                      - generic [ref=e1431]:
+                        - generic [ref=e1432]:
+                          - link "Record Phase 2 activation list" [ref=e1433] [cursor=pointer]:
+                            - /url: /tasks/cmmmglg45008b7b4y6wm58p1g
+                          - paragraph [ref=e1434]: Soft opening · Phase 1 vs Phase 2 Build-Out
+                        - generic [ref=e1436]: Ready
+                    - cell "Sep 8" [ref=e1437]
+                    - cell "NOT STARTED" [ref=e1438]:
+                      - generic [ref=e1439]: NOT STARTED
+                    - cell "None" [ref=e1440]
+                  - row "Close soft-opening issues before public launch Soft opening · Master Opening Checklist Ready Sep 12 NOT STARTED None" [ref=e1441]:
+                    - cell [ref=e1442]:
+                      - checkbox [ref=e1443]
+                    - cell "Close soft-opening issues before public launch Soft opening · Master Opening Checklist Ready" [ref=e1444]:
+                      - generic [ref=e1446]:
+                        - generic [ref=e1447]:
+                          - link "Close soft-opening issues before public launch" [ref=e1448] [cursor=pointer]:
+                            - /url: /tasks/cmmmglm7m00a47b4y6s3w3cg9
+                          - paragraph [ref=e1449]: Soft opening · Master Opening Checklist
+                        - generic [ref=e1451]: Ready
+                    - cell "Sep 12" [ref=e1452]
+                    - cell "NOT STARTED" [ref=e1453]:
+                      - generic [ref=e1454]: NOT STARTED
+                    - cell "None" [ref=e1455]
+                  - row "Confirm 30-day working capital reserve Grand opening and first 30 days · Master Opening Checklist Ready Sep 13 NOT STARTED None" [ref=e1456]:
+                    - cell [ref=e1457]:
+                      - checkbox [ref=e1458]
+                    - cell "Confirm 30-day working capital reserve Grand opening and first 30 days · Master Opening Checklist Ready" [ref=e1459]:
+                      - generic [ref=e1461]:
+                        - generic [ref=e1462]:
+                          - link "Confirm 30-day working capital reserve" [ref=e1463] [cursor=pointer]:
+                            - /url: /tasks/cmmmglmkg00a87b4ybx3t87z1
+                          - paragraph [ref=e1464]: Grand opening and first 30 days · Master Opening Checklist
+                        - generic [ref=e1466]: Ready
+                    - cell "Sep 13" [ref=e1467]
+                    - cell "NOT STARTED" [ref=e1468]:
+                      - generic [ref=e1469]: NOT STARTED
+                    - cell "None" [ref=e1470]
+                  - row "Review working capital against first-30-day burn Grand opening and first 30 days · Missing-Items Risk List Ready Sep 13 NOT STARTED None" [ref=e1471]:
+                    - cell [ref=e1472]:
+                      - checkbox [ref=e1473]
+                    - cell "Review working capital against first-30-day burn Grand opening and first 30 days · Missing-Items Risk List Ready" [ref=e1474]:
+                      - generic [ref=e1476]:
+                        - generic [ref=e1477]:
+                          - link "Review working capital against first-30-day burn" [ref=e1478] [cursor=pointer]:
+                            - /url: /tasks/cmmmglpb100aw7b4y7tikqu4m
+                          - paragraph [ref=e1479]: Grand opening and first 30 days · Missing-Items Risk List
+                        - generic [ref=e1481]: Ready
+                    - cell "Sep 13" [ref=e1482]
+                    - cell "NOT STARTED" [ref=e1483]:
+                      - generic [ref=e1484]: NOT STARTED
+                    - cell "None" [ref=e1485]
+                  - row "Publish grand-opening offers and launch assets Grand opening and first 30 days · Master Opening Checklist Ready Sep 14 NOT STARTED None" [ref=e1486]:
+                    - cell [ref=e1487]:
+                      - checkbox [ref=e1488]
+                    - cell "Publish grand-opening offers and launch assets Grand opening and first 30 days · Master Opening Checklist Ready" [ref=e1489]:
+                      - generic [ref=e1491]:
+                        - generic [ref=e1492]:
+                          - link "Publish grand-opening offers and launch assets" [ref=e1493] [cursor=pointer]:
+                            - /url: /tasks/cmmmglmep00a67b4yvadnqob9
+                          - paragraph [ref=e1494]: Grand opening and first 30 days · Master Opening Checklist
+                        - generic [ref=e1496]: Ready
+                    - cell "Sep 14" [ref=e1497]
+                    - cell "NOT STARTED" [ref=e1498]:
+                      - generic [ref=e1499]: NOT STARTED
+                    - cell "None" [ref=e1500]
+      - contentinfo [ref=e114]:
+        - generic [ref=e115]:
+          - paragraph [ref=e116]: SALT Business Planner
+          - paragraph [ref=e117]: Protected internal operations environment for planning, execution, and audit review.
+  - generic [ref=e1501]:
+    - button "Close panel" [ref=e1502] [cursor=pointer]
+    - generic [ref=e1505]:
+      - generic [ref=e1506]:
+        - button "Close" [ref=e1507] [cursor=pointer]: X
+        - generic [ref=e1508]:
+          - generic [ref=e1509]:
+            - generic [ref=e1511]: COMPLETE
+            - heading "Lease fully executed and permitted use confirmed" [level=3] [ref=e1512]
+            - paragraph [ref=e1513]: Master Opening Checklist • Due Apr 2, 2026 • Caitlin Hurley McCann
+            - generic [ref=e1514]:
+              - button "Edit task" [ref=e1515] [cursor=pointer]
+              - button "Archive" [ref=e1516] [cursor=pointer]
+          - generic [ref=e1517]:
+            - button "Previous" [disabled] [ref=e1518]
+            - button "Next" [ref=e1519] [cursor=pointer]
+      - generic [ref=e1520]:
+        - generic [ref=e1521]:
+          - generic [ref=e1522]:
+            - generic [ref=e1523]:
+              - paragraph [ref=e1524]: Overview
+              - paragraph [ref=e1525]: Key context stays visible while you work.
+            - generic [ref=e1526]:
+              - generic [ref=e1527]: Documents 0
+              - generic [ref=e1528]: Comments 0
+              - generic [ref=e1529]: Dependencies No linked dependency work
+              - generic [ref=e1530]: Checklist 0/0
+          - generic [ref=e1531]:
+            - generic [ref=e1532]:
+              - generic [ref=e1533]:
+                - paragraph [ref=e1534]: Status
+                - paragraph [ref=e1535]: Update progress without opening the full editor.
+              - button "Update status" [disabled] [ref=e1536]
+            - generic [ref=e1537]:
+              - button "Not started" [ref=e1538] [cursor=pointer]
+              - button "In progress" [ref=e1539] [cursor=pointer]
+              - button "Blocked" [ref=e1540] [cursor=pointer]
+              - button "Complete" [ref=e1541] [cursor=pointer]
+          - generic [ref=e1542]:
+            - generic [ref=e1543]:
+              - term [ref=e1544]: Phase / section
+              - definition [ref=e1545]: Pre-lease / immediately after securing space / Master Opening Checklist
+            - generic [ref=e1546]:
+              - term [ref=e1547]: Assignee
+              - definition [ref=e1548]: Caitlin Hurley McCann
+            - generic [ref=e1549]:
+              - term [ref=e1550]: Due date
+              - definition [ref=e1551]: Apr 2, 2026
+            - generic [ref=e1552]:
+              - term [ref=e1553]: Priority
+              - definition [ref=e1554]: CRITICAL
+          - generic [ref=e1555]:
+            - generic [ref=e1556]:
+              - paragraph [ref=e1557]: Description
+              - paragraph [ref=e1558]: Lease status and permitted-use confirmation must be closed before downstream spending escalates.
+            - generic [ref=e1559]:
+              - paragraph [ref=e1560]: Working notes
+              - paragraph [ref=e1561]: No working notes yet.
+        - generic [ref=e1562]:
+          - generic [ref=e1564]:
+            - paragraph [ref=e1565]: Dependencies
+            - paragraph [ref=e1566]: Review blockers and downstream work in the same task context.
+          - generic [ref=e1567]:
+            - combobox [ref=e1568]:
+              - option "Select a dependency" [selected]
+              - option "Activate laundry, janitorial, and waste workflows"
+              - option "Add Phase 2 rough-ins during Phase 1 buildout"
+              - option "Approve Phase 1 opening scope"
+              - option "Approve final room plan"
+              - option "Approve framing layout and wall backing schedule"
+              - option "Approve lighting zones and controls by room type"
+              - option "Assign opening, closing, cleaning, and inventory routines"
+              - option "Baseline opening timeline and dependencies"
+              - option "Bind opening insurance coverage"
+              - option "Bind operating insurance for opening"
+              - option "Build opening budget tracker by priority tier"
+              - option "Business entity, banking, merchant processing, and bookkeeping are live"
+              - option "Check laundry capacity against opening schedule"
+              - option "Close ADA, storefront, and fire-safety coordination"
+              - option "Close soft-opening issues before public launch"
+              - option "Complete entity, banking, and bookkeeping setup"
+              - option "Complete policies, logs, forms, and consent packets"
+              - option "Complete room-based training and competency sign-offs"
+              - option "Complete software configuration and testing"
+              - option "Configure payments, online booking, and digital forms"
+              - option "Configure practice management system"
+              - option "Confirm 30-day working capital reserve"
+              - option "Confirm Florida laser licensure and supervision requirements"
+              - option "Confirm Lakeland permit, inspection, and occupancy sequence"
+              - option "Confirm Lakeland use approval and local business tax requirements"
+              - option "Confirm biomedical waste requirements if sharps or regulated waste apply"
+              - option "Confirm launch room program"
+              - option "Confirm launch service menu beyond hair removal"
+              - option "Confirm opening staffing plan"
+              - option "Confirm permit, inspection, and occupancy pathway"
+              - option "Confirm storage plan before millwork is released"
+              - option "Confirm treatment-room sink plan"
+              - option "Confirm zoning, permitted use, and landlord restrictions"
+              - option "Create device downtime response plan"
+              - option "Draft launch SOP library"
+              - option "Draft lean-opening layout with future room capacity"
+              - option "Equip laundry, break, office, and janitorial support areas"
+              - option "Final inspections complete and occupancy approval received"
+              - option "Finalize device service coverage and training sign-offs"
+              - option "Finalize policy manual, logs, and waste procedures"
+              - option "Finalize review, referral, and first-visit touchpoints"
+              - option "Finish SOPs before staff drills begin"
+              - option "Finish retail pricing and merchandising"
+              - option "Incorporate device requirements into drawings"
+              - option "Install IT, phone, and security systems"
+              - option "Install front desk and treatment-room furniture"
+              - option "Install phones, Wi-Fi, cameras, and security controls"
+              - option "Install storefront, room, and menu signage"
+              - option "Install, test, and train on launch device"
+              - option "Launch website, branded email, and booking path"
+              - option "Lock device electrical requirements before rough-in"
+              - option "Long-lead items ordered"
+              - option "Obtain final device electrical specs before permit release"
+              - option "Order front desk millwork and cable-managed check-in counter"
+              - option "Order laser accessories and safety kit"
+              - option "Order treatment consumables and client comfort supplies"
+              - option "Order waiting-room seating and retail fixtures"
+              - option "Permit applications submitted and tracked"
+              - option "Post and assign operating checklists"
+              - option "Pre-wire security, phones, and extra data drops"
+              - option "Procure break nook package"
+              - option "Procure consultation-room package"
+              - option "Procure laundry and utility package"
+              - option "Procure provider workroom package"
+              - option "Procure reception opening package"
+              - option "Procure restroom package"
+              - option "Procure treatment-room package for each launch room"
+              - option "Publish grand-opening offers and launch assets"
+              - option "Receive, label, and stock opening inventory"
+              - option "Record Phase 2 activation list"
+              - option "Release signage approvals before production window slips"
+              - option "Review speech and screen privacy at check-in and consult"
+              - option "Review working capital against first-30-day burn"
+              - option "Select primary laser platform"
+              - option "Set launch contingency budget"
+              - option "Set photo station location and lighting standard"
+              - option "Specify acoustic privacy package for consult and treatment rooms"
+              - option "Split opening inventory into launch, 30-day, and reserve buys"
+              - option "Standardize before-and-after photo workflow"
+              - option "Standardize treatment-room furniture and sanitation setup"
+              - option "Stock and verify client restroom"
+              - option "Stock disinfectants, hand hygiene, waste, and laundry supplies"
+              - option "Test before-and-after photo workflow"
+              - option "Test software and forms before soft opening"
+              - option "Verify acoustic privacy details before wall close-up"
+              - option "Verify front-desk cable routing before install"
+              - option "Verify licensure and supervision for every launch service"
+              - option "Verify licensure, supervision, and Florida laser rules"
+            - button "Add" [ref=e1569] [cursor=pointer]
+          - generic [ref=e1570]:
+            - generic [ref=e1571]:
+              - paragraph [ref=e1572]: This task depends on
+              - generic [ref=e1573]: No dependencies yet.
+            - generic [ref=e1574]:
+              - paragraph [ref=e1575]: Tasks waiting on this one
+              - generic [ref=e1576]: No dependent tasks yet.
+        - generic [ref=e1577]:
+          - generic [ref=e1578]:
+            - generic [ref=e1579]:
+              - paragraph [ref=e1580]: Checklist
+              - paragraph [ref=e1581]: Keep checklist work compact, scannable, and editable in place.
+            - generic [ref=e1583]: 0/0 complete
+          - generic [ref=e1584]:
+            - generic [ref=e1585]:
+              - generic [ref=e1586]:
+                - text: New checklist item
+                - textbox "New checklist item" [ref=e1587]:
+                  - /placeholder: Add a checklist item
+              - generic [ref=e1588]:
+                - text: Due date
+                - textbox "Due date" [ref=e1589]
+              - generic [ref=e1590]:
+                - text: Assignee
+                - combobox "Assignee" [ref=e1591]:
+                  - option "Unassigned" [selected]
+                  - option "Caitlin Hurley McCann"
+                  - option "Jesse Shackelford"
+                  - option "QA Temp Owner"
+                  - option "Sean D IT"
+              - generic [ref=e1592]:
+                - text: Notes
+                - textbox "Notes" [ref=e1593]:
+                  - /placeholder: Optional completion details
+            - button "Add item" [ref=e1595] [cursor=pointer]
+          - generic [ref=e1597]: No active checklist items yet.
+        - generic [ref=e1598]:
+          - generic [ref=e1599]:
+            - generic [ref=e1600]:
+              - paragraph [ref=e1601]: Documents
+              - paragraph [ref=e1602]: Upload or open task files without leaving the shelf.
+            - generic [ref=e1603]:
+              - generic [ref=e1604]: 0 linked
+              - button "Upload file" [ref=e1605] [cursor=pointer]
+          - generic [ref=e1607]: No documents linked to this task yet.
+        - generic [ref=e1608]:
+          - paragraph [ref=e1609]: Comments
+          - generic [ref=e1610]:
+            - textbox "Capture context, decisions, or blocker notes" [ref=e1611]
+            - generic [ref=e1612]:
+              - paragraph [ref=e1613]: Comments stay in the shelf so queue navigation remains uninterrupted.
+              - button "Post comment" [ref=e1614] [cursor=pointer]
+          - generic [ref=e1616]: No comments yet.
