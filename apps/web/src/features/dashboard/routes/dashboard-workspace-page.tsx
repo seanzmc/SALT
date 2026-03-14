@@ -90,6 +90,73 @@ function LoadingBlock({ className }: { className?: string }) {
 export function DashboardWorkspacePage() {
   const summaryQuery = useDashboardSummaryQuery();
   const activityQuery = useDashboardActivityQuery();
+  const desktopActiveMetrics = summaryQuery.data
+    ? [
+        {
+          key: "overallCompletion",
+          detail: `${summaryQuery.data.recentlyCompletedCount} completed recently`,
+          title: "Overall completion",
+          value: formatPercent(summaryQuery.data.overallCompletion)
+        },
+        ...(summaryQuery.data.queueCounts.overdue > 0
+          ? [
+              {
+                key: "overdue",
+                detail: `${summaryQuery.data.queueCounts.overdue} overdue items`,
+                title: "Overdue tasks",
+                tone: "warning" as const,
+                value: String(summaryQuery.data.queueCounts.overdue)
+              }
+            ]
+          : []),
+        ...(summaryQuery.data.queueCounts.unassigned > 0
+          ? [
+              {
+                key: "unassigned",
+                detail: `${summaryQuery.data.queueCounts.unassigned} tasks need owners`,
+                title: "Unassigned tasks",
+                value: String(summaryQuery.data.queueCounts.unassigned)
+              }
+            ]
+          : []),
+        ...(summaryQuery.data.queueCounts.upcoming > 0
+          ? [
+              {
+                key: "upcoming",
+                detail: "Due in the next 7 days",
+                title: "Due this week",
+                value: String(summaryQuery.data.queueCounts.upcoming)
+              }
+            ]
+          : []),
+        ...(summaryQuery.data.queueCounts.stale > 0
+          ? [
+              {
+                key: "stale",
+                detail: "No updates in 7+ days",
+                title: "Needs update",
+                value: String(summaryQuery.data.queueCounts.stale)
+              }
+            ]
+          : [])
+      ]
+    : [];
+  const desktopQuietMetrics = summaryQuery.data
+    ? [
+        ...(summaryQuery.data.queueCounts.overdue === 0
+          ? [{ key: "overdue", label: "Overdue", value: "0" }]
+          : []),
+        ...(summaryQuery.data.queueCounts.unassigned === 0
+          ? [{ key: "unassigned", label: "Unassigned", value: "0" }]
+          : []),
+        ...(summaryQuery.data.queueCounts.upcoming === 0
+          ? [{ key: "upcoming", label: "Due this week", value: "0" }]
+          : []),
+        ...(summaryQuery.data.queueCounts.stale === 0
+          ? [{ key: "stale", label: "Needs update", value: "0" }]
+          : [])
+      ]
+    : [];
   const primaryAttentionCards = summaryQuery.data
     ? [
         {
@@ -199,34 +266,77 @@ export function DashboardWorkspacePage() {
           ))}
         </section>
       ) : summaryQuery.data ? (
-        <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-          <SummaryMetricCard
-            detail={`${summaryQuery.data.recentlyCompletedCount} completed recently`}
-            title="Overall completion"
-            value={formatPercent(summaryQuery.data.overallCompletion)}
-          />
-          <SummaryMetricCard
-            detail={`${summaryQuery.data.queueCounts.overdue} overdue items`}
-            title="Overdue tasks"
-            tone="warning"
-            value={String(summaryQuery.data.queueCounts.overdue)}
-          />
-          <SummaryMetricCard
-            detail={`${summaryQuery.data.queueCounts.unassigned} tasks need owners`}
-            title="Unassigned tasks"
-            value={String(summaryQuery.data.queueCounts.unassigned)}
-          />
-          <SummaryMetricCard
-            detail="Due in the next 7 days"
-            title="Due this week"
-            value={String(summaryQuery.data.queueCounts.upcoming)}
-          />
-          <SummaryMetricCard
-            detail="No updates in 7+ days"
-            title="Needs update"
-            value={String(summaryQuery.data.queueCounts.stale)}
-          />
-        </section>
+        <>
+          <section className="grid gap-3 md:grid-cols-2 xl:hidden">
+            <SummaryMetricCard
+              detail={`${summaryQuery.data.recentlyCompletedCount} completed recently`}
+              title="Overall completion"
+              value={formatPercent(summaryQuery.data.overallCompletion)}
+            />
+            <SummaryMetricCard
+              detail={`${summaryQuery.data.queueCounts.overdue} overdue items`}
+              title="Overdue tasks"
+              tone="warning"
+              value={String(summaryQuery.data.queueCounts.overdue)}
+            />
+            <SummaryMetricCard
+              detail={`${summaryQuery.data.queueCounts.unassigned} tasks need owners`}
+              title="Unassigned tasks"
+              value={String(summaryQuery.data.queueCounts.unassigned)}
+            />
+            <SummaryMetricCard
+              detail="Due in the next 7 days"
+              title="Due this week"
+              value={String(summaryQuery.data.queueCounts.upcoming)}
+            />
+            <SummaryMetricCard
+              detail="No updates in 7+ days"
+              title="Needs update"
+              value={String(summaryQuery.data.queueCounts.stale)}
+            />
+          </section>
+
+          <section className="hidden xl:block space-y-3">
+            <div
+              className="grid gap-3"
+              style={{
+                gridTemplateColumns: `repeat(${Math.min(
+                  Math.max(desktopActiveMetrics.length, 1),
+                  5
+                )}, minmax(0, 1fr))`
+              }}
+            >
+              {desktopActiveMetrics.map((metric) => (
+                <SummaryMetricCard
+                  key={metric.key}
+                  detail={metric.detail}
+                  title={metric.title}
+                  tone={metric.tone}
+                  value={metric.value}
+                />
+              ))}
+            </div>
+
+            {desktopQuietMetrics.length > 0 ? (
+              <div className="flex items-center gap-3 rounded-[1.1rem] border border-border/80 bg-white/70 px-4 py-2.5 text-sm text-muted-foreground backdrop-blur">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                  Quiet queues
+                </span>
+                <div className="flex flex-wrap items-center gap-2">
+                  {desktopQuietMetrics.map((metric) => (
+                    <span
+                      key={metric.key}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-border bg-white/85 px-3 py-1 text-[13px]"
+                    >
+                      <span className="font-medium text-foreground">{metric.label}</span>
+                      <span>{metric.value}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </section>
+        </>
       ) : null}
 
       {summaryQuery.error ? (

@@ -1,0 +1,5 @@
+- generic [ref=e6]:
+  - paragraph [ref=e7]: Session error
+  - heading "Unable to verify your session" [level=1] [ref=e8]
+  - paragraph
+  - button "Try again" [ref=e9] [cursor=pointer]
