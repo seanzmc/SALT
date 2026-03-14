@@ -37,12 +37,9 @@ export function LoginPage() {
     <div className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-md rounded-[2rem] border border-border bg-white/90 p-8 shadow-[0_24px_70px_-32px_rgba(15,23,42,0.35)] backdrop-blur">
         <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-          SALT rebuild
+          SALT Business Planner
         </p>
-        <h1 className="mt-3 text-3xl font-semibold">Sign in to Workspace v2</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          The rebuilt SALT workspace now covers operations, documents, messaging, planning, and setup.
-        </p>
+        <h1 className="mt-3 text-3xl font-semibold">Sign in</h1>
 
         <form
           className="mt-8 space-y-4"

@@ -187,7 +187,7 @@ function getRouteMeta(pathname: string) {
     routeMeta.find((entry) => matchPath(entry.pattern, pathname)) ?? {
       eyebrow: "Workspace",
       title: "SALT",
-      description: "Protected rebuild workspace."
+      description: "Protected business planning workspace."
     }
   );
 }
@@ -254,14 +254,11 @@ export function AppShellLayout({ children }: PropsWithChildren) {
           <div className="lg:sticky lg:top-0 lg:flex lg:h-[calc(100vh-3rem)] lg:flex-col">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-                SALT rebuild
+                SALT Business Planner
               </p>
               <h1 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-foreground">
                 Workspace
               </h1>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Dense, connected workspaces for launch planning, execution, and audit history.
-              </p>
             </div>
 
             <nav className="mt-6 flex gap-2 overflow-x-auto pb-1 lg:flex-1 lg:flex-col lg:overflow-visible">
@@ -387,7 +384,7 @@ export function AppShellLayout({ children }: PropsWithChildren) {
 
           <footer className="border-t border-white/55 bg-[rgba(255,255,255,0.44)] px-4 py-4 backdrop-blur-xl sm:px-6 xl:px-8">
             <div className="mx-auto flex w-full max-w-[112rem] flex-col gap-1 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
-              <p>SALT rebuild workspace</p>
+              <p>SALT Business Planner</p>
               <p>Protected internal operations environment for planning, execution, and audit review.</p>
             </div>
           </footer>

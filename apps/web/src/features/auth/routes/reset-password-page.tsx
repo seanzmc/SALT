@@ -72,7 +72,7 @@ export function ResetPasswordPage() {
         ) : tokenQuery.data?.valid ? (
           <>
             <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-              SALT rebuild
+              SALT Business Planner
             </p>
             <h1 className="mt-3 text-3xl font-semibold">Create a new password</h1>
             <p className="mt-2 text-sm text-muted-foreground">
