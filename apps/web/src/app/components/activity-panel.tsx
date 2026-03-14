@@ -75,8 +75,8 @@ export function ActivityPanel({
       }
 
       const message =
-        error instanceof ApiClientError ? error.message : "Unable to dismiss notification.";
-      toast.error("Dismiss failed", message);
+        error instanceof ApiClientError ? error.message : "Unable to hide this item from your feed.";
+      toast.error("Hide failed", message);
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: ["dashboard", "activity"] });
@@ -90,11 +90,11 @@ export function ActivityPanel({
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-                Notifications
+                Activity
               </p>
-              <h2 className="mt-2 text-xl font-semibold text-foreground">Operational changes</h2>
+              <h2 className="mt-2 text-xl font-semibold text-foreground">Activity feed</h2>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Latest task, document, and messaging changes across the rebuild workspace.
+                Latest task, document, and messaging changes across the workspace. Hidden items stay out of this feed.
               </p>
             </div>
             <button
@@ -119,7 +119,7 @@ export function ActivityPanel({
             </div>
           ) : activityQuery.error ? (
             <div className="rounded-[1.25rem] border border-rose-200 bg-rose-50 px-4 py-4 text-sm text-rose-700">
-              Unable to load recent activity.
+              Unable to load the activity feed.
             </div>
           ) : activityQuery.data?.activities.length ? (
             <div className="space-y-3">
@@ -171,7 +171,7 @@ export function ActivityPanel({
                           }}
                           type="button"
                         >
-                          {isDismissPending ? "Dismissing..." : "Dismiss"}
+                          {isDismissPending ? "Hiding..." : "Hide from feed"}
                         </button>
                       </div>
                     </div>
@@ -186,7 +186,7 @@ export function ActivityPanel({
             <div
               className="rounded-[1.25rem] border border-dashed border-border bg-muted/30 px-4 py-5 text-sm text-muted-foreground"
             >
-              {dismissMutation.isSuccess ? "All caught up. No active notifications." : "No recent activity yet."}
+              No activity in this feed right now.
             </div>
           )}
         </div>

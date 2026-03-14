@@ -305,7 +305,7 @@ export function AppShellLayout({ children }: PropsWithChildren) {
 
               <div className="flex items-center gap-2">
                 <button
-                  aria-label="Open recent activity"
+                  aria-label="Open activity feed"
                   className="relative inline-flex items-center gap-2 rounded-full border border-border bg-white px-4 py-2 text-sm font-medium text-foreground transition hover:bg-muted"
                   onClick={() => setActivityOpen(true)}
                   type="button"

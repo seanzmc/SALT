@@ -377,6 +377,10 @@ export function TasksWorkspacePage() {
   const [createTaskFieldErrors, setCreateTaskFieldErrors] = useState<
     ApiErrorResponse["error"]["fieldErrors"]
   >();
+  const [createdTaskNotice, setCreatedTaskNotice] = useState<{
+    taskId: string;
+    title: string;
+  } | null>(null);
   const [taskError, setTaskError] = useState<string>();
   const [commentError, setCommentError] = useState<string>();
   const [subtaskError, setSubtaskError] = useState<string>();
@@ -494,30 +498,39 @@ export function TasksWorkspacePage() {
         return;
       }
 
-      const nextState = matchesTaskFilters(data.task, activeFilters, currentUser?.id)
-        ? searchState
-        : DEFAULT_TASK_WORKSPACE_STATE;
-      const nextFilters = toTaskListFilters(nextState);
-      const nextSearch = buildTaskSearchParams(nextState).toString();
+      const nextSearch = buildTaskSearchParams(searchState).toString();
+      const isVisibleInCurrentContext = matchesTaskFilters(
+        data.task,
+        activeFilters,
+        currentUser?.id
+      );
 
       setCreateTaskOpen(false);
       setCreateTaskError(undefined);
       setCreateTaskFieldErrors(undefined);
       queryClient.setQueryData(taskQueryKeys.detail(data.task.id), data);
-      queryClient.setQueryData<TaskListResponse>(taskQueryKeys.list(nextFilters), (current) =>
+      queryClient.setQueryData<TaskListResponse>(taskQueryKeys.list(activeFilters), (current) =>
         current
-          ? replaceTaskInList(current, data.task!, nextFilters, currentUser?.id)
+          ? replaceTaskInList(current, data.task!, activeFilters, currentUser?.id)
           : current
       );
       void queryClient.invalidateQueries({ queryKey: taskQueryKeys.lists() });
-      toast.success(
-        "Task created",
-        nextState === searchState ? data.task.title : `${data.task.title} opened in All tasks.`
-      );
-      navigate({
-        pathname: `/tasks/${data.task.id}`,
-        search: nextSearch ? `?${nextSearch}` : ""
+
+      if (isVisibleInCurrentContext) {
+        setCreatedTaskNotice(null);
+        toast.success("Task created", data.task.title);
+        navigate({
+          pathname: `/tasks/${data.task.id}`,
+          search: nextSearch ? `?${nextSearch}` : ""
+        });
+        return;
+      }
+
+      setCreatedTaskNotice({
+        taskId: data.task.id,
+        title: data.task.title
       });
+      toast.success("Task created", `${data.task.title} is hidden by your current filters or search.`);
     }
   });
 
@@ -1484,13 +1497,14 @@ export function TasksWorkspacePage() {
                   <button
                     className="inline-flex h-10 items-center justify-center rounded-full border border-border/80 bg-white px-4 text-sm font-medium text-foreground transition hover:border-primary/35 hover:bg-[rgba(248,246,241,0.95)]"
                     onClick={() => {
+                      setCreatedTaskNotice(null);
                       setCreateTaskError(undefined);
                       setCreateTaskFieldErrors(undefined);
                       setCreateTaskOpen((current) => !current);
                     }}
                     type="button"
                   >
-                    {createTaskOpen ? "Hide form" : "New task"}
+                    New task
                   </button>
                 ) : null
               }
@@ -1523,22 +1537,6 @@ export function TasksWorkspacePage() {
               view={searchState.view}
             />
 
-            {currentUser?.role === "OWNER_ADMIN" ? (
-              <TaskCreatePanel
-                error={createTaskError}
-                fieldErrors={createTaskFieldErrors}
-                isPending={createTaskMutation.isPending}
-                onOpenChange={setCreateTaskOpen}
-                onSubmit={async (payload: TaskCreateInput) => {
-                  await createTaskMutation.mutateAsync(payload);
-                }}
-                open={createTaskOpen}
-                phases={taskListQuery.data?.phases ?? []}
-                sections={taskListQuery.data?.sections ?? []}
-                users={taskListQuery.data?.users ?? []}
-              />
-            ) : null}
-
             {currentUser?.role === "OWNER_ADMIN" && selectedTaskIds.length > 0 ? (
               <BulkActionsPanel
                 archiveView={searchState.archived}
@@ -1564,6 +1562,44 @@ export function TasksWorkspacePage() {
           </div>
         }
       >
+        {createdTaskNotice ? (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-[1.15rem] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+            <div>
+              <p className="font-medium">Task created, but it is hidden by the current filters or search.</p>
+              <p className="mt-1 text-emerald-800/85">{createdTaskNotice.title}</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                className="rounded-full border border-emerald-300 bg-white px-3 py-1.5 font-medium text-emerald-900 hover:bg-emerald-100/60"
+                onClick={() => {
+                  navigateToTask(createdTaskNotice.taskId);
+                  setCreatedTaskNotice(null);
+                }}
+                type="button"
+              >
+                Show task
+              </button>
+              <button
+                className="rounded-full border border-emerald-300 bg-white px-3 py-1.5 font-medium text-emerald-900 hover:bg-emerald-100/60"
+                onClick={() => {
+                  handleReset();
+                  setCreatedTaskNotice(null);
+                }}
+                type="button"
+              >
+                Reset view
+              </button>
+              <button
+                className="rounded-full px-2 py-1 text-xs font-medium text-emerald-900/75 hover:bg-emerald-100/60"
+                onClick={() => setCreatedTaskNotice(null)}
+                type="button"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        ) : null}
+
         {searchState.view === "board" && searchState.archived !== "active" ? (
           <div className="rounded-[1.25rem] border border-border bg-muted/20 px-4 py-4 text-sm text-muted-foreground">
             Board view stays focused on active work. Switch the archive filter back to Active to use
@@ -1660,6 +1696,34 @@ export function TasksWorkspacePage() {
           />
         )}
       </WorkspaceSurface>
+
+      <SlideOverPanel
+        className="sm:w-[min(34rem,calc(100vw-1rem))]"
+        onClose={() => {
+          setCreateTaskOpen(false);
+          setCreateTaskError(undefined);
+          setCreateTaskFieldErrors(undefined);
+        }}
+        open={createTaskOpen}
+        zIndexClassName="z-40"
+      >
+        <TaskCreatePanel
+          error={createTaskError}
+          fieldErrors={createTaskFieldErrors}
+          isPending={createTaskMutation.isPending}
+          onClose={() => {
+            setCreateTaskOpen(false);
+            setCreateTaskError(undefined);
+            setCreateTaskFieldErrors(undefined);
+          }}
+          onSubmit={async (payload: TaskCreateInput) => {
+            await createTaskMutation.mutateAsync(payload);
+          }}
+          phases={taskListQuery.data?.phases ?? []}
+          sections={taskListQuery.data?.sections ?? []}
+          users={taskListQuery.data?.users ?? []}
+        />
+      </SlideOverPanel>
 
       <SlideOverPanel
         expanded={taskShelfExpanded}
