@@ -19,6 +19,8 @@ import type {
 import { taskCommentCreateSchema } from "@salt/validation";
 import { z } from "zod";
 
+import { DOCUMENT_UPLOAD_ACCEPT } from "../../documents/lib/upload-file-types";
+
 type TaskShelfProps = {
   currentUser: SessionPayload["user"];
   data: TaskWorkspaceData;
@@ -1250,6 +1252,7 @@ export function TaskShelf({
                       : "Choose a file to attach to this task"}
                   </label>
                   <input
+                    accept={DOCUMENT_UPLOAD_ACCEPT}
                     className="sr-only"
                     id={documentInputId}
                     onChange={(event) => {

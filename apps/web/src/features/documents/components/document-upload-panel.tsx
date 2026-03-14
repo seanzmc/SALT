@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { DOCUMENT_CATEGORY_VALUES, type DocumentListResponse } from "@salt/types";
+import { DOCUMENT_UPLOAD_ACCEPT } from "../lib/upload-file-types";
 
 const uploadFormSchema = z.object({
   title: z.string().trim().min(3).max(180),
@@ -155,6 +156,7 @@ export function DocumentUploadPanel({
           onDrop={handleDrop}
         >
           <input
+            accept={DOCUMENT_UPLOAD_ACCEPT}
             className="sr-only"
             onChange={(event) => handleFile(event.target.files?.item(0) ?? null)}
             ref={fileInputRef}

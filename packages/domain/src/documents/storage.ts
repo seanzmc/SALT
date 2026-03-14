@@ -9,8 +9,18 @@ const allowedMimeTypes = new Set([
   "image/jpeg",
   "image/png",
   "image/webp",
+  "image/heic",
+  "image/heif",
+  "image/heic-sequence",
+  "image/heif-sequence",
   "text/plain",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+  "text/markdown",
+  "text/x-markdown",
+  "text/csv",
+  "application/csv",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 ]);
 
 export async function saveUploadedFile(file: File) {
@@ -18,7 +28,7 @@ export async function saveUploadedFile(file: File) {
     throw new DomainError(
       400,
       "VALIDATION_ERROR",
-      "Unsupported file type. Upload a PDF, JPG, PNG, WEBP, TXT, or DOCX file."
+      "Unsupported file type. Upload a PDF, JPG, PNG, WEBP, TXT, DOCX, MD, CSV, XLSX, HEIC, or HEIF file."
     );
   }
 
