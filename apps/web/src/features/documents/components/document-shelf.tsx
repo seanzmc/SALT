@@ -16,10 +16,13 @@ type DocumentShelfProps = {
   isExpanded: boolean;
   onClose: () => void;
   onToggleExpanded: () => void;
+  onDeleteDocument: (payload: { documentId: string }) => Promise<void>;
   onLinkTask: (payload: { documentId: string; taskId: string }) => Promise<void>;
   onUnlinkTask: (payload: { documentId: string; taskId: string }) => Promise<void>;
   isSaving: boolean;
+  isDeleting: boolean;
   error?: string;
+  deleteError?: string;
 };
 
 function formatDate(value: string) {
@@ -36,12 +39,17 @@ export function DocumentShelf({
   isExpanded,
   onClose,
   onToggleExpanded,
+  onDeleteDocument,
   onLinkTask,
   onUnlinkTask,
   isSaving,
-  error
+  isDeleting,
+  error,
+  deleteError
 }: DocumentShelfProps) {
   const document = data.document;
+  const canDeleteDocument =
+    currentUser.role === "OWNER_ADMIN" || document?.uploadedBy.id === currentUser.id;
   const form = useForm<z.infer<typeof taskLinkSchema>>({
     resolver: zodResolver(taskLinkSchema),
     defaultValues: {
@@ -79,6 +87,24 @@ export function DocumentShelf({
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <button
+              className="rounded-full border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={!canDeleteDocument || isDeleting || isSaving}
+              onClick={async () => {
+                if (
+                  !window.confirm(
+                    `Delete "${document.title}"? This permanently removes the document record and stored file.`
+                  )
+                ) {
+                  return;
+                }
+
+                await onDeleteDocument({ documentId: document.id });
+              }}
+              type="button"
+            >
+              {isDeleting ? "Deleting..." : "Delete document"}
+            </button>
             <button
               className="rounded-full border border-border px-3 py-2 text-sm text-muted-foreground hover:bg-muted"
               onClick={onToggleExpanded}
@@ -144,6 +170,13 @@ export function DocumentShelf({
           {document.notes ? (
             <p className="mt-4 text-sm leading-6 text-muted-foreground">{document.notes}</p>
           ) : null}
+
+          {!canDeleteDocument ? (
+            <p className="mt-4 text-sm text-muted-foreground">
+              Only the uploader or an owner admin can delete this document.
+            </p>
+          ) : null}
+          {deleteError ? <p className="mt-4 text-sm text-red-700">{deleteError}</p> : null}
         </section>
 
         <section className="rounded-[1.5rem] border border-border bg-white p-4">

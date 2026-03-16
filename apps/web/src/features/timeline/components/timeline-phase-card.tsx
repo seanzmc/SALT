@@ -1,9 +1,5 @@
-import { useEffect, useId, useState, type ReactNode } from "react";
-import type {
-  TimelinePhaseRecord,
-  TimelinePhaseStatus,
-  TimelinePhaseUpdateInput
-} from "@salt/types";
+import { useId, useState, type ReactNode } from "react";
+import type { TimelinePhaseRecord, TimelinePhaseStatus } from "@salt/types";
 import { Link } from "react-router-dom";
 
 function formatDate(value: string | null) {
@@ -92,62 +88,69 @@ export function TimelinePhaseCard({
   phase,
   phaseNumber,
   phaseCount,
-  isSaving,
-  onSave
+  onEdit
 }: {
   phase: TimelinePhaseRecord;
   phaseNumber: number;
   phaseCount: number;
-  isSaving: boolean;
-  onSave: (payload: TimelinePhaseUpdateInput) => Promise<void>;
+  onEdit: () => void;
 }) {
-  const [status, setStatus] = useState<TimelinePhaseStatus>(phase.status);
-  const [startDate, setStartDate] = useState(phase.startDate?.slice(0, 10) ?? "");
-  const [endDate, setEndDate] = useState(phase.endDate?.slice(0, 10) ?? "");
-  const [notes, setNotes] = useState(phase.notes ?? "");
-  const [blockers, setBlockers] = useState(phase.blockers ?? "");
-
-  useEffect(() => {
-    setStatus(phase.status);
-    setStartDate(phase.startDate?.slice(0, 10) ?? "");
-    setEndDate(phase.endDate?.slice(0, 10) ?? "");
-    setNotes(phase.notes ?? "");
-    setBlockers(phase.blockers ?? "");
-  }, [phase.blockers, phase.endDate, phase.notes, phase.startDate, phase.status]);
-
   return (
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_23rem] xl:items-start">
-      <div className="space-y-5">
-        <div className="rounded-[1.25rem] border border-border/70 bg-muted/15 px-4 py-4">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                Opening phase {phaseNumber} of {phaseCount}
-              </p>
-              <h3 className="mt-2 text-2xl font-semibold tracking-[-0.02em] text-foreground">
-                {phase.title}
-              </h3>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                {phase.description}
-              </p>
-            </div>
-            <span
-              className={joinClasses(
-                "rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]",
-                statusClasses(phase.status)
-              )}
-            >
-              {phase.status.replaceAll("_", " ")}
-            </span>
+    <div className="space-y-5">
+      <div className="rounded-[1.25rem] border border-border/70 bg-muted/15 px-4 py-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              Opening phase {phaseNumber} of {phaseCount}
+            </p>
+            <h3 className="mt-2 text-2xl font-semibold tracking-[-0.02em] text-foreground">
+              {phase.title}
+            </h3>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">{phase.description}</p>
           </div>
-
-          <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-            <InfoCard label="Window" value={`${formatDate(phase.startDate)} to ${formatDate(phase.endDate)}`} />
-            <InfoCard label="Milestones" value={String(phase.milestones.length)} />
-            <InfoCard label="Linked tasks" value={String(phase.tasks.length)} />
-            <InfoCard label="Updated" value={formatDate(phase.updatedAt)} />
-          </div>
+          <span
+            className={joinClasses(
+              "rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]",
+              statusClasses(phase.status)
+            )}
+          >
+            {phase.status.replaceAll("_", " ")}
+          </span>
         </div>
+
+        <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <InfoCard label="Window" value={`${formatDate(phase.startDate)} to ${formatDate(phase.endDate)}`} />
+          <InfoCard label="Milestones" value={String(phase.milestones.length)} />
+          <InfoCard label="Linked tasks" value={String(phase.tasks.length)} />
+          <InfoCard label="Updated" value={formatDate(phase.updatedAt)} />
+        </div>
+
+        <div className="mt-4 flex flex-wrap justify-end gap-3">
+          <button
+            className="rounded-full border border-border bg-white px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
+            onClick={onEdit}
+            type="button"
+          >
+            Edit phase
+          </button>
+        </div>
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-2">
+        <section className="rounded-[1.25rem] border border-border/70 bg-white p-4">
+          <p className="font-semibold text-foreground">Operational notes</p>
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">
+            {phase.notes?.trim() || "No notes have been captured for this phase yet."}
+          </p>
+        </section>
+
+        <section className="rounded-[1.25rem] border border-border/70 bg-white p-4">
+          <p className="font-semibold text-foreground">Current blockers</p>
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">
+            {phase.blockers?.trim() || "No blockers are currently recorded for this phase."}
+          </p>
+        </section>
+      </div>
 
         <CollapsibleBlock
           description="Milestones are the planning checkpoints that explain what done means for this stage."
@@ -223,115 +226,6 @@ export function TimelinePhaseCard({
             )}
           </div>
         </CollapsibleBlock>
-      </div>
-
-      <form
-        className="space-y-4 rounded-[1.25rem] border border-border/70 bg-[rgba(234,244,241,0.72)] p-4 xl:sticky xl:top-4"
-        onSubmit={async (event) => {
-          event.preventDefault();
-          await onSave({
-            phaseId: phase.id,
-            status,
-            notes: notes.trim() || null,
-            blockers: blockers.trim() || null,
-            startDate: startDate || null,
-            endDate: endDate || null
-          });
-        }}
-      >
-        <div>
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="font-semibold text-foreground">Update phase</p>
-            <span className="rounded-full border border-border/70 bg-white/82 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              Editable here
-            </span>
-          </div>
-          <p className="mt-1 text-sm text-muted-foreground">
-            These fields define the official operating status for this opening stage.
-          </p>
-          <div className="mt-3 rounded-[1rem] border border-border/70 bg-white/78 px-4 py-3 text-sm leading-6 text-muted-foreground">
-            Edit phase status, dates, notes, and blockers here. Linked tasks stay editable in the
-            task workspace so phase planning and task execution remain connected but distinct.
-          </div>
-        </div>
-
-        <label className="space-y-2">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            Phase status
-          </span>
-          <select
-            className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
-            disabled={isSaving}
-            onChange={(event) => setStatus(event.target.value as TimelinePhaseStatus)}
-            value={status}
-          >
-            <option value="NOT_STARTED">Not started</option>
-            <option value="IN_PROGRESS">In progress</option>
-            <option value="BLOCKED">Blocked</option>
-            <option value="COMPLETE">Complete</option>
-          </select>
-        </label>
-
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-1">
-          <label className="space-y-2">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              Start date
-            </span>
-            <input
-              className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
-              disabled={isSaving}
-              onChange={(event) => setStartDate(event.target.value)}
-              type="date"
-              value={startDate}
-            />
-          </label>
-
-          <label className="space-y-2">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              End date
-            </span>
-            <input
-              className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
-              disabled={isSaving}
-              onChange={(event) => setEndDate(event.target.value)}
-              type="date"
-              value={endDate}
-            />
-          </label>
-        </div>
-
-        <label className="space-y-2">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            Notes
-          </span>
-          <textarea
-            className="min-h-32 w-full rounded-[1rem] border border-border bg-white px-4 py-3"
-            disabled={isSaving}
-            onChange={(event) => setNotes(event.target.value)}
-            value={notes}
-          />
-        </label>
-
-        <label className="space-y-2">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            Blockers
-          </span>
-          <textarea
-            className="min-h-32 w-full rounded-[1rem] border border-border bg-white px-4 py-3"
-            disabled={isSaving}
-            onChange={(event) => setBlockers(event.target.value)}
-            value={blockers}
-          />
-        </label>
-
-        <button
-          className="w-full rounded-[1rem] bg-primary px-4 py-3 text-sm font-medium text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
-          disabled={isSaving}
-          type="submit"
-        >
-          {isSaving ? "Saving..." : "Save phase"}
-        </button>
-      </form>
     </div>
   );
 }

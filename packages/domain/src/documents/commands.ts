@@ -1,5 +1,6 @@
 import { prisma } from "@salt/db";
 import type {
+  DocumentDeleteInput,
   DocumentTaskLinkInput,
   DocumentTaskUnlinkInput,
   DocumentUploadMetadataInput,
@@ -10,7 +11,7 @@ import { logActivity } from "../activity/log.js";
 import { DomainError } from "../shared/domain-error.js";
 import { canEditTask } from "../tasks/policies.js";
 import { getDocumentWorkspace } from "./queries.js";
-import { saveUploadedFile } from "./storage.js";
+import { deleteStoredFile, saveUploadedFile } from "./storage.js";
 
 type Actor = SessionPayload["user"];
 
@@ -62,7 +63,9 @@ async function getDocumentContext(documentId: string) {
     select: {
       id: true,
       title: true,
-      linkedTaskId: true
+      linkedTaskId: true,
+      uploadedById: true,
+      storagePath: true
     }
   });
 
@@ -71,6 +74,10 @@ async function getDocumentContext(documentId: string) {
   }
 
   return document;
+}
+
+function canDeleteDocument(document: { uploadedById: string }, actor: Actor) {
+  return actor.role === "OWNER_ADMIN" || document.uploadedById === actor.id;
 }
 
 export async function uploadDocumentCommand(input: {
@@ -226,4 +233,30 @@ export async function unlinkDocumentFromTaskCommand(input: {
   });
 
   return getDocumentWorkspace(document.id);
+}
+
+export async function deleteDocumentCommand(input: {
+  actor: Actor;
+  payload: DocumentDeleteInput;
+}) {
+  const document = await getDocumentContext(input.payload.documentId);
+
+  if (!canDeleteDocument(document, input.actor)) {
+    throw new DomainError(
+      403,
+      "FORBIDDEN",
+      "Only the uploader or an owner admin can delete this document."
+    );
+  }
+
+  await deleteStoredFile(document.storagePath);
+
+  await prisma.document.delete({
+    where: { id: document.id }
+  });
+
+  return {
+    documentId: document.id,
+    title: document.title
+  };
 }

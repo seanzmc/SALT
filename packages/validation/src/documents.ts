@@ -28,3 +28,7 @@ export const documentTaskUnlinkSchema = z.object({
   documentId: z.string().cuid(),
   taskId: z.string().cuid()
 });
+
+export const documentDeleteSchema = z.object({
+  documentId: z.string().cuid()
+});

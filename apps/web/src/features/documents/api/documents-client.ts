@@ -1,4 +1,5 @@
 import type {
+  DocumentDeleteInput,
   DocumentListFilters,
   DocumentListResponse,
   DocumentTaskLinkInput,
@@ -76,4 +77,10 @@ export function unlinkDocumentFromTask(payload: DocumentTaskUnlinkInput) {
       method: "DELETE"
     }
   );
+}
+
+export function deleteDocument(payload: DocumentDeleteInput) {
+  return apiClient<{ documentId: string; title: string }>(`/api/documents/${payload.documentId}`, {
+    method: "DELETE"
+  });
 }

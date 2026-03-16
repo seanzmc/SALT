@@ -97,3 +97,7 @@ export type DocumentTaskUnlinkInput = {
   documentId: string;
   taskId: string;
 };
+
+export type DocumentDeleteInput = {
+  documentId: string;
+};

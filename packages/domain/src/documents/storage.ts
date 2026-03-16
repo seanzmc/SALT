@@ -1,5 +1,5 @@
 import path from "node:path";
-import { put } from "@vercel/blob";
+import { del, put } from "@vercel/blob";
 
 import { DomainError } from "../shared/domain-error.js";
 
@@ -78,4 +78,29 @@ export async function saveUploadedFile(file: File) {
     mimeType: file.type || "application/octet-stream",
     originalName: file.name
   };
+}
+
+export async function deleteStoredFile(storagePath: string) {
+  if (!storagePath || storagePath.startsWith("/") || storagePath.startsWith("seed://")) {
+    return;
+  }
+
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    throw new DomainError(
+      500,
+      "INTERNAL_ERROR",
+      "Document storage is not configured. Set BLOB_READ_WRITE_TOKEN before deleting files."
+    );
+  }
+
+  try {
+    await del(storagePath);
+  } catch (error) {
+    console.error("[documents] Failed to delete stored file", error);
+    throw new DomainError(
+      500,
+      "INTERNAL_ERROR",
+      "Document storage is unavailable right now. Please try again."
+    );
+  }
 }

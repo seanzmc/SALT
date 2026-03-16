@@ -3,6 +3,7 @@ import { Router } from "express";
 import { get } from "@vercel/blob";
 
 import {
+  deleteDocumentCommand,
   getDocumentAccess,
   getDocumentWorkspace,
   linkDocumentToTaskCommand,
@@ -11,12 +12,14 @@ import {
   uploadDocumentCommand
 } from "@salt/domain";
 import type {
+  DocumentDeleteInput,
   DocumentListFilters,
   DocumentTaskLinkInput,
   DocumentTaskUnlinkInput,
   DocumentUploadMetadataInput
 } from "@salt/types";
 import {
+  documentDeleteSchema,
   documentIdParamSchema,
   documentListQuerySchema,
   documentTaskLinkSchema,
@@ -208,6 +211,28 @@ documentsRouter.post(
 
     response.status(200).json(
       await linkDocumentToTaskCommand({
+        actor: request.authSession!.user,
+        payload
+      })
+    );
+  })
+);
+
+documentsRouter.delete(
+  "/:documentId",
+  asyncHandler(async (request, response) => {
+    const parsed = documentDeleteSchema.safeParse(request.params);
+
+    if (!parsed.success) {
+      throw validationError("Invalid document id.");
+    }
+
+    const payload: DocumentDeleteInput = {
+      documentId: parsed.data.documentId
+    };
+
+    response.status(200).json(
+      await deleteDocumentCommand({
         actor: request.authSession!.user,
         payload
       })

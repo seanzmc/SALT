@@ -4,12 +4,14 @@ import type { TimelinePhaseRecord, TimelinePhaseUpdateInput, TimelineWorkspaceDa
 import { useSearchParams } from "react-router-dom";
 
 import { ApiClientError } from "../../../lib/api-client";
+import { SlideOverPanel } from "../../../app/components/slide-over-panel";
 import {
   WorkspacePageHeader,
   WorkspaceSurface
 } from "../../../app/components/workspace-page";
 import { useToast } from "../../../app/providers/toast-provider";
 import { getTimelineWorkspace, updateTimelinePhase } from "../api/timeline-client";
+import { TimelinePhaseEditShelf } from "../components/timeline-phase-edit-shelf";
 import { TimelineOverview } from "../components/timeline-overview";
 import { TimelinePhaseCard } from "../components/timeline-phase-card";
 import { timelineQueryKeys } from "../lib/query-keys";
@@ -115,6 +117,23 @@ export function TimelineWorkspacePage() {
   const activePhaseIndex = activePhase
     ? phases.findIndex((phase) => phase.id === activePhase.id)
     : -1;
+  const editingPhase = useMemo(() => {
+    const editingPhaseId = searchParams.get("editPhase");
+
+    return phases.find((phase) => phase.id === editingPhaseId) ?? null;
+  }, [phases, searchParams]);
+
+  function setEditingPhase(phaseId?: string) {
+    const next = new URLSearchParams(searchParams);
+
+    if (phaseId) {
+      next.set("editPhase", phaseId);
+    } else {
+      next.delete("editPhase");
+    }
+
+    setSearchParams(next, { replace: true });
+  }
 
   return (
     <div className="space-y-6">
@@ -171,8 +190,8 @@ export function TimelineWorkspacePage() {
                   </p>
                 </div>
                 <div className="border-b border-border/60 bg-white/45 px-4 py-3 text-xs leading-5 text-muted-foreground">
-                  Status, dates, blockers, and notes are editable here. Linked tasks open in the
-                  task workspace.
+                  Review each stage here, then use Edit for status, dates, blockers, and notes.
+                  Linked tasks still open in the task workspace.
                 </div>
                 <div className="divide-y divide-border/60">
                   {phases.map((phase, index) => (
@@ -222,10 +241,7 @@ export function TimelineWorkspacePage() {
 
               {activePhase ? (
                 <TimelinePhaseCard
-                  isSaving={updateMutation.isPending && updateMutation.variables?.phaseId === activePhase.id}
-                  onSave={async (payload: TimelinePhaseUpdateInput) => {
-                    await updateMutation.mutateAsync(payload);
-                  }}
+                  onEdit={() => setEditingPhase(activePhase.id)}
                   phase={activePhase}
                   phaseCount={phases.length}
                   phaseNumber={activePhaseIndex + 1}
@@ -235,6 +251,23 @@ export function TimelineWorkspacePage() {
           </WorkspaceSurface>
         )
       ) : null}
+
+      <SlideOverPanel onClose={() => setEditingPhase(undefined)} open={Boolean(editingPhase)}>
+        {editingPhase ? (
+          <TimelinePhaseEditShelf
+            error={saveError}
+            isSaving={
+              updateMutation.isPending && updateMutation.variables?.phaseId === editingPhase.id
+            }
+            onClose={() => setEditingPhase(undefined)}
+            onSave={async (payload: TimelinePhaseUpdateInput) => {
+              await updateMutation.mutateAsync(payload);
+              setEditingPhase(undefined);
+            }}
+            phase={editingPhase}
+          />
+        ) : null}
+      </SlideOverPanel>
     </div>
   );
 }

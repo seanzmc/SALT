@@ -12,6 +12,7 @@ import {
 import { useToast } from "../../../app/providers/toast-provider";
 import { useAuthSessionQuery } from "../../auth/hooks/use-auth-session-query";
 import {
+  deleteDocument,
   getDocumentList,
   getDocumentWorkspace,
   linkDocumentToTask,
@@ -39,6 +40,16 @@ function updateDocumentInList(
   };
 }
 
+function removeDocumentFromList(
+  current: ReturnType<typeof getDocumentList> extends Promise<infer T> ? T : never,
+  documentId: string
+) {
+  return {
+    ...current,
+    documents: current.documents.filter((item) => item.id !== documentId)
+  };
+}
+
 export function DocumentsWorkspacePage() {
   const params = useParams();
   const navigate = useNavigate();
@@ -46,6 +57,7 @@ export function DocumentsWorkspacePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [uploadError, setUploadError] = useState<string>();
   const [linkError, setLinkError] = useState<string>();
+  const [deleteError, setDeleteError] = useState<string>();
   const [showUploadPanel, setShowUploadPanel] = useState(false);
   const [documentShelfExpanded, setDocumentShelfExpanded] = useState(false);
   const toast = useToast();
@@ -223,6 +235,42 @@ export function DocumentsWorkspacePage() {
     }
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: deleteDocument,
+    onMutate: async (payload) => {
+      setDeleteError(undefined);
+      await queryClient.cancelQueries({ queryKey: documentQueryKeys.lists() });
+      const previousLists = queryClient.getQueriesData({ queryKey: documentQueryKeys.lists() });
+
+      queryClient.setQueriesData({ queryKey: documentQueryKeys.lists() }, (current: any) =>
+        current ? removeDocumentFromList(current, payload.documentId) : current
+      );
+
+      return { previousLists };
+    },
+    onError: (error, _payload, context) => {
+      const message =
+        error instanceof ApiClientError ? error.message : "Unable to delete document.";
+      setDeleteError(message);
+      toast.error("Document delete failed", message);
+
+      context?.previousLists.forEach(([queryKey, data]) => {
+        queryClient.setQueryData(queryKey, data);
+      });
+    },
+    onSuccess: async (result) => {
+      setDeleteError(undefined);
+      queryClient.removeQueries({ queryKey: documentQueryKeys.detail(result.documentId) });
+      await queryClient.invalidateQueries({ queryKey: documentQueryKeys.lists() });
+      toast.success("Document deleted", result.title);
+
+      navigate({
+        pathname: "/documents",
+        search
+      });
+    }
+  });
+
   const currentUser = sessionQuery.data?.user;
   const search = buildDocumentSearchParams(searchState).toString();
   const documents = documentsQuery.data?.documents ?? [];
@@ -231,6 +279,10 @@ export function DocumentsWorkspacePage() {
     if (!selectedDocumentId) {
       setDocumentShelfExpanded(false);
     }
+  }, [selectedDocumentId]);
+
+  useEffect(() => {
+    setDeleteError(undefined);
   }, [selectedDocumentId]);
 
   function prefetchDocument(documentId: string) {
@@ -380,6 +432,8 @@ export function DocumentsWorkspacePage() {
               currentUser={currentUser}
               data={documentQuery.data}
               error={linkError}
+              deleteError={deleteError}
+              isDeleting={deleteMutation.isPending}
               isExpanded={documentShelfExpanded}
               isSaving={linkMutation.isPending || unlinkMutation.isPending}
               onClose={() =>
@@ -388,6 +442,9 @@ export function DocumentsWorkspacePage() {
                   search
                 })
               }
+              onDeleteDocument={async (payload) => {
+                await deleteMutation.mutateAsync(payload);
+              }}
               onLinkTask={async (payload) => {
                 await linkMutation.mutateAsync(payload);
               }}
