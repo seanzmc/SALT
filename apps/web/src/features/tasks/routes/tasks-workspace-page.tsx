@@ -32,7 +32,12 @@ import {
 } from "../../../app/components/workspace-page";
 import { useToast } from "../../../app/providers/toast-provider";
 import { useAuthSessionQuery } from "../../auth/hooks/use-auth-session-query";
-import { uploadDocument } from "../../documents/api/documents-client";
+import {
+  getDocumentList,
+  linkDocumentToTask,
+  unlinkDocumentFromTask,
+  uploadDocument
+} from "../../documents/api/documents-client";
 import {
   archiveSubtask,
   archiveTask,
@@ -414,6 +419,11 @@ export function TasksWorkspacePage() {
     enabled: Boolean(selectedTaskId)
   });
 
+  const availableDocumentsQuery = useQuery({
+    queryKey: ["documents", "list", "task-linker"],
+    queryFn: () => getDocumentList({})
+  });
+
   const currentUser = sessionQuery.data?.user;
   const visibleTasks = useMemo(
     () =>
@@ -515,6 +525,7 @@ export function TasksWorkspacePage() {
           : current
       );
       void queryClient.invalidateQueries({ queryKey: taskQueryKeys.lists() });
+      void queryClient.invalidateQueries({ queryKey: ["documents", "list"] });
 
       if (isVisibleInCurrentContext) {
         setCreatedTaskNotice(null);
@@ -681,6 +692,71 @@ export function TasksWorkspacePage() {
       if (selectedTaskId) {
         void queryClient.invalidateQueries({ queryKey: taskQueryKeys.detail(selectedTaskId) });
       }
+    }
+  });
+
+  const linkExistingDocumentsMutation = useMutation({
+    mutationFn: async (payload: { taskId: string; documentIds: string[] }) => {
+      await Promise.all(
+        payload.documentIds.map((documentId) =>
+          linkDocumentToTask({
+            documentId,
+            taskId: payload.taskId
+          })
+        )
+      );
+
+      return payload;
+    },
+    onMutate: async () => {
+      setDocumentError(undefined);
+      if (selectedTaskId) {
+        await queryClient.cancelQueries({ queryKey: taskQueryKeys.detail(selectedTaskId) });
+      }
+    },
+    onError: (error) => {
+      const message =
+        error instanceof ApiClientError ? error.message : "Unable to link existing documents.";
+      setDocumentError(message);
+      toast.error("Document link failed", message);
+    },
+    onSuccess: async (payload) => {
+      setDocumentError(undefined);
+      await queryClient.invalidateQueries({ queryKey: taskQueryKeys.detail(payload.taskId) });
+      await queryClient.invalidateQueries({ queryKey: ["documents", "list"] });
+      toast.success(
+        "Existing documents linked",
+        `${payload.documentIds.length} document${payload.documentIds.length === 1 ? "" : "s"} added`
+      );
+    }
+  });
+
+  const unlinkExistingDocumentMutation = useMutation({
+    mutationFn: async (payload: { taskId: string; documentId: string }) => {
+      await unlinkDocumentFromTask({
+        documentId: payload.documentId,
+        taskId: payload.taskId
+      });
+
+      return payload;
+    },
+    onMutate: async () => {
+      setDocumentError(undefined);
+      if (selectedTaskId) {
+        await queryClient.cancelQueries({ queryKey: taskQueryKeys.detail(selectedTaskId) });
+      }
+    },
+    onError: (error) => {
+      const message =
+        error instanceof ApiClientError ? error.message : "Unable to unlink document.";
+      setDocumentError(message);
+      toast.error("Document unlink failed", message);
+    },
+    onSuccess: async (payload) => {
+      setDocumentError(undefined);
+      await queryClient.invalidateQueries({ queryKey: taskQueryKeys.detail(payload.taskId) });
+      await queryClient.invalidateQueries({ queryKey: ["documents", "list"] });
+      toast.success("Document unlinked");
     }
   });
 
@@ -1708,6 +1784,7 @@ export function TasksWorkspacePage() {
         zIndexClassName="z-40"
       >
         <TaskCreatePanel
+          documents={availableDocumentsQuery.data?.documents ?? []}
           error={createTaskError}
           fieldErrors={createTaskFieldErrors}
           isPending={createTaskMutation.isPending}
@@ -1747,9 +1824,13 @@ export function TasksWorkspacePage() {
               currentUser={currentUser as SessionPayload["user"]}
               data={taskWorkspaceQuery.data}
               dependencyError={dependencyError}
+              documents={availableDocumentsQuery.data?.documents ?? []}
               documentError={documentError}
               isArchivingTask={archiveTaskMutation.isPending || restoreTaskMutation.isPending}
               isExpanded={taskShelfExpanded}
+              isLinkingExistingDocuments={
+                linkExistingDocumentsMutation.isPending || unlinkExistingDocumentMutation.isPending
+              }
               isPostingComment={createCommentMutation.isPending}
               isUploadingDocument={uploadDocumentMutation.isPending}
               isSavingDependency={
@@ -1781,6 +1862,9 @@ export function TasksWorkspacePage() {
               onCreateSubtask={async (payload) => {
                 await createSubtaskMutation.mutateAsync(payload);
               }}
+              onLinkExistingDocuments={async (payload) => {
+                await linkExistingDocumentsMutation.mutateAsync(payload);
+              }}
               onDeleteSubtask={async (payload) => {
                 await deleteSubtaskMutation.mutateAsync(payload);
               }}
@@ -1807,6 +1891,9 @@ export function TasksWorkspacePage() {
               onToggleExpanded={() => setTaskShelfExpanded((current) => !current)}
               onUpdateSubtask={async (payload) => {
                 await updateSubtaskMutation.mutateAsync(payload);
+              }}
+              onUnlinkExistingDocument={async (payload) => {
+                await unlinkExistingDocumentMutation.mutateAsync(payload);
               }}
               subtaskError={subtaskError}
               taskError={taskError}

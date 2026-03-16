@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import type { BudgetItemRecord, BudgetItemUpdateInput, PaymentStatus, UserRole } from "@salt/types";
+import { useMemo, useState } from "react";
+import type { BudgetItemRecord, UserRole } from "@salt/types";
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("en-US", {
@@ -62,28 +62,14 @@ function SummaryBlock({
 function BudgetRowCard({
   item,
   canEdit,
-  isSaving,
-  onSave
+  onEdit
 }: {
   item: BudgetItemRecord;
   canEdit: boolean;
-  isSaving: boolean;
-  onSave: (payload: BudgetItemUpdateInput) => Promise<void>;
+  onEdit: () => void;
 }) {
-  const [actual, setActual] = useState(String(item.actual));
-  const [vendor, setVendor] = useState(item.vendor ?? "");
-  const [paidStatus, setPaidStatus] = useState<PaymentStatus>(item.paidStatus);
-  const [notes, setNotes] = useState(item.notes ?? "");
-
-  useEffect(() => {
-    setActual(String(item.actual));
-    setVendor(item.vendor ?? "");
-    setPaidStatus(item.paidStatus);
-    setNotes(item.notes ?? "");
-  }, [item.actual, item.notes, item.paidStatus, item.vendor]);
-
   return (
-    <article className="grid gap-5 rounded-[1.2rem] border border-border/75 bg-white/82 p-4 shadow-[0_18px_50px_-44px_rgba(15,23,42,0.35)] xl:grid-cols-[minmax(0,1.15fr)_minmax(19rem,0.85fr)]">
+    <article className="grid gap-5 rounded-[1.2rem] border border-border/75 bg-white/82 p-4 shadow-[0_18px_50px_-44px_rgba(15,23,42,0.35)] xl:grid-cols-[minmax(0,1.15fr)_minmax(16rem,0.85fr)]">
       <div className="space-y-4 min-w-0">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
@@ -160,118 +146,34 @@ function BudgetRowCard({
         ) : null}
       </div>
 
-      <form
-        className="space-y-4 rounded-[1rem] border border-border/75 bg-[rgba(232,244,241,0.54)] p-4"
-        onSubmit={async (event) => {
-          event.preventDefault();
-          await onSave({
-            itemId: item.id,
-            actual: Number(actual) || 0,
-            vendor: vendor.trim() || null,
-            paidStatus,
-            notes: notes.trim() || null
-          });
-        }}
-      >
+      <section className="space-y-4 rounded-[1rem] border border-border/75 bg-[rgba(232,244,241,0.54)] p-4">
         <div className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="font-semibold text-foreground">Owner update workspace</p>
+            <p className="font-semibold text-foreground">Budget controls</p>
             <span className="rounded-full border border-border/70 bg-white/78 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              {canEdit ? "Editable" : "Review only"}
+              {canEdit ? "Edit in shelf" : "Review only"}
             </span>
           </div>
           <p className="text-sm leading-6 text-muted-foreground">
-            Update actual spend, payment state, and vendor context in one labeled editing panel.
+            Keep the main budget page focused on readable spend context. Open the shelf when this
+            line needs changes.
           </p>
         </div>
 
-        <div className="space-y-3 rounded-[1rem] border border-border/70 bg-white/65 p-3">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              Financial update
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Capture the latest actual spend and payment position for this line.
-            </p>
-          </div>
-
-          <label className="space-y-2">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              Actual spend
-            </span>
-            <input
-              className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
-              disabled={!canEdit || isSaving}
-              min={0}
-              onChange={(event) => setActual(event.target.value)}
-              step="0.01"
-              type="number"
-              value={actual}
-            />
-          </label>
-
-          <label className="space-y-2">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              Payment status
-            </span>
-            <select
-              className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
-              disabled={!canEdit || isSaving}
-              onChange={(event) => setPaidStatus(event.target.value as PaymentStatus)}
-              value={paidStatus}
-            >
-              <option value="NOT_PAID">Not paid</option>
-              <option value="DEPOSIT_DUE">Deposit due</option>
-              <option value="PARTIALLY_PAID">Partially paid</option>
-              <option value="PAID">Paid</option>
-            </select>
-          </label>
+        <div className="grid gap-3">
+          <SummaryBlock label="Vendor" value={item.vendor ?? "No vendor recorded"} />
+          <SummaryBlock label="Notes" value={item.notes?.trim() || "No notes recorded"} />
         </div>
 
-        <div className="space-y-3 rounded-[1rem] border border-border/70 bg-white/65 p-3">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              Vendor context
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Keep sourcing, quote, and payment notes attached to the same budget line.
-            </p>
-          </div>
-
-          <label className="space-y-2">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              Vendor
-            </span>
-            <input
-              className="w-full rounded-[1rem] border border-border bg-white px-4 py-3"
-              disabled={!canEdit || isSaving}
-              onChange={(event) => setVendor(event.target.value)}
-              placeholder="Vendor name"
-              value={vendor}
-            />
-          </label>
-
-          <label className="space-y-2">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              Notes
-            </span>
-            <textarea
-              className="min-h-28 w-full rounded-[1rem] border border-border bg-white px-4 py-3"
-              disabled={!canEdit || isSaving}
-              onChange={(event) => setNotes(event.target.value)}
-              placeholder="Quote status, approval notes, or payment context"
-              value={notes}
-            />
-          </label>
-        </div>
-
-        <button
-          className="w-full rounded-[1rem] bg-primary px-4 py-3 text-sm font-medium text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
-          disabled={!canEdit || isSaving}
-          type="submit"
-        >
-          {isSaving ? "Saving..." : "Save budget line"}
-        </button>
+        {canEdit ? (
+          <button
+            className="w-full rounded-[1rem] bg-primary px-4 py-3 text-sm font-medium text-primary-foreground"
+            onClick={onEdit}
+            type="button"
+          >
+            Edit budget line
+          </button>
+        ) : null}
 
         {!canEdit ? (
           <p className="text-sm leading-6 text-muted-foreground">
@@ -279,7 +181,7 @@ function BudgetRowCard({
             actions.
           </p>
         ) : null}
-      </form>
+      </section>
     </article>
   );
 }
@@ -287,13 +189,11 @@ function BudgetRowCard({
 export function BudgetTable({
   items,
   role,
-  savingItemId,
-  onSave
+  onEdit
 }: {
   items: BudgetItemRecord[];
   role?: UserRole;
-  savingItemId?: string;
-  onSave: (payload: BudgetItemUpdateInput) => Promise<void>;
+  onEdit: (itemId: string) => void;
 }) {
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   const canEdit = role === "OWNER_ADMIN";
@@ -380,9 +280,8 @@ export function BudgetTable({
                     <BudgetRowCard
                       key={item.id}
                       canEdit={canEdit}
-                      isSaving={savingItemId === item.id}
                       item={item}
-                      onSave={onSave}
+                      onEdit={() => onEdit(item.id)}
                     />
                   ))}
                 </div>

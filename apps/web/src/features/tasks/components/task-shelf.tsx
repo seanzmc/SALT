@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
 import type {
+  DocumentListResponse,
   SessionPayload,
   TaskArchiveInput,
   TaskCommentCreateInput,
@@ -20,6 +21,7 @@ import { taskCommentCreateSchema } from "@salt/validation";
 import { z } from "zod";
 
 import { DOCUMENT_UPLOAD_ACCEPT } from "../../documents/lib/upload-file-types";
+import { ExistingDocumentPicker } from "./existing-document-picker";
 
 type TaskShelfProps = {
   currentUser: SessionPayload["user"];
@@ -40,6 +42,8 @@ type TaskShelfProps = {
     linkedBudgetItemId: string | null;
     file: File;
   }) => Promise<void>;
+  onLinkExistingDocuments: (payload: { taskId: string; documentIds: string[] }) => Promise<void>;
+  onUnlinkExistingDocument: (payload: { taskId: string; documentId: string }) => Promise<void>;
   onCreateSubtask: (payload: TaskSubtaskCreateInput) => Promise<void>;
   onUpdateSubtask: (payload: TaskSubtaskUpdateInput) => Promise<void>;
   onDeleteSubtask: (payload: TaskSubtaskDeleteInput) => Promise<void>;
@@ -52,6 +56,7 @@ type TaskShelfProps = {
   isSavingTask: boolean;
   isPostingComment: boolean;
   isUploadingDocument: boolean;
+  isLinkingExistingDocuments: boolean;
   isSavingSubtask: boolean;
   isSavingDependency: boolean;
   isArchivingTask: boolean;
@@ -61,6 +66,7 @@ type TaskShelfProps = {
   subtaskError?: string;
   dependencyError?: string;
   archiveError?: string;
+  documents: DocumentListResponse["documents"];
 };
 
 type TaskFormValues = {
@@ -434,6 +440,8 @@ export function TaskShelf({
   onSubmitTaskUpdate,
   onSubmitComment,
   onSubmitDocumentUpload,
+  onLinkExistingDocuments,
+  onUnlinkExistingDocument,
   onCreateSubtask,
   onUpdateSubtask,
   onDeleteSubtask,
@@ -446,6 +454,7 @@ export function TaskShelf({
   isSavingTask,
   isPostingComment,
   isUploadingDocument,
+  isLinkingExistingDocuments,
   isSavingSubtask,
   isSavingDependency,
   isArchivingTask,
@@ -454,13 +463,16 @@ export function TaskShelf({
   documentError,
   subtaskError,
   dependencyError,
-  archiveError
+  archiveError,
+  documents
 }: TaskShelfProps) {
   const task = data.task;
   const documentInputId = useId();
   const [documentFile, setDocumentFile] = useState<File | null>(null);
   const [documentFileError, setDocumentFileError] = useState<string>();
   const [showUploadForm, setShowUploadForm] = useState(false);
+  const [showExistingDocumentForm, setShowExistingDocumentForm] = useState(false);
+  const [selectedExistingDocumentIds, setSelectedExistingDocumentIds] = useState<string[]>([]);
   const [showArchivedSubtasks, setShowArchivedSubtasks] = useState(false);
   const [isEditingTask, setIsEditingTask] = useState(false);
   const [isMobileHeaderCondensed, setIsMobileHeaderCondensed] = useState(false);
@@ -543,6 +555,8 @@ export function TaskShelf({
     setDocumentFile(null);
     setDocumentFileError(undefined);
     setShowUploadForm(false);
+    setShowExistingDocumentForm(false);
+    setSelectedExistingDocumentIds([]);
     setShowArchivedSubtasks(false);
     setIsEditingTask(false);
     setIsMobileHeaderCondensed(false);
@@ -592,6 +606,7 @@ export function TaskShelf({
   const taskAssignedToId = currentTask.assignedToId;
   const canManageChecklist = canEditTask && !currentTask.archivedAt;
   const canUploadDocuments = canEditTask && !currentTask.archivedAt;
+  const linkedDocumentIds = currentTask.attachments.map((document) => document.id);
   const activeSubtasks = currentTask.subtasks.filter((subtask) => !subtask.archivedAt);
   const archivedSubtasks = currentTask.subtasks.filter((subtask) => subtask.archivedAt);
   const completeActiveSubtasks = activeSubtasks.filter((subtask) => subtask.isComplete).length;
@@ -1248,16 +1263,71 @@ export function TaskShelf({
                 {task.attachments.length} linked
               </span>
               {canUploadDocuments ? (
-                <button
-                  className="min-w-[8rem] rounded-full border border-border px-3 py-2 text-sm text-muted-foreground hover:bg-muted"
-                  onClick={() => setShowUploadForm((current) => !current)}
-                  type="button"
-                >
-                  {showUploadForm ? "Hide upload" : "Upload file"}
-                </button>
+                <>
+                  <button
+                    className="min-w-[8rem] rounded-full border border-border px-3 py-2 text-sm text-muted-foreground hover:bg-muted"
+                    onClick={() => setShowExistingDocumentForm((current) => !current)}
+                    type="button"
+                  >
+                    {showExistingDocumentForm ? "Hide existing" : "Link existing"}
+                  </button>
+                  <button
+                    className="min-w-[8rem] rounded-full border border-border px-3 py-2 text-sm text-muted-foreground hover:bg-muted"
+                    onClick={() => setShowUploadForm((current) => !current)}
+                    type="button"
+                  >
+                    {showUploadForm ? "Hide upload" : "Upload file"}
+                  </button>
+                </>
               ) : null}
             </div>
           </div>
+
+          {showExistingDocumentForm ? (
+            <div className="mt-4 space-y-4">
+              <ExistingDocumentPicker
+                documents={documents}
+                emptyMessage="No existing documents are available to link."
+                excludedDocumentIds={linkedDocumentIds}
+                onToggleDocument={(documentId) => {
+                  setSelectedExistingDocumentIds((current) =>
+                    current.includes(documentId)
+                      ? current.filter((id) => id !== documentId)
+                      : [...current, documentId]
+                  );
+                }}
+                selectedDocumentIds={selectedExistingDocumentIds}
+              />
+
+              <div className="flex flex-wrap justify-end gap-2">
+                <button
+                  className="min-w-[7.5rem] rounded-full border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-muted"
+                  onClick={() => {
+                    setShowExistingDocumentForm(false);
+                    setSelectedExistingDocumentIds([]);
+                  }}
+                  type="button"
+                >
+                  Cancel
+                </button>
+                <button
+                  className="min-w-[8.5rem] rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-60"
+                  disabled={isLinkingExistingDocuments || selectedExistingDocumentIds.length === 0}
+                  onClick={async () => {
+                    await onLinkExistingDocuments({
+                      taskId: task.id,
+                      documentIds: selectedExistingDocumentIds
+                    });
+                    setSelectedExistingDocumentIds([]);
+                    setShowExistingDocumentForm(false);
+                  }}
+                  type="button"
+                >
+                  {isLinkingExistingDocuments ? "Linking..." : "Link selected"}
+                </button>
+              </div>
+            </div>
+          ) : null}
 
           {showUploadForm ? (
             <form
@@ -1388,23 +1458,39 @@ export function TaskShelf({
               </div>
             ) : (
               task.attachments.map((document) => (
-                <Link
-                  key={document.id}
-                  className="block rounded-[1rem] border border-border p-4 transition hover:bg-muted/40"
-                  to={`/documents/${document.id}`}
-                >
+                <div key={document.id} className="rounded-[1rem] border border-border p-4">
                   <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
+                    <Link
+                      className="min-w-0 flex-1 transition hover:text-primary"
+                      to={`/documents/${document.id}`}
+                    >
                       <p className="font-medium text-foreground">{document.title}</p>
                       <p className="mt-1 text-sm text-muted-foreground">
                         {document.category.replaceAll("_", " ")} • {document.originalName}
                       </p>
+                    </Link>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="rounded-full border border-border px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+                        Open
+                      </span>
+                      {canUploadDocuments ? (
+                        <button
+                          className="rounded-full border border-border px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-muted-foreground hover:bg-muted disabled:opacity-60"
+                          disabled={isLinkingExistingDocuments}
+                          onClick={async () => {
+                            await onUnlinkExistingDocument({
+                              taskId: task.id,
+                              documentId: document.id
+                            });
+                          }}
+                          type="button"
+                        >
+                          Unlink
+                        </button>
+                      ) : null}
                     </div>
-                    <span className="rounded-full border border-border px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-                      Open
-                    </span>
                   </div>
-                </Link>
+                </div>
               ))
             )}
           </div>

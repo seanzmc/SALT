@@ -105,7 +105,8 @@ export const taskCreateSchema = z.object({
   priority: z.enum(PRIORITY_VALUES),
   openingPriority: z.enum(OPENING_PRIORITY_VALUES),
   dueDate: z.string().optional().nullable().or(z.literal("")),
-  assignedToId: z.string().cuid().optional().nullable().or(z.literal(""))
+  assignedToId: z.string().cuid().optional().nullable().or(z.literal("")),
+  documentIds: z.array(z.string().cuid()).optional().default([])
 });
 
 export const taskCommentCreateSchema = z.object({

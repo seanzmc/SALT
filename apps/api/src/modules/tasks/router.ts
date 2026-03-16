@@ -81,7 +81,8 @@ tasksRouter.post(
       priority: parsed.data.priority,
       openingPriority: parsed.data.openingPriority,
       dueDate: parsed.data.dueDate || null,
-      assignedToId: parsed.data.assignedToId || null
+      assignedToId: parsed.data.assignedToId || null,
+      documentIds: parsed.data.documentIds ?? []
     };
 
     const data = await createTaskCommand({

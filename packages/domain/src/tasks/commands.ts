@@ -67,19 +67,71 @@ export async function createTaskCommand(input: {
 }): Promise<TaskWorkspaceData> {
   assertOwner(input.actor);
 
-  const task = await prisma.task.create({
-    data: {
-      sectionId: input.payload.sectionId,
-      phaseId: input.payload.phaseId,
-      createdById: input.actor.id,
-      assignedToId: input.payload.assignedToId,
-      title: input.payload.title.trim(),
-      description: input.payload.description?.trim() || null,
-      notes: input.payload.notes?.trim() || null,
-      priority: input.payload.priority,
-      openingPriority: input.payload.openingPriority,
-      dueDate: parseOptionalDate(input.payload.dueDate)
+  const documentIds = Array.from(new Set(input.payload.documentIds));
+  const existingDocuments =
+    documentIds.length > 0
+      ? await prisma.document.findMany({
+          where: {
+            id: {
+              in: documentIds
+            }
+          },
+          select: {
+            id: true,
+            linkedTaskId: true
+          }
+        })
+      : [];
+
+  if (existingDocuments.length !== documentIds.length) {
+    throw new DomainError(404, "NOT_FOUND", "One or more selected documents were not found.");
+  }
+
+  const task = await prisma.$transaction(async (tx) => {
+    const createdTask = await tx.task.create({
+      data: {
+        sectionId: input.payload.sectionId,
+        phaseId: input.payload.phaseId,
+        createdById: input.actor.id,
+        assignedToId: input.payload.assignedToId,
+        title: input.payload.title.trim(),
+        description: input.payload.description?.trim() || null,
+        notes: input.payload.notes?.trim() || null,
+        priority: input.payload.priority,
+        openingPriority: input.payload.openingPriority,
+        dueDate: parseOptionalDate(input.payload.dueDate)
+      }
+    });
+
+    if (documentIds.length > 0) {
+      await tx.taskAttachment.createMany({
+        data: documentIds.map((documentId) => ({
+          taskId: createdTask.id,
+          documentId
+        })),
+        skipDuplicates: true
+      });
+
+      const unlinkedDocumentIds = existingDocuments
+        .filter((document) => !document.linkedTaskId)
+        .map((document) => document.id);
+
+      if (unlinkedDocumentIds.length > 0) {
+        await tx.document.updateMany({
+          where: {
+            id: {
+              in: unlinkedDocumentIds
+            },
+            linkedTaskId: null
+          },
+          data: {
+            linkedTaskId: createdTask.id
+          }
+        });
+      }
     }
+
+    return createdTask;
   });
 
   await logActivity({

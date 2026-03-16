@@ -1,14 +1,17 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { TaskCreateInput, TaskListResponse } from "@salt/types";
+import type { DocumentListResponse, TaskCreateInput, TaskListResponse } from "@salt/types";
 import { taskCreateSchema } from "@salt/validation";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+
+import { ExistingDocumentPicker } from "./existing-document-picker";
 
 type TaskCreatePanelProps = {
   error?: string;
   fieldErrors?: Record<string, string[] | undefined>;
   isPending: boolean;
+  documents: DocumentListResponse["documents"];
   phases: TaskListResponse["phases"];
   sections: TaskListResponse["sections"];
   users: TaskListResponse["users"];
@@ -34,7 +37,8 @@ function getDefaultValues(
     priority: "MEDIUM",
     openingPriority: "MUST_HAVE_BEFORE_OPENING",
     dueDate: "",
-    assignedToId: ""
+    assignedToId: "",
+    documentIds: []
   };
 }
 
@@ -42,6 +46,7 @@ export function TaskCreatePanel({
   error,
   fieldErrors,
   isPending,
+  documents,
   phases,
   sections,
   users,
@@ -49,6 +54,7 @@ export function TaskCreatePanel({
   onSubmit
 }: TaskCreatePanelProps) {
   const defaultValues = useMemo(() => getDefaultValues(sections), [sections]);
+  const [showExistingDocuments, setShowExistingDocuments] = useState(false);
   const form = useForm<TaskCreateFormValues>({
     resolver: zodResolver(taskCreateSchema),
     defaultValues
@@ -91,7 +97,8 @@ export function TaskCreatePanel({
       priority: values.priority,
       openingPriority: values.openingPriority,
       dueDate: values.dueDate || null,
-      assignedToId: values.assignedToId || null
+      assignedToId: values.assignedToId || null,
+      documentIds: values.documentIds ?? []
     });
   }
 
@@ -258,6 +265,48 @@ export function TaskCreatePanel({
               ))}
             </select>
           </label>
+
+          <div className="space-y-2 md:col-span-2">
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-[1rem] border border-border bg-muted/18 px-4 py-3">
+              <div>
+                <p className="font-medium text-foreground">Existing documents</p>
+                <p className="text-sm text-muted-foreground">
+                  Optionally link documents that already exist in the vault.
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-full bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                  {(form.watch("documentIds") ?? []).length} selected
+                </span>
+                <button
+                  className="rounded-full border border-border bg-white px-3 py-2 text-sm text-muted-foreground hover:bg-muted"
+                  onClick={() => setShowExistingDocuments((current) => !current)}
+                  type="button"
+                >
+                  {showExistingDocuments ? "Hide documents" : "Link existing"}
+                </button>
+              </div>
+            </div>
+
+            {showExistingDocuments ? (
+              <ExistingDocumentPicker
+                documents={documents}
+                emptyMessage="No existing documents match the current search."
+                onToggleDocument={(documentId) => {
+                  const currentDocumentIds = form.getValues("documentIds") ?? [];
+                  const nextDocumentIds = currentDocumentIds.includes(documentId)
+                    ? currentDocumentIds.filter((id) => id !== documentId)
+                    : [...currentDocumentIds, documentId];
+
+                  form.setValue("documentIds", nextDocumentIds, {
+                    shouldDirty: true,
+                    shouldTouch: true
+                  });
+                }}
+                selectedDocumentIds={form.watch("documentIds") ?? []}
+              />
+            ) : null}
+          </div>
 
           {error ? (
             <div className="rounded-[1rem] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 md:col-span-2">

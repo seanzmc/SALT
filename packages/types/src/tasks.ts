@@ -243,6 +243,7 @@ export type TaskCreateInput = {
   openingPriority: TaskOpeningPriority;
   dueDate: string | null;
   assignedToId: string | null;
+  documentIds: string[];
 };
 
 export type TaskCommentCreateInput = {

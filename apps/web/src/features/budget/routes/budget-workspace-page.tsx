@@ -8,6 +8,7 @@ import type {
 import { useSearchParams } from "react-router-dom";
 
 import { ApiClientError } from "../../../lib/api-client";
+import { SlideOverPanel } from "../../../app/components/slide-over-panel";
 import {
   WorkspacePageHeader,
   WorkspaceSurface
@@ -21,6 +22,7 @@ import {
   updateBudgetSearchState
 } from "../lib/url-state";
 import { getBudgetWorkspace, updateBudgetItem } from "../api/budget-client";
+import { BudgetItemEditShelf } from "../components/budget-item-edit-shelf";
 import { BudgetSummaryCards } from "../components/budget-summary-cards";
 import { BudgetTable } from "../components/budget-table";
 
@@ -138,10 +140,28 @@ export function BudgetWorkspacePage() {
     }
   });
 
+  const editingItem = useMemo(() => {
+    const editingItemId = searchParams.get("editItem");
+
+    return budgetQuery.data?.items.find((item) => item.id === editingItemId) ?? null;
+  }, [budgetQuery.data?.items, searchParams]);
+
+  function setEditingItem(itemId?: string) {
+    const next = new URLSearchParams(searchParams);
+
+    if (itemId) {
+      next.set("editItem", itemId);
+    } else {
+      next.delete("editItem");
+    }
+
+    setSearchParams(next, { replace: true });
+  }
+
   return (
     <div className="space-y-6">
       <WorkspacePageHeader
-        description="Budget lines stay grouped by category, edits are clearly labeled, and the workspace leads with spend signal before row-level updates."
+        description="Budget lines stay grouped by category, edits move into a dedicated shelf, and the workspace leads with spend signal before row-level changes."
         eyebrow="Budget"
         title="Budget workspace"
       />
@@ -181,7 +201,7 @@ export function BudgetWorkspacePage() {
               </span>
             }
             bodyClassName="space-y-6"
-            description="Category groups can collapse when you want less page length. Each line separates the financial signal from the owner-only update controls."
+            description="Category groups can collapse when you want less page length. Each line keeps the financial signal visible while owner edits live behind an explicit shelf action."
             title="Budget lines"
             toolbar={
               <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(16rem,auto)]">
@@ -224,21 +244,33 @@ export function BudgetWorkspacePage() {
           >
             <div className="rounded-[1.25rem] border border-border/75 bg-[rgba(255,251,244,0.78)] px-5 py-4 text-sm leading-6 text-muted-foreground shadow-[0_18px_50px_-44px_rgba(15,23,42,0.3)]">
               Read left to right: first confirm the line’s estimate, actuals, and variance, then
-              use the update controls to capture vendor and payment movement. This keeps budget work
-              labeled and intentional instead of feeling like an afterthought.
+              open Edit only when vendor or payment movement needs to change. This keeps budget work
+              labeled and intentional instead of leaving the whole page in edit mode.
             </div>
             <BudgetSummaryCards totals={budgetQuery.data.totals} />
             <BudgetTable
               items={budgetQuery.data.items}
-              onSave={async (payload: BudgetItemUpdateInput) => {
-                await updateMutation.mutateAsync(payload);
-              }}
+              onEdit={(itemId) => setEditingItem(itemId)}
               role={sessionQuery.data?.user.role}
-              savingItemId={updateMutation.variables?.itemId}
             />
           </WorkspaceSurface>
         )
       ) : null}
+
+      <SlideOverPanel onClose={() => setEditingItem(undefined)} open={Boolean(editingItem)}>
+        {editingItem ? (
+          <BudgetItemEditShelf
+            error={saveError}
+            isSaving={updateMutation.isPending && updateMutation.variables?.itemId === editingItem.id}
+            item={editingItem}
+            onClose={() => setEditingItem(undefined)}
+            onSave={async (payload: BudgetItemUpdateInput) => {
+              await updateMutation.mutateAsync(payload);
+              setEditingItem(undefined);
+            }}
+          />
+        ) : null}
+      </SlideOverPanel>
     </div>
   );
 }
