@@ -3,38 +3,43 @@
 Guide Codex to make safe, minimal changes in this repository.
 
 Optimize for:
-- preserving current Next.js app-router behavior
-- reusing existing auth, Prisma, validation, and server action patterns
+- reusing existing active API, Prisma, validation, and shared package patterns
 - avoiding changes that break server/client boundaries
 - verifying with commands that actually work in this repo
 
+# Active Repo Surface
+
+- Active frontend: `apps/web`
+- Active API: `apps/api`
+- Shared packages: `packages/db`, `packages/domain`, `packages/types`, `packages/validation`
+- Shared active root files: `lib/prisma.ts`, `prisma/*`, workspace config/docs
+- Archived legacy Next app: `archive/legacy-next-app`
+
+Do not edit archived legacy app files for current development. Any older instructions that mention root `app/`, `components/`, `server/`, NextAuth, or server actions apply only to the archived app unless a task explicitly targets the archive.
+
 # Stack Snapshot
 
-- Next.js 14 app router
 - React 18
+- Vite frontend in `apps/web`
+- Express API in `apps/api`
 - TypeScript
 - Prisma 6 with PostgreSQL
-- NextAuth 4 credentials auth with JWT sessions
 - `bcryptjs` password hashing
-- server actions in `server/actions.ts`
-- validation in `lib/validators.ts`
-- auth/session helpers in `lib/auth.ts` and `server/authz.ts`
 - Prisma client singleton in `lib/prisma.ts`
 - Prisma schema in `prisma/schema.prisma`
 - seed script in `prisma/seed.ts`
-
 # Non-Negotiable Repo Rules
 
 - Keep changes small and localized. Prefer targeted edits over refactors.
 - Do not introduce new libraries unless the existing stack cannot reasonably support the task.
 - Reuse existing modules before creating new ones:
-  - auth/session: `lib/auth.ts`, `server/authz.ts`
-  - validation: `lib/validators.ts`
+  - API routes/middleware: `apps/api/src/*`
+  - shared domain logic: `packages/domain/src/*`
+  - validation: `packages/validation/src/*`
   - DB access: `lib/prisma.ts`
-  - activity logging: `server/activity.ts`
-  - server actions: `server/actions.ts`
+  - shared types: `packages/types/src/*`
 - Match existing path aliases and file organization. Do not create parallel abstractions unless there is a clear repo-wide need.
-- If the task touches deployment, auth, Prisma, middleware, route handlers, or server actions, explicitly check Next.js app-router/runtime constraints before editing.
+- If the task touches deployment, auth, Prisma, middleware, or route handlers, explicitly check the active runtime constraints before editing.
 
 # Server Action Rules
 
