@@ -23,7 +23,46 @@ import {
   taskSeeds
 } from "@/prisma/pdf-seed-data";
 
+function getDatabaseTargetSummary(databaseUrl: string | undefined) {
+  if (!databaseUrl) {
+    return "unknown target";
+  }
+
+  try {
+    const url = new URL(databaseUrl);
+    const databaseName = url.pathname.replace(/^\//, "") || "(default)";
+
+    return `${url.hostname}/${databaseName}`;
+  } catch {
+    return "unparseable target";
+  }
+}
+
+async function assertSeedResetIsSafe() {
+  const [userCount, sectionCount, taskCount] = await Promise.all([
+    prisma.user.count(),
+    prisma.section.count(),
+    prisma.task.count()
+  ]);
+
+  const hasExistingData = userCount > 0 || sectionCount > 0 || taskCount > 0;
+
+  if (!hasExistingData || process.env.SEED_ALLOW_RESET === "true") {
+    return;
+  }
+
+  throw new Error(
+    [
+      `Refusing to run destructive seed against non-empty database ${getDatabaseTargetSummary(process.env.DATABASE_URL)}.`,
+      "This seed script deletes existing users, tasks, documents, and related records before recreating the baseline data.",
+      "If you intentionally want to reset this database, rerun with SEED_ALLOW_RESET=true."
+    ].join(" ")
+  );
+}
+
 async function main() {
+  await assertSeedResetIsSafe();
+
   await prisma.taskAttachment.deleteMany();
   await prisma.taskDependency.deleteMany();
   await prisma.taskComment.deleteMany();
