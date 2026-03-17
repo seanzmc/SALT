@@ -90,38 +90,53 @@ export async function uploadDocumentCommand(input: {
   }
 
   const storedFile = await saveUploadedFile(input.file);
+  try {
+    const document = await prisma.$transaction(async (tx) => {
+      const createdDocument = await tx.document.create({
+        data: {
+          title: input.payload.title.trim(),
+          category: input.payload.category,
+          notes: input.payload.notes?.trim() || null,
+          linkedTaskId: input.payload.linkedTaskId,
+          linkedBudgetItemId: input.payload.linkedBudgetItemId,
+          uploadedById: input.actor.id,
+          ...storedFile
+        }
+      });
 
-  const document = await prisma.document.create({
-    data: {
-      title: input.payload.title.trim(),
-      category: input.payload.category,
-      notes: input.payload.notes?.trim() || null,
-      linkedTaskId: input.payload.linkedTaskId,
-      linkedBudgetItemId: input.payload.linkedBudgetItemId,
-      uploadedById: input.actor.id,
-      ...storedFile
-    }
-  });
-
-  if (input.payload.linkedTaskId) {
-    await prisma.taskAttachment.create({
-      data: {
-        taskId: input.payload.linkedTaskId,
-        documentId: document.id
+      if (input.payload.linkedTaskId) {
+        await tx.taskAttachment.create({
+          data: {
+            taskId: input.payload.linkedTaskId,
+            documentId: createdDocument.id
+          }
+        });
       }
+
+      await tx.activityLog.create({
+        data: {
+          actorId: input.actor.id,
+          taskId: input.payload.linkedTaskId ?? null,
+          type: "DOCUMENT_UPLOADED",
+          entityType: "Document",
+          entityId: createdDocument.id,
+          description: `Uploaded document "${createdDocument.title}".`
+        }
+      });
+
+      return createdDocument;
     });
+
+    return getDocumentWorkspace(document.id);
+  } catch (error) {
+    try {
+      await deleteStoredFile(storedFile.storagePath);
+    } catch (cleanupError) {
+      console.error("[documents] Failed to clean up Blob file after upload persistence failure", cleanupError);
+    }
+
+    throw error;
   }
-
-  await logActivity({
-    actorId: input.actor.id,
-    taskId: input.payload.linkedTaskId,
-    type: "DOCUMENT_UPLOADED",
-    entityType: "Document",
-    entityId: document.id,
-    description: `Uploaded document "${document.title}".`
-  });
-
-  return getDocumentWorkspace(document.id);
 }
 
 export async function linkDocumentToTaskCommand(input: {
