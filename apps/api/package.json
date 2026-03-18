@@ -7,7 +7,8 @@
     "node": "22.x"
   },
   "scripts": {
-    "dev": "tsx watch src/server.ts",
+    "dev": "npm run dev:local",
+    "dev:local": "node ../../scripts/dev-api-local.mjs",
     "build": "npm run build -w @salt/types && npm run build -w @salt/validation && npm run build -w @salt/db && npm run build -w @salt/domain && tsc --project tsconfig.json",
     "typecheck": "tsc --project tsconfig.json --noEmit",
     "start": "node dist/server.js"
@@ -19,7 +20,6 @@
     "@vercel/blob": "^2.3.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "nodemailer": "^7.0.13",
     "zod": "^3.24.2"

@@ -13,16 +13,17 @@
     "build:api": "npm run build -w @salt/api",
     "build:web": "npm run build -w @salt/web",
     "postinstall": "prisma generate",
-    "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev",
+    "db:generate": "npm run db:generate:local",
+    "db:generate:local": "node ./scripts/run-local-prisma.mjs generate",
+    "db:migrate": "npm run db:migrate:local",
+    "db:migrate:local": "node ./scripts/run-local-prisma.mjs migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
-    "db:seed": "tsx prisma/seed.ts",
+    "db:seed": "npm run db:seed:local",
+    "db:seed:local": "node ./scripts/run-local-prisma.mjs db seed",
+    "db:studio:local": "node ./scripts/run-local-prisma.mjs studio",
     "typecheck:api": "npm run typecheck -w @salt/api",
     "typecheck:web": "npm run typecheck -w @salt/web",
     "typecheck:v2": "npm run typecheck:api && npm run typecheck:web"
-  },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.5.0",
