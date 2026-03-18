@@ -14,6 +14,7 @@ import { accountEmailSchema, accountNameSchema, accountPasswordSchema } from "@s
 
 import { AppError } from "../../lib/app-error.js";
 import { asyncHandler } from "../../lib/async-handler.js";
+import { logRuntimeMutation } from "../../lib/runtime-diagnostics.js";
 import { requireSession } from "../../middleware/auth-session.js";
 
 export const accountRouter = Router();
@@ -40,12 +41,18 @@ accountRouter.patch(
       name: parsed.data.name
     };
 
-    response.status(200).json(
-      await updateAccountNameCommand({
-        actor: request.authSession!.user,
-        payload
-      })
-    );
+    const result = await updateAccountNameCommand({
+      actor: request.authSession!.user,
+      payload
+    });
+
+    logRuntimeMutation({
+      action: "account.name_update",
+      userId: request.authSession!.user.id,
+      email: request.authSession!.user.email
+    });
+
+    response.status(200).json(result);
   })
 );
 
@@ -65,12 +72,18 @@ accountRouter.patch(
       email: parsed.data.email
     };
 
-    response.status(200).json(
-      await updateAccountEmailCommand({
-        actor: request.authSession!.user,
-        payload
-      })
-    );
+    const result = await updateAccountEmailCommand({
+      actor: request.authSession!.user,
+      payload
+    });
+
+    logRuntimeMutation({
+      action: "account.email_update",
+      userId: request.authSession!.user.id,
+      email: payload.email
+    });
+
+    response.status(200).json(result);
   })
 );
 
@@ -92,11 +105,17 @@ accountRouter.patch(
       confirmPassword: parsed.data.confirmPassword
     };
 
-    response.status(200).json(
-      await updateAccountPasswordCommand({
-        actor: request.authSession!.user,
-        payload
-      })
-    );
+    const result = await updateAccountPasswordCommand({
+      actor: request.authSession!.user,
+      payload
+    });
+
+    logRuntimeMutation({
+      action: "account.password_update",
+      userId: request.authSession!.user.id,
+      email: request.authSession!.user.email
+    });
+
+    response.status(200).json(result);
   })
 );

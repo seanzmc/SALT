@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import express from "express";
 
 import { apiEnv } from "./config/env.js";
+import { buildRuntimeHeaderValue, getRuntimeDiagnostics } from "./lib/runtime-diagnostics.js";
 import { attachSession } from "./middleware/auth-session.js";
 import { errorHandler, notFoundHandler } from "./middleware/error-handler.js";
 import { authRouter } from "./modules/auth/router.js";
@@ -24,12 +25,19 @@ export function createApp() {
       credentials: true
     })
   );
+  app.use((_request, response, next) => {
+    response.setHeader("x-salt-runtime", buildRuntimeHeaderValue());
+    next();
+  });
   app.use(express.json());
   app.use(cookieParser());
   app.use(attachSession);
 
   app.get(["/health", "/api/health"], (_request, response) => {
-    response.status(200).json({ ok: true, service: "salt-api" });
+    response.status(200).json({
+      ok: true,
+      ...getRuntimeDiagnostics()
+    });
   });
 
   app.use("/api/account", accountRouter);

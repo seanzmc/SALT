@@ -19,6 +19,7 @@ import { apiEnv } from "../../config/env.js";
 import { AppError } from "../../lib/app-error.js";
 import { asyncHandler } from "../../lib/async-handler.js";
 import { sendPasswordResetEmail } from "../../lib/password-reset-email.js";
+import { hashEmail, logRuntimeMutation } from "../../lib/runtime-diagnostics.js";
 import { requireSession } from "../../middleware/auth-session.js";
 
 export const authRouter = Router();
@@ -50,11 +51,25 @@ authRouter.post(
       path: "/"
     });
 
+    logRuntimeMutation({
+      action: "auth.login",
+      userId: session.user.id,
+      email: session.user.email
+    });
+
     response.status(200).json(session);
   })
 );
 
 authRouter.post("/logout", (_request, response) => {
+  if (_request.authSession?.user) {
+    logRuntimeMutation({
+      action: "auth.logout",
+      userId: _request.authSession.user.id,
+      email: _request.authSession.user.email
+    });
+  }
+
   response.clearCookie(SESSION_COOKIE_NAME, {
     httpOnly: true,
     sameSite: "lax",
@@ -103,6 +118,15 @@ authRouter.post(
       }
     }
 
+    logRuntimeMutation({
+      action: "auth.password_forgot",
+      email: payload.email,
+      metadata: {
+        accountFound: Boolean(result.delivery),
+        emailHash: hashEmail(payload.email)
+      }
+    });
+
     response.status(200).json({ message: result.message });
   })
 );
@@ -138,11 +162,15 @@ authRouter.post(
       confirmPassword: parsed.data.confirmPassword
     };
 
-    response.status(200).json(
-      await resetPasswordWithTokenCommand({
-        token: payload.token,
-        newPassword: payload.newPassword
-      })
-    );
+    const result = await resetPasswordWithTokenCommand({
+      token: payload.token,
+      newPassword: payload.newPassword
+    });
+
+    logRuntimeMutation({
+      action: "auth.password_reset"
+    });
+
+    response.status(200).json(result);
   })
 );
