@@ -21,7 +21,14 @@ export function createApp() {
 
   app.use(
     cors({
-      origin: apiEnv.WEB_ORIGIN,
+      origin(requestOrigin, callback) {
+        if (!requestOrigin) {
+          callback(null, true);
+          return;
+        }
+
+        callback(null, apiEnv.CORS_ALLOWED_ORIGINS.includes(requestOrigin));
+      },
       credentials: true
     })
   );

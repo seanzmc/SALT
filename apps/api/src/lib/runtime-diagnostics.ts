@@ -60,6 +60,8 @@ export function getRuntimeDiagnostics() {
         `${apiEnv.NODE_ENV}-local`
     },
     configuredWebOrigin: apiEnv.WEB_ORIGIN,
+    allowedWebOrigins: apiEnv.CORS_ALLOWED_ORIGINS,
+    passwordResetOrigin: apiEnv.PASSWORD_RESET_ORIGIN,
     database: sanitizeDatabaseUrl(process.env.DATABASE_URL)
   };
 }

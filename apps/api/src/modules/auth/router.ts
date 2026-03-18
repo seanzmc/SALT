@@ -107,7 +107,7 @@ authRouter.post(
 
     const result = await requestPasswordResetCommand({
       email: payload.email,
-      baseUrl: apiEnv.WEB_ORIGIN
+      baseUrl: apiEnv.PASSWORD_RESET_ORIGIN
     });
 
     if (result.delivery) {
