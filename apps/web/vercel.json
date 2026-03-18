@@ -1,13 +1,24 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
     {
       "source": "/api/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "salt-web-opal.vercel.app"
+        }
+      ],
       "destination": "https://salt-api-sand.vercel.app/api/$1"
     },
     {
-      "source": "/(.*)",
+      "source": "/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/:path((?!api/).*)",
       "destination": "/index.html"
     }
   ]

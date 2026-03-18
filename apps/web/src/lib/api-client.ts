@@ -11,6 +11,23 @@ export class ApiClientError extends Error {
   }
 }
 
+function isRelativeApiRoute(input: RequestInfo) {
+  if (typeof input === "string") {
+    return input.startsWith("/api/");
+  }
+
+  if (input instanceof Request) {
+    try {
+      const url = new URL(input.url, window.location.origin);
+      return url.pathname.startsWith("/api/");
+    } catch {
+      return false;
+    }
+  }
+
+  return false;
+}
+
 export async function apiClient<T>(
   input: RequestInfo,
   init?: RequestInit
@@ -40,7 +57,15 @@ export async function apiClient<T>(
   const contentType = response.headers.get("content-type") ?? "";
   const payload = contentType.includes("application/json")
     ? ((await response.json()) as T | ApiErrorResponse)
-    : ({ error: { code: "INTERNAL_ERROR", message: await response.text() } } satisfies ApiErrorResponse);
+    : ({
+        error: {
+          code: "INTERNAL_ERROR",
+          message:
+            response.status === 404 && isRelativeApiRoute(input)
+              ? "This deployment does not provide the SALT API."
+              : await response.text()
+        }
+      } satisfies ApiErrorResponse);
 
   if (!response.ok) {
     throw new ApiClientError(
